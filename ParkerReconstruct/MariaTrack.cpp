@@ -1,0 +1,419 @@
+//Written by John Parker
+//This code matches Silicon events with PC events based on the phi location of the event
+//Usage: g++ -o ParkerTrack EnergyLoss.cpp ParkerTrack.cpp `root-config --cflags --glibs`
+//      ./ParkerTrack DataList.txt outputfile.root
+////DataList.txt contains a list of rootfile from ParkerMain
+////------------------------------------------------------
+////If you are sorting lots of files and don't want to make a huge data tree, you can comment out the #define FillTree line below and only the histograms will be filled (or vice versa)
+
+//#define TimingCut
+//#define EnergyCut
+
+#define FillHists
+#define FillTree
+
+#define MaxSiHits   500
+#define MaxADCHits  500
+#define MaxTDCHits  500
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <sstream>
+#include <exception>
+#include <stdexcept>
+#include <map>
+#include <algorithm>
+
+//ROOT libraries
+#include <TFile.h>
+#include <TTree.h>
+#include <TROOT.h>
+#include <TNtuple.h>
+#include <TCanvas.h>
+#include <TRint.h>
+#include <TObjArray.h>
+#include <TGraph.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TStyle.h>
+#include <TMath.h>
+#include <TList.h>
+#include <TCutG.h>
+#include <TLorentzVector.h>
+#include <TVector3.h>
+
+#include "/home/manasta/Desktop/parker_codes/Include/organizetree.h"
+#include "/home/manasta/Desktop/parker_codes/Include/Reconstruct.h"
+
+using namespace std;
+
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX);
+
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX,
+	    int binsY, double lowY, double highY, double valueY);
+
+TList* fhlist;
+std::map<string,TH1*> fhmap;
+
+bool Track::Si_sort_method(struct Silicon_Event a,struct Silicon_Event b){
+  if(a.SiEnergy > b.SiEnergy)
+    return 1;
+  return 0;
+};
+
+bool Track::PC_sort_method(struct PropCounter_Event a,struct PropCounter_Event b){
+  if(a.PCEnergy > b.PCEnergy)
+    return 1;
+  return 0;
+};
+
+int main(int argc, char* argv[]){
+  TApplication *myapp=new TApplication("myapp",0,0); //Don't know what this does, but libraries won't load without it
+
+  if ( argc!=5){
+    cout << "Error: Wrong Number of Arguments\n";
+    exit(EXIT_FAILURE);
+  }
+
+  char* filename_raw  = new char [100]; // for input  .root filename
+  char* filename_cal = new char [100]; // for output .root filename
+  char* filename_cut = new char[100]; //for cut file
+  char* filename_cut2 = new char[100]; //for cut file
+
+  strcpy( filename_raw, argv[1] );
+  strcpy( filename_cal, argv[2] );
+  strcpy( filename_cut, argv[3] );
+  strcpy( filename_cut2, argv[4] );
+
+  TFile *cut_file = new TFile(filename_cut);
+  if (!cut_file->IsOpen()){
+    cout << "Cut file: " << filename_cut << " could not be opened.\n";
+    exit(EXIT_FAILURE);
+  }
+  TCutG *cut = NULL;
+  cut = (TCutG*)cut_file->Get("alphas");
+  if (cut == NULL){
+    cout << "Cut does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  cut_file->Close();
+  TFile *cut_file2 = new TFile(filename_cut2);
+  if (!cut_file2->IsOpen()){
+    cout << "Cut file: " << filename_cut2 << " could not be opened.\n";
+    exit(EXIT_FAILURE);
+  }else{
+    cout << "Opened File: " << filename_cut2 << endl;
+  }
+  TCutG *cut_protons1 = NULL;
+  cut_protons1 = (TCutG*)cut_file2->Get("protons1");
+  if (cut_protons1 == NULL){
+    cout << "Cut does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+
+  TCutG *cut_protons2 = NULL;
+  cut_protons2 = (TCutG*)cut_file2->Get("protons2");
+  if (cut_protons2 == NULL){
+    cout << "Cut does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+
+  TObjArray *RootObjects = new TObjArray();
+  SiHit Si;
+  PCHit PC;
+  Track Old_Tr;
+  Track Tr;
+  Reconstruct Rec;
+  Int_t Old_RFTime,Old_MCPTime;
+  Int_t RFTime,MCPTime;
+
+  Si.ReadDet = 0;
+  Si.ReadHit = 0;
+  PC.ReadHit = 0;
+  Old_Tr.ReadTrEvent = 0;
+
+  EnergyLoss *E_Loss = new EnergyLoss("/home/manasta/Desktop/parker_codes/CalParamFiles/Be7_D2_400Torr.eloss",M_Be7);
+  // EnergyLoss *E_Loss_deuteron = new EnergyLoss("/home2/parker/ANASEN/LSU/CalParamFiles/D2_D2_400Torr.eloss",M_D2);
+
+  TFile *outputfile = new TFile(filename_cal,"RECREATE");
+  TTree *MainTree = new TTree("MainTree","MainTree");
+  MainTree->Branch("Tr.NTracks",&Tr.NTracks,"NTracks/I");
+  MainTree->Branch("Tr.NTracks1",&Tr.NTracks1,"NTracks1/I");
+  MainTree->Branch("Tr.NTracks2",&Tr.NTracks2,"NTracks2/I");
+  MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
+  MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
+  MainTree->Branch("Tr.SiEvent",&Tr.SiEvent);
+  MainTree->Branch("Tr.PCEvent",&Tr.PCEvent);
+  MainTree->Branch("Tr.BeEvent",&Tr.BeEvent);
+  MainTree->Branch("Tr.AlEvent",&Tr.AlEvent);
+
+  TH2F *E_de = new TH2F("E_de","E_de",1000,-1,35,100,-0.1,1);
+
+  RootObjects->Add(MainTree);
+  RootObjects->Add(E_de);
+
+  fhlist = new TList;
+  RootObjects->Add(fhlist);
+  Double_t avg_beam_energy = 0;
+
+  ifstream inFileList;
+  inFileList.open(filename_raw);
+  if (!inFileList.is_open()){
+    cout << "In File List not open\n";
+    exit(EXIT_FAILURE);
+  }
+  string rootfile;
+  char rootfile_char[100];
+
+  //EnergyLoss *E_Loss_alpha = new EnergyLoss("/home2/parker/ANASEN/LSU/CalParamFiles/He4_D2_400Torr.eloss",M_alpha);
+
+  while (!inFileList.eof()){//loop over all of the incoming root files----------------------------------------------------------------------------------------------
+    getline(inFileList,rootfile);
+    if (rootfile.empty()){
+      //cout << "Root File does not exist: " << rootfile << endl;
+      break;
+    }
+    strcpy(rootfile_char,rootfile.c_str());
+    TFile *inputFile = new TFile(rootfile_char);//open root file and make sure it exists----------------------------------------------------------------------------
+    if (!inputFile->IsOpen()){
+      cout << "Root file: " << rootfile << " could not be opened.\n";
+      continue;
+    }
+    cout << "Processing File: " << rootfile << endl;
+
+    TTree *raw_tree = (TTree*) inputFile->Get("MainTree");
+
+    raw_tree->SetBranchAddress("Si.NSiHits",&Si.NSiHits);
+    raw_tree->SetBranchAddress("Si.Detector",&Si.ReadDet);
+    raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
+    raw_tree->SetBranchAddress("PC.NPCHits",&PC.NPCHits);
+    raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
+    raw_tree->SetBranchAddress("Tr.NTracks",&Old_Tr.NTracks);
+    raw_tree->SetBranchAddress("Tr.TrackEvent",&Old_Tr.ReadTrEvent);
+    raw_tree->SetBranchAddress("RFTime",&RFTime);
+    raw_tree->SetBranchAddress("MCPTime",&MCPTime);
+
+    
+    Long64_t nentries = raw_tree->GetEntries();
+MainTree->Branch("Tr.AlEvent",&Tr.AlEvent);MainTree->Branch("Tr.AlEvent",&Tr.AlEvent);    Int_t status;
+    for (Long64_t i=0; i<nentries; i++){//loop over all events
+      status = raw_tree->GetEvent(i);
+
+      //cout << "Event_Number: " << i << endl;
+      if (i == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
+      if (i == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
+      if (i == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
+      if (i == TMath::Nint(0.25*nentries))  cout << " 25% through the data" << endl;
+      if (i == TMath::Nint(0.35*nentries))  cout << " 35% through the data" << endl;
+      if (i == TMath::Nint(0.50*nentries))  cout << " 50% through the data" << endl;
+      if (i == TMath::Nint(0.65*nentries))  cout << " 65% through the data" << endl;
+      if (i == TMath::Nint(0.75*nentries))  cout << " 75% through the data" << endl;
+      if (i == TMath::Nint(0.90*nentries))  cout << " 90% through the data" << endl;
+      if (i == TMath::Nint(0.95*nentries))  cout << " 95% through the data" << endl;
+      if (i == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
+
+      MyFill("Timing",400,-600,600,(MCPTime-RFTime)%538);
+
+#ifdef TimingCut   
+      if ( (MCPTime-RFTime)%538<68 || (MCPTime-RFTime)%538>370 ){
+	continue;
+      }
+      if ( (MCPTime-RFTime)%538>100 && (MCPTime-RFTime)%538<330 ){
+	continue;
+      }
+#endif
+
+      Tr.zeroTrack();
+      //first, just copy everything from the old file into one tree
+      //Track Type 1 has a silicon and pc together
+      //Track Type 2 has only a silicon
+      //Track Type 3 has only pc events
+      for (Int_t j=0; j<Old_Tr.ReadTrEvent->size(); j++){//loop over all of the tracks	
+	//if we have a good hit type set the parameters in your new tree
+	Old_Tr.track_place_holder = Old_Tr.ReadTrEvent->at(j);
+	if ( Old_Tr.track_place_holder.SiEnergy <= 0 ){//make sure that the track was filled
+	  continue;
+	}
+	//copy stuff from the old file
+	Tr.track_place_holder.TrackType = 1;
+	Tr.track_place_holder.DetID = Old_Tr.track_place_holder.DetID;
+	Tr.track_place_holder.WireID = Old_Tr.track_place_holder.WireID;
+	Tr.track_place_holder.SiEnergy = Old_Tr.track_place_holder.SiEnergy;
+	Tr.track_place_holder.SiZ = Old_Tr.track_place_holder.SiZ;
+	Tr.track_place_holder.SiR = Old_Tr.track_place_holder.SiR;
+	Tr.track_place_holder.SiPhi = Old_Tr.track_place_holder.SiPhi;
+	Tr.track_place_holder.PCEnergy = Old_Tr.track_place_holder.PCEnergy;
+	Tr.track_place_holder.PCZ = Old_Tr.track_place_holder.PCZ;
+	Tr.track_place_holder.PCR = Old_Tr.track_place_holder.PCR;
+	Tr.track_place_holder.PCPhi = Old_Tr.track_place_holder.PCPhi;
+	Tr.track_place_holder.IntPoint = Old_Tr.track_place_holder.IntPoint;
+	Tr.track_place_holder.PathLength = Old_Tr.track_place_holder.PathLength;
+	Tr.track_place_holder.Theta = Old_Tr.track_place_holder.Theta;
+	Tr.track_place_holder.Phi = Old_Tr.track_place_holder.SiPhi;
+	Tr.track_place_holder.BeamEnergy = BeamE - E_Loss->GetEnergyLoss(BeamE,La-Tr.track_place_holder.IntPoint);
+
+#ifdef FillHists
+	E_de->Fill(Tr.track_place_holder.SiEnergy,Tr.track_place_holder.PCEnergy);
+	MyFill("E_de_corrected",300,0,30,Tr.track_place_holder.SiEnergy,300,0,1,Tr.track_place_holder.PCEnergy*sin(Tr.track_place_holder.Theta));
+#endif
+
+	Tr.NTracks++;
+	Tr.NTracks1++;
+	Tr.TrEvent.push_back(Tr.track_place_holder);
+
+      }
+
+      for (Int_t j=0; j<Si.ReadHit->size(); j++){//loop over all silicon
+	Si.hit_place_holder = Si.ReadHit->at(j);
+	if ( Si.hit_place_holder.TrackType==1 ){//if they are track type 1, then the event has aleady been copied
+	  continue;
+	}
+	if ( Si.hit_place_holder.Energy <= 0 ){//make sure that the Silicon energy was filled
+	  continue;
+	}
+	Tr.si_place_holder.TrackType = 2;
+	Tr.si_place_holder.DetID = Si.hit_place_holder.DetID;
+	Tr.si_place_holder.SiEnergy = Si.hit_place_holder.Energy;
+	Tr.si_place_holder.SiZ = Si.hit_place_holder.ZW;
+	Tr.si_place_holder.SiR = Si.hit_place_holder.RW;
+	Tr.si_place_holder.SiPhi = Si.hit_place_holder.PhiW;
+
+	Tr.NTracks2++;
+	Tr.NTracks++;
+	Tr.SiEvent.push_back(Tr.si_place_holder);
+
+      }
+
+      sort( Tr.SiEvent.begin(), Tr.SiEvent.end(),Tr.Si_sort_method );//sort by si energy, high to low
+
+      for (Int_t j=0; j<PC.ReadHit->size(); j++ ){//loop over pc
+	PC.pc_place_holder = PC.ReadHit->at(j);
+	if ( PC.pc_place_holder.TrackType == 1 ){//skip events that have already been copied
+	  continue;
+	}
+	Tr.pc_place_holder.TrackType = 3;
+	Tr.pc_place_holder.WireID = PC.pc_place_holder.WireID;
+	Tr.pc_place_holder.PCEnergy = PC.pc_place_holder.Energy;
+	Tr.pc_place_holder.PCZ = PC.pc_place_holder.ZW;
+	Tr.pc_place_holder.PCR = PC.pc_place_holder.RW;
+	Tr.pc_place_holder.PCPhi = PC.pc_place_holder.PhiW;
+
+	Tr.NTracks3++;
+	Tr.NTracks++;
+	Tr.PCEvent.push_back(Tr.pc_place_holder);
+
+      }
+      sort( Tr.PCEvent.begin(), Tr.PCEvent.end(),Tr.PC_sort_method );//sort by pc energy, high to low
+
+      //done copying-----------------------------------------------------------------------
+      
+
+
+
+//Now do reconstruction stuff
+      if (Tr.NTracks1==1){
+	if ( cut->IsInside(Tr.TrEvent.at(0).SiEnergy,Tr.TrEvent.at(0).PCEnergy*sin(Tr.TrEvent.at(0).Theta)) && cut->IsInside(Tr.TrEvent.at(1).SiEnergy,Tr.TrEvent.at(1).PCEnergy*sin(Tr.TrEvent.at(1).Theta)) ){
+	  //if we have two alphas...
+	  Rec.ReconstructBe(Tr,0,1,-1);
+
+	}
+      }else if (Tr.NTracks1==3){
+	//added Feb22-From Nabin------------------------------------
+	Int_t count_alpha = 0;
+	Int_t Alpha1 = -1;
+	Int_t Alpha2 = -1;
+	Int_t Proton = -1;
+	//----------------------------------------------------------------
+	//count how many of our tracks fall within the alpha cut
+	if ( cut->IsInside(Tr.TrEvent.at(0).SiEnergy,Tr.TrEvent.at(0).PCEnergy*sin(Tr.TrEvent.at(0).Theta)) ){
+	  count_alpha++;
+	  Alpha1 = 0;
+	}
+	else{
+	  Proton = 0;
+	}
+	//----------------------------------------------------------------
+	if ( cut->IsInside(Tr.TrEvent.at(1).SiEnergy,Tr.TrEvent.at(1).PCEnergy*sin(Tr.TrEvent.at(1).Theta)) ){
+	  if (count_alpha==0){
+	    Alpha1 = 1;
+	  }else{
+	    Alpha2 = 1;
+	  }
+	  count_alpha++;
+	}
+	else{
+	  Proton = 1;
+	}
+	//----------------------------------------------------------------
+
+	if ( cut->IsInside(Tr.TrEvent.at(2).SiEnergy,Tr.TrEvent.at(2).PCEnergy*sin(Tr.TrEvent.at(2).Theta)) ){
+	  if (count_alpha==0){
+	    Alpha1 = 2;
+	  }else{
+	    Alpha2 = 2;
+	  }
+	  count_alpha++;
+	}
+	else{
+	  Proton = 2;
+	}
+
+	//----------------------------------------------------------------
+
+	if (count_alpha==2){
+	  //if two of our tracks are alphas...
+	  Rec.ReconstructBe(Tr,Alpha1,Alpha2,Proton);
+
+	}
+      }
+#ifdef FillTree
+      MainTree->Fill();
+#endif
+    }
+    //    delete inputFile;
+  }
+
+
+  outputfile->cd();
+  RootObjects->Write();
+
+  //maintreefile->Close();
+  outputfile->Close();
+
+}
+
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX){
+  try{
+    fhmap.at(name)->Fill(valueX);
+  } catch(out_of_range e) {
+    TH1F* newHist = new TH1F(name.c_str(),name.c_str(),
+			     binsX,lowX,highX);
+    newHist->Fill(valueX);
+    fhlist->Add(newHist);
+    fhmap[name] = newHist;
+  }
+}
+
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX,
+	    int binsY, double lowY, double highY, double valueY){
+
+  try{
+    //cout << name << endl;
+    fhmap.at(name)->Fill(valueX,valueY);
+  } catch(std::out_of_range e) {
+    TH2F* newHist = new TH2F(name.c_str(),name.c_str(),
+			     binsX,lowX,highX,
+			     binsY,lowY,highY);
+    newHist->Fill(valueX,valueY);
+    fhlist->Add(newHist);
+    fhmap[name] = newHist;
+  }  
+}
