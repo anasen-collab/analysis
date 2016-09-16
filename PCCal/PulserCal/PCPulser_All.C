@@ -1,49 +1,71 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-  //run250//run251 //
+  //run250//
   //const Int_t npeaks = 6;
   //Float_t Volts[npeaks] = {0.5, 1.0, 3.0, 5.0, 7.0, 9.0};
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN_KTM/New/evt2root/run250_NSCL11_Pulser.root");  
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run250_NSCL11_Pulser.root");
+  //TFile *file1 = new TFile("/data0/nabin/ANASEN_KTM/New/evt2root/run250_NSCL11_Pulser.root");  
+  //TFile *file1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run250_NSCL11_Pulser.root");  
 
   //run262//
   //const Int_t npeaks = 5;
   //Float_t Volts[npeaks] = {0.05, 0.1, 0.15, 0.2, 0.25};
   //const Int_t npeaks = 4;
   //Float_t Volts[npeaks] = {0.1, 0.15, 0.2, 0.25};
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
+  //TFile *file1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
 
   //run354//
-  const Int_t npeaks = 5;
-  Float_t Volts[npeaks] = {0.1, 0.2, 0.3, 0.4, 0.5};
-  Float_t Volts2[4] = {0.2, 0.3, 0.4, 0.5};
-  TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/evt2root_root/run354.root");  
+  //const Int_t npeaks = 5;
+  //Float_t Volts[npeaks] = {0.1, 0.2, 0.3, 0.4, 0.5};
+  //Float_t Volts2[4] = {0.2, 0.3, 0.4, 0.5};
+  //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/evt2root_root/run354.root");
+  
+  //run640//
+  //const Int_t npeaks = 5;
+  //Float_t Volts[npeaks] = {0.06, 0.12, 0.3, 0.6, 0.8};
+  //Float_t Volts2[4] = {0.12, 0.3, 0.6, 0.8};
+  //TFile *file1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run640.root");  
+  
+  //run942 18Ne data
+  //const Int_t npeaks = 6;
+  //Float_t Volts[npeaks] = {0.006, 0.012, 0.03, 0.06, 0.08,0.12};
+  //Float_t Volts2[4] = {0.03, 0.06, 0.08, 0.12};
+  //TFile *file1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run942.root"); 
+  //TFile *file1 = new TFile("/data0/manasta/evt2root_files/run942.root"); 
 
+  //run1036 24Mg data
+  const Int_t npeaks = 6;
+  Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
+  Float_t Volts2[4] = {0.01, 0.03, 0.06, 0.1};
+  TFile *file1 = new TFile("/data1/lighthall/root/run1036.root"); 
+  
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
   
-  TH1I *h1 = new TH1I("h1","h1",256,0,4095);
+//TH1I *h1 = new TH1I("h1","h1",256,0,4095);
 //TH1I *h1 = new TH1I("h1","h1",512,0,6000);
-  TTree *DataTree = (TTree*)f1->Get("DataTree");
-  
+  TH1I *h1 = new TH1I("h1","h1",4*512,0,6000);
+  TTree *DataTree = (TTree*)file1->Get("DataTree");
+    
   ofstream outfile;
-  outfile.open("PCpulserCal2016Apr20.dat");
-	
+  outfile.open("PCpulserCal.dat");
+  
   for (Int_t id=2; id<4; id++) {
     for (Int_t chan=0; chan<32; chan++) {
     
       if(id==3 && chan>15) continue;
 
       c1->cd(1);
-      DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
+    //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
     //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
+      DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
       if(h1->GetEntries()==0) continue;
       
       TSpectrum *s = new TSpectrum(npeaks+1);
       h1->SetTitle(Form("ADC %i Chan %i",id,chan));
       
-      Int_t nfound = s->Search(h1,9," ",0.09);
+    //Int_t nfound = s->Search(h1,9," ",0.09);
     //Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
+      Int_t nfound = s->Search(h1,2," ",0.05);
       c1->Update();
       //c1->WaitPrimitive();
       
@@ -69,7 +91,7 @@
         //outfile << id << "\t" << chan << "\t" << Volts[l] << "\t" << xpeaks[l] << endl;
       }
       c1->cd(2);
-      if (nfound==5){
+      if (nfound==npeaks){
 	TGraph *graph = new TGraph(npeaks,xpeaks,Volts);
 	graph->Draw("A*");
       }else{
