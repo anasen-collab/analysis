@@ -5,18 +5,18 @@
 
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
   
-  //run1036 24Mg data
-  //const Int_t npeaks = 6;
-  //Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
-  //Float_t Volts2[4] = {0.01, 0.03, 0.06, 0.1};
-  
-  //run942 18Ne data
+ //run942 18Ne data
   const Int_t npeaks = 6;
   Float_t Volts[npeaks] = {0.006, 0.012, 0.03, 0.06, 0.08,0.12};
   Float_t Volts2[4] = {0.03, 0.06, 0.08, 0.12};
   //TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run942.root"); 
-  TFile *f1 = new TFile("/data0/manasta/evt2root_files/run942.root"); 
-  
+  TFile *f1 = new TFile("/data0/manasta/evt2root_files/run942.root");
+
+  //run1036 24Mg data
+  //const Int_t npeaks = 6;
+  //Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
+  //Float_t Volts2[4] = {0.01, 0.03, 0.06, 0.1};
+    
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
 
