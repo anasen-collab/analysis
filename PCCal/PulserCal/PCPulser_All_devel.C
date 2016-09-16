@@ -1,5 +1,4 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 {
   //run250//
   //const Int_t npeaks = 6;
@@ -42,6 +41,8 @@
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
   
+//TH1I *h1 = new TH1I("h1","h1",256,0,4095);
+//TH1I *h1 = new TH1I("h1","h1",512,0,6000);
   TH1I *h1 = new TH1I("h1","h1",4*512,0,6000);
   TTree *DataTree = (TTree*)file1->Get("DataTree");
     
@@ -50,16 +51,20 @@
   
   for (Int_t id=2; id<4; id++) {
     for (Int_t chan=0; chan<32; chan++) {
-
+    
       if(id==3 && chan>15) continue;
 
       c1->cd(1);
+    //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
+    //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
       DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
       if(h1->GetEntries()==0) continue;
       
       TSpectrum *s = new TSpectrum(npeaks+1);
       h1->SetTitle(Form("ADC %i Chan %i",id,chan));
       
+    //Int_t nfound = s->Search(h1,9," ",0.09);
+    //Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
       Int_t nfound = s->Search(h1,2," ",0.05);
       c1->Update();
       //c1->WaitPrimitive();
