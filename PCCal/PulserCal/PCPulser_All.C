@@ -13,6 +13,7 @@
   //Float_t Volts[npeaks] = {0.1, 0.15, 0.2, 0.25};
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
 
+  //run354//
   const Int_t npeaks = 5;
   Float_t Volts[npeaks] = {0.1, 0.2, 0.3, 0.4, 0.5};
   Float_t Volts2[4] = {0.2, 0.3, 0.4, 0.5};
@@ -40,7 +41,6 @@
       
       TSpectrum *s = new TSpectrum(npeaks+1);
       h1->SetTitle(Form("ADC %i Chan %i",id,chan));
-      
       
       Int_t nfound = s->Search(h1,9," ",0.09);
     //Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
