@@ -22,6 +22,7 @@
   c1->Divide(1,2);
   
   TH1I *h1 = new TH1I("h1","h1",256,0,4095);
+//TH1I *h1 = new TH1I("h1","h1",512,0,6000);
   TTree *DataTree = (TTree*)f1->Get("DataTree");
   
   ofstream outfile;
