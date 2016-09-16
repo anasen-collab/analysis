@@ -14,11 +14,15 @@
   //Float_t Volts[npeaks] = {0.1, 0.15, 0.2, 0.25};
   //TFile *file1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
 
-  //run640//
+  //run354//
   //const Int_t npeaks = 5;
   //Float_t Volts[npeaks] = {0.1, 0.2, 0.3, 0.4, 0.5};
-  //Float_t Volts[npeaks] = {0.06, 0.12, 0.3, 0.6, 0.8};
   //Float_t Volts2[4] = {0.2, 0.3, 0.4, 0.5};
+  //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/evt2root_root/run354.root");
+  
+  //run640//
+  //const Int_t npeaks = 5;
+  //Float_t Volts[npeaks] = {0.06, 0.12, 0.3, 0.6, 0.8};
   //Float_t Volts2[4] = {0.12, 0.3, 0.6, 0.8};
   //TFile *file1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run640.root");  
   
@@ -82,7 +86,7 @@
         //outfile << id << "\t" << chan << "\t" << Volts[l] << "\t" << xpeaks[l] << endl;
       }
       c1->cd(2);
-      if (nfound==5){
+      if (nfound==npeaks){
 	TGraph *graph = new TGraph(npeaks,xpeaks,Volts);
 	graph->Draw("A*");
       }else{
