@@ -98,12 +98,12 @@
 	TGraph *graph = new TGraph(4,xpeaks,Volts2);
 	graph->Draw("A*");
       }
-      TF1 *fun = new TF1("fun","[0]+[1]*x",0,5000);
-      graph->Fit(fun);
+      //      TF1 *pol1 = new TF1("pol1","[0]+[1]*x",0,5000);
+      graph->Fit("pol1");
       c1->Update();
-      c1->WaitPrimitive();
+      //c1->WaitPrimitive();
   
-      outfile << id << "\t" << chan << "\t" << fun->GetParameter(0) << "\t" << fun->GetParameter(1) << endl;
+      outfile << id << "\t" << chan << "\t" << pol1->GetParameter(0) << "\t" << pol1->GetParameter(1) << endl;
 
       //TGraph *FitGraph = new TGraph(24,xpeaks,&(Volts[0]));
     }
