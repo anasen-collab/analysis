@@ -69,11 +69,8 @@
       TSpectrum *s = new TSpectrum(npeaks+1);
       h1->SetTitle(Form("ADC %i Chan %i",id,chan));
       
-      //Int_t nfound = s->Search(h1,9," ",0.09);
-      //Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
-      Int_t nfound = s->Search(h1,3," ",0.05);
+      Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
       c1->Update();
-      //c1->WaitPrimitive();
       
       Float_t *xpeaks = s->GetPositionX();
       Float_t Temp=0;
@@ -103,19 +100,18 @@
 	if(((xpeaks[i+1]-xpeaks[i])<mnsp)&&((i+1)<npeaks))
 	  mnsp=xpeaks[i+1]-xpeaks[i];
       }
-      
-      Float_t gpar[3*npeaks];
+
+      const int npar=npeaks*3;
+      Float_t gpar[npar];
       for (Int_t i=0; i<npeaks; i++) {//fit each peak with a non-overlapping gaussian
-	gfitc("h1",xpeaks[i],mnsp/2,"+q");
+	h1->Fit("gaus","+q","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
 	for (Int_t j=0; j<3; j++) {
 	  gpar[(3*i)+j]=gaus->GetParameter(j);
 	}
       }
-      
-      const int npar=npeaks*3;
+            
       Double_t par[npar];
       Float_t gpeaks[npeaks];//=xpeaks; 
-      Bool_t docon=kTRUE;
       Float_t gfitwide=mnsp*3;
       Float_t gfitmin=xpeaks[0]-gfitwide;
       Float_t gfitmax=xpeaks[npeaks-1]+gfitwide;
