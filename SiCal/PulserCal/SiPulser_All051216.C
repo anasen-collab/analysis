@@ -28,12 +28,10 @@ void SiPulser_All(void)
   Float_t Volts[npeaks] = { 0.2, 0.3, 0.6, 1.2, 1.5, 2.0, 3.0, 3.5 };
   Float_t Volts5[5] = { 1.2, 1.5, 2.0, 3.0, 3.5 };
   Float_t Volts4[4] = { 1.5, 2.0, 3.0, 3.5 };
+  TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
   
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
-
-  TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
 
   TH1I *h1 = new TH1I("h1","h1",16084,300,16384);
   TTree *DataTree = (TTree*)f1->Get("DataTree");
@@ -127,13 +125,13 @@ void SiPulser_All(void)
 		  {
 		    delete FitGraph;
 		  }
-		if (nfound==6){
+		if (nfound==8){//changed from 6 to match version from parent directory
 		  FitGraph = new TGraph(nfound,xpeaks, &(Volts[0]));
 		}else if (nfound==5){
 		  FitGraph = new TGraph(5,xpeaks, &(Volts5[0]));
 		}else if (nfound==4){
 		  FitGraph = new TGraph(4,xpeaks, &(Volts4[0]));
-		}else if (nfound==7){
+		}else if (nfound==7){//commented out in other version
 		  FitGraph = new TGraph(6,xpeaks, &(Volts[0]));
 		}else{
 		  cout << "Wrong number of peaks\n";
