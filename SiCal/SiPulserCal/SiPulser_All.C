@@ -24,16 +24,28 @@ void SiPulser_All(void)
   //MBID CID ASICs_Chn ZeroShift VperCh
 
   //run250//run251 //
-  const Int_t npeaks = 6;
-  Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
-  Float_t Volts5[5] = { 1.0, 3.0, 5.0, 7.0, 9.0 };
-  Float_t Volts4[4] = { 3.0, 5.0, 7.0, 9.0 };
+  //const Int_t npeaks = 6;
+  //Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
+  //Float_t Volts5[5] = { 1.0, 3.0, 5.0, 7.0, 9.0 };
+  //Float_t Volts4[4] = { 3.0, 5.0, 7.0, 9.0 };
+  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
+
+  //run 585
+  //const Int_t npeaks = 6;
+  //Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
+  //Float_t Volts5[5] = { 1.0, 3.0, 5.0, 7.0, 9.0 };
+  //Float_t Volts4[4] = { 3.0, 5.0, 7.0, 9.0 };
+  //TFile *f1 = new TFile("run585.root");//front
+
+  //run643 - negative pol//run645 - positive pol//
+  const Int_t npeaks = 8;
+  Float_t Volts[npeaks] = { 0.2, 0.3, 0.6, 1.2, 1.5, 2.0, 3.0, 3.5 };
+  Float_t Volts5[5] = { 1.2, 1.5, 2.0, 3.0, 3.5 };
+  Float_t Volts4[4] = { 1.5, 2.0, 3.0, 3.5 };
+  TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
   
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
-
-  TFile *f1 = new TFile("run585.root");//front
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
 
   TH1I *h1 = new TH1I("h1","h1",16084,300,16384);
   TTree *DataTree = (TTree*)f1->Get("DataTree");
@@ -55,12 +67,12 @@ void SiPulser_All(void)
     {  
       for (Int_t CBID=1; CBID<15; CBID++) 
 	{ 
-	  ////for the front of the detectors //run250
-	  //if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))){
-	 
-
-	    ////for the back of the detectors //run251
-	    if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))){	 
+	  ////for the front of the detectors, positive polarity 
+	  //if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))){//run250 //run645
+	  
+	  
+	  ////for the back of the detectors, negative polarity 
+	  if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))){//run251 //run643 	 
 	
 	
 	    for (Int_t ChNum=0; ChNum<16; ChNum++) 	
@@ -69,13 +81,22 @@ void SiPulser_All(void)
 	      
 		//// Mask bad channels  //that can create problem in cruising calibration.
 
-		if (MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)){ //bad at front run250
+		//if (MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)){ //bad at front run250
+		if (MBID==1 && CBID==1 && ChNum ==14){//run 643
 		  continue;
 		}	      
-		if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2))){//bad at back run251
+		//if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2))){//bad at back run251
+		if(MBID==1 && CBID==8 && (ChNum==0 || ChNum==15)){//run 643
 		  continue;
-		} 
-		if(MBID == 2 && CBID == 7 && (ChNum ==10)){//bad at back run251
+		}
+		if(MBID ==1 && CBID ==12  && ChNum ==6){//run 643
+		  continue;
+		}
+		//if(MBID == 2 && CBID == 7 && (ChNum ==10)){//bad at back run251
+		if(MBID ==2 && CBID ==7  && (ChNum ==4 || ChNum ==5 || ChNum ==9 || ChNum ==10)){//run 643
+		  continue;
+		}
+		if(MBID ==2 && CBID ==12  && (ChNum ==13 || ChNum ==14)){//run 643
 		  continue;
 		}
 	      
@@ -121,13 +142,13 @@ void SiPulser_All(void)
 		  {
 		    delete FitGraph;
 		  }
-		if (nfound==6){
+		if (nfound==npeaks){
 		  FitGraph = new TGraph(nfound,xpeaks, &(Volts[0]));
 		}else if (nfound==5){
 		  FitGraph = new TGraph(5,xpeaks, &(Volts5[0]));
 		}else if (nfound==4){
 		  FitGraph = new TGraph(4,xpeaks, &(Volts4[0]));
-		}else if (nfound==7){
+		}else if (nfound==7){//commented out in other version
 		  FitGraph = new TGraph(6,xpeaks, &(Volts[0]));
 		}else{
 		  cout << "Wrong number of peaks\n";
