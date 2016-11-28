@@ -4,9 +4,10 @@
 //// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
 //// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
 ////
-//// Usage: root -l SiPulser_All.C++ (from the same directory).
+//// Usage: root -l SiPulser_All.C (from the same directory).
 ////
 //// Edited by : Nabin Rijal , 2015Dec13
+////             Jon Lighthall Nov 2016
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -54,6 +55,8 @@ void SiPulser_All (void)
   //Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
   //TFile *f2 = new TFile("/data1/lighthall/root/run1262.root");
 
+  const int npar=npeaks*3;
+  
   Float_t Volts1[npeaks-1];//(n-1) peaks, replaces Volts5
   for (Int_t i=0;i<(npeaks-1);i++) {
     Volts1[npeaks-2-i]=Volts[npeaks-i-1];
@@ -69,9 +72,9 @@ void SiPulser_All (void)
   TCanvas *c1 = new TCanvas();
   c1->Divide(1,2);
 
-  Bool_t dostep=kTRUE; //wait betweeen fits
+  Bool_t dowait=kFALSE; //wait betweeen fits
   
-  if(dostep) {
+  if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",270,100);
     c2->cd();
     TButton *but2 = new TButton("quit ROOT",".q",.05,.1,.45,.45);
@@ -130,7 +133,7 @@ void SiPulser_All (void)
 	
 	for (Int_t ChNum=0; ChNum<16; ChNum++) {
 	  //// Mask bad channels  //that can create problem in cruising calibration.
-	      
+	  if(!(MBID==1 && CBID==8 && ChNum==2))continue;
 	  //if(MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)) continue;//bad at front run250
 	  //if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2)))continue;//bad at back run251
 	  //if(MBID == 2 && CBID == 7 && (ChNum ==10))continue;//bad at back run251
@@ -146,7 +149,7 @@ void SiPulser_All (void)
 	  //DataTree2->Draw("Si.Energy>>h2",Form("Si.MBID==%d && Si.CBID==%d && Si.ChNum==%d",MBID,CBID,ChNum),"same");
 	  c1->Update();
 	  //c1->WaitPrimitive();
-	  if(dostep) {
+	  if(dowait) {
 	    c2->Update();      
 	    //c2->WaitPrimitive();
 	  }
@@ -156,7 +159,7 @@ void SiPulser_All (void)
 	    delete s;
 	  }
 
-	  TSpectrum *s = new TSpectrum(npeaks+1);
+	  TSpectrum *s = new TSpectrum();
 	      
 	  h1->SetTitle(Form("MBID %d CBID %d ChNum %d",MBID,CBID,ChNum));
 	  //h2->SetTitle(Form("MBID %d CBID %d ChNum %d",MBID,CBID,ChNum));  
@@ -164,7 +167,8 @@ void SiPulser_All (void)
 	  //Int_t nfound = s->Search(h1,15,"",0.25);
 	  //Int_t nfound = s->Search(h1,5," nobackground",0.10);
 	  h1->GetXaxis()->UnZoom();
-	  Int_t nfound = s->Search(h1,16," ",0.25);//9 and 0.15
+	  //s->SetResolution(3);
+	  Int_t nfound = s->Search(h1,10," ",0.15);//9 and 0.15
 
 	  Float_t *xpeaks = s->GetPositionX();
 	  Float_t Temp=0;
@@ -191,23 +195,19 @@ void SiPulser_All (void)
 	      
 	  Float_t mnsp=25; //minimum space between adjacent peaks
 	  mnsp=xpeaks[nstep-1]-xpeaks[0];
-	  for (Int_t i=0; i<(nstep-1); i++){//find min. peak spacing
+	  for (Int_t i=0; i<(nstep-1); i++) {//find min. peak spacing
 	    if(((xpeaks[i+1]-xpeaks[i])<mnsp)&&((i+1)<npeaks))
 	      mnsp=xpeaks[i+1]-xpeaks[i];
 	  }
 
-	  Int_t temp=npeaks*3;
-	  const Int_t npar=temp;//npeaks*3;
-	  //printf("npeaks = %d npar = %d\n",npeaks,npar);
 	  Float_t gpar[npar];
-	  //printf("gpar = %d\n",sizeof(gpar)/sizeof(gpar[0]));
 	  for (Int_t i=0; i<nstep; i++) {//fit each peak with a non-overlapping gaussian
 	    h1->Fit("gaus","+q0","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
 	    for (Int_t j=0; j<3; j++) {
 	      gpar[(3*i)+j]=gaus->GetParameter(j);
 	    }
 	  }
-		
+	  
 	  Double_t par[npar];
 	  Float_t gpeaks[npeaks];//=xpeaks; 
 	  Float_t gfitwide=mnsp*3;
@@ -305,7 +305,6 @@ void SiPulser_All (void)
 	  leg->AddEntry(fit2,"pol2","l");
 	  leg->AddEntry(fit3,"pol1","l");   
 	  leg->AddEntry(fit4,"pol1 centroid, ROB=95","l");
-	      
 	  leg->Draw();
 		
 	  ////FitGraph->Fit("fit","E");
@@ -342,7 +341,7 @@ void SiPulser_All (void)
 	  outfile4 << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< zeroshiftc << "\t" << vperchc <<endl;
 
 	  c1->Update();
-	  if(dostep) {
+	  if(dowait) {
 	    c2->Update();      
 	    c2->WaitPrimitive();
 	  }
@@ -351,8 +350,8 @@ void SiPulser_All (void)
     }//end CBID loop
   }//end MBID loop
   
-  delete FitGraph;
-  delete FitGraph2;
-  delete s;
+  //delete FitGraph;
+  //delete FitGraph2;
+  //delete s;
 }//end SiPulser_All
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
