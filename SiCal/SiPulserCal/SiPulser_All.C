@@ -46,33 +46,48 @@ void SiPulser_All (void)
   // TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
 
   //run 1034-5
-  const Int_t npeaks = 8;
-  Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
-  TFile *f1 = new TFile("/data1/lighthall/root/run1034.root"); 
+  //const Int_t npeaks = 8;
+  //Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
+  //TFile *f1 = new TFile("/data1/lighthall/root/run1034.root"); 
   
   //run1262-4
-  //const Int_t npeaks = 5;
-  //Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
-  //TFile *f2 = new TFile("/data1/lighthall/root/run1262.root");
+  const Int_t npeaks = 5;
+  Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
+  //TFile *f1 = new TFile("/data1/lighthall/root/run1262.root");
+  TFile *f1 = new TFile("/data1/lighthall/root/run1264.root");
 
   const int npar=npeaks*3;
   
   Float_t Volts1[npeaks-1];//(n-1) peaks, replaces Volts5
   for (Int_t i=0;i<(npeaks-1);i++) {
-    Volts1[npeaks-2-i]=Volts[npeaks-i-1];
-    //printf("Volts1[%d]=%f\n",npeaks-2-i,Volts1[npeaks-2-i]);
+    Volts1[npeaks-1-i-1]=Volts[npeaks-i-1];
+    //printf("Volts1[%d]=%f\n",npeaks-1-i-1,Volts1[npeaks-1-i-1]);
   }
 
   Float_t Volts2[npeaks-2];//(n-2 peaks) replaces Volts4
   for (Int_t i=0;i<(npeaks-2);i++) {
-    Volts2[npeaks-3-i]=Volts[npeaks-i-1];
-    //printf("Volts2[%d]=%f\n",npeaks-3-i,Volts2[npeaks-3-i]);
+    Volts2[npeaks-2-i-1]=Volts[npeaks-i-1];
+    //printf("Volts2[%d]=%f\n",npeaks-2-i-1,Volts2[npeaks-2-i-1]);
+  }
+
+  Float_t Volts3[npeaks-3];//(n-3 peaks) 
+  for (Int_t i=0;i<(npeaks-3);i++) {
+    Volts3[npeaks-3-i-1]=Volts[npeaks-i-1];
+    //printf("Volts3[%d]=%f\n",npeaks-3-i-1,Volts3[npeaks-3-i-1]);
+  }
+
+  Float_t Volts4[npeaks-4];//(n-4 peaks) 
+  for (Int_t i=0;i<(npeaks-4);i++) {
+    Volts4[npeaks-4-i-1]=Volts[npeaks-i-1];
+    //printf("Volts4[%d]=%f\n",npeaks-4-i-1,Volts4[npeaks-4-i-1]);
   }
   
   TCanvas *c1 = new TCanvas();
+  c1->SetWindowPosition(0,63);
+  c1->SetWindowSize(1362,656);
   c1->Divide(1,2);
 
-  Bool_t dowait=kFALSE; //wait betweeen fits
+  Bool_t dowait=0; //wait betweeen fits
   
   if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",270,100);
@@ -99,8 +114,8 @@ void SiPulser_All (void)
   fit4->SetLineColor(7);
   fit4->SetLineStyle(2);
   
-  Double_t zeroshift = 0;
-  Double_t vperch = 0;
+  Double_t zeroshift = 0;//zero voltage shift (fit offset)
+  Double_t vperch = 0;//volts per channel (fit slope)
   Double_t q0 = 0;
   TSpectrum *s = 0;
   TGraph *FitGraph = 0;
@@ -124,16 +139,14 @@ void SiPulser_All (void)
   for (Int_t MBID=1; MBID<3; MBID++) {  
     for (Int_t CBID=1; CBID<15; CBID++) { 
       ////for the front of the detectors, positive polarity 
-      //if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))){//run250 //run645 // run 1035 //run 1264
-	  
+      if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))){//run250 //run645 // run 1035 //run 1264
 	  
       ////for the back of the detectors, negative polarity 
-      if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))) {//run251 //run643 //1034 //run 1262
-	
+      //if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))) {//run251 //run643 //1034 //run 1262
 	
 	for (Int_t ChNum=0; ChNum<16; ChNum++) {
 	  //// Mask bad channels  //that can create problem in cruising calibration.
-	  if(!(MBID==1 && CBID==8 && ChNum==2))continue;
+	  //if(!(MBID==2 && CBID==12 && ChNum==5))continue;
 	  //if(MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)) continue;//bad at front run250
 	  //if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2)))continue;//bad at back run251
 	  //if(MBID == 2 && CBID == 7 && (ChNum ==10))continue;//bad at back run251
@@ -143,6 +156,15 @@ void SiPulser_All (void)
 	  //if(MBID ==1 && CBID ==12  && ChNum ==6) continue;//run 643
 	  //if(MBID ==2 && CBID ==7  && (ChNum ==4 || ChNum ==5 || ChNum ==9 || ChNum ==10))continue;//run 643
 	  //if(MBID ==2 && CBID ==12  && (ChNum ==13 || ChNum ==14))continue;//run 643
+
+	  //runs 1034 1262
+	  //if(MBID==1 && CBID==8 && ChNum==2)continue;
+	  //if(MBID==2 && CBID==8 && ChNum==2)continue;
+
+	  //runs 1264
+	  if(MBID==1 && CBID==1 && ChNum==4)continue;
+	  //if(MBID==1 && CBID==8 && ChNum==2)continue;
+	  //if(MBID==2 && CBID==8 && ChNum==2)continue;
 	      
 	  c1->cd(1);	    
 	  DataTree->Draw("Si.Energy>>h1",Form("Si.Energy>1 && Si.MBID==%d && Si.CBID==%d && Si.ChNum==%d",MBID,CBID,ChNum));
@@ -168,7 +190,9 @@ void SiPulser_All (void)
 	  //Int_t nfound = s->Search(h1,5," nobackground",0.10);
 	  h1->GetXaxis()->UnZoom();
 	  //s->SetResolution(3);
-	  Int_t nfound = s->Search(h1,10," ",0.15);//9 and 0.15
+	  //Int_t nfound = s->Search(h1,9," ",0.15);//run 643?
+	  //Int_t nfound = s->Search(h1,10," ",0.15);//run 1034
+	  Int_t nfound = s->Search(h1,3," ",0.05);//run 1264
 
 	  Float_t *xpeaks = s->GetPositionX();
 	  Float_t Temp=0;
@@ -195,6 +219,7 @@ void SiPulser_All (void)
 	      
 	  Float_t mnsp=25; //minimum space between adjacent peaks
 	  mnsp=xpeaks[nstep-1]-xpeaks[0];
+	  mnsp=500;//for run 1262
 	  for (Int_t i=0; i<(nstep-1); i++) {//find min. peak spacing
 	    if(((xpeaks[i+1]-xpeaks[i])<mnsp)&&((i+1)<npeaks))
 	      mnsp=xpeaks[i+1]-xpeaks[i];
@@ -202,7 +227,7 @@ void SiPulser_All (void)
 
 	  Float_t gpar[npar];
 	  for (Int_t i=0; i<nstep; i++) {//fit each peak with a non-overlapping gaussian
-	    h1->Fit("gaus","+q0","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
+	    h1->Fit("gaus","+q","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
 	    for (Int_t j=0; j<3; j++) {
 	      gpar[(3*i)+j]=gaus->GetParameter(j);
 	    }
@@ -230,7 +255,7 @@ void SiPulser_All (void)
 	    par[i]=gpar[i];
 	  }
 	  total->SetParameters(par);
-	  h1->Fit(total,"Mq+0","");
+	  h1->Fit(total,"Mq+","");
       
 	  //plot individual fits using parameters from global fit
 	  TF1 **functions = new TF1*[nstep];
@@ -252,7 +277,7 @@ void SiPulser_All (void)
 	
 	    functions[i]->SetLineColor(1);
 	    functions[i]->SetLineStyle(2);
-	    //functions[i]->Draw("same");
+	    functions[i]->Draw("same");
 	  }
 	  pm->Draw("same");
 
@@ -278,8 +303,19 @@ void SiPulser_All (void)
 	    FitGraph = new TGraph(nfound,xpeaks, &(Volts2[0]));
 	    FitGraph2 = new TGraph(nfound,gpeaks, &(Volts2[0]));
 	  }
+	  else if(nfound==(npeaks-3)) {
+	    FitGraph = new TGraph(nfound,xpeaks, &(Volts3[0]));
+	    FitGraph2 = new TGraph(nfound,gpeaks, &(Volts3[0]));
+	  }
+	  else if(nfound==(npeaks-4)) {
+	    FitGraph = new TGraph(nfound,xpeaks, &(Volts4[0]));
+	    FitGraph2 = new TGraph(nfound,gpeaks, &(Volts4[0]));
+	  }
 	  else {
 	    printf("number of peaks found = %d of %d\n", nfound, npeaks);
+	    outfile  << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< endl;
+	    outfile3 << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< endl;
+	    outfile4 << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< endl;
 	    continue;
 	  }
 		
@@ -312,7 +348,7 @@ void SiPulser_All (void)
 	  vperch = fit->GetParameter(1);
 	  q0 = -zeroshift/vperch;
 	  pm2->SetPoint(0,q0,0);
-	  printf("          ROB fit intercept = %9.4f\n",q0);
+	  printf("          ROB fit intercept = %9.4f, offset = %f\n",q0,zeroshift);
 	  Float_t a,b,c;
 	  a=fit2->GetParameter(2);
 	  b=fit2->GetParameter(1);
@@ -324,14 +360,20 @@ void SiPulser_All (void)
 	  Float_t vperchf = fit3->GetParameter(1);
 	  Float_t q0f=-zeroshiftf/vperchf;
 	  pm2->SetPoint(2,q0f,0);
-	  printf("  full linear fit intercept = %9.4f\n",-fit3->GetParameter(0)/fit3->GetParameter(1));
+	  printf("  full linear fit intercept = %9.4f, offset = %f\n",q0f,zeroshiftf);
 	  Float_t zeroshiftc = fit4->GetParameter(0);
 	  Float_t vperchc = fit4->GetParameter(1);
 	  Float_t q0c=-zeroshiftc/vperchc;
 	  pm2->SetPoint(3,q0c,0);
-	  printf(" centroid ROB fit intercept = %9.4f\n",-fit4->GetParameter(0)/fit4->GetParameter(1));
+	  printf(" centroid ROB fit intercept = %9.4f, offset = %f\n",q0c,zeroshiftc);
 	  pm2->Draw("same");
-		
+
+	  c1->Update();
+	  if(dowait) {
+	    c2->Update();      
+	    c2->WaitPrimitive();
+	  }
+	  
 	  cout << zeroshift << " " << vperch << endl;;
 	  cout << MBID << " " << CBID << " " << ChNum << " q0 = "<<q0<<endl;
 	      
@@ -339,12 +381,6 @@ void SiPulser_All (void)
 	  //outfile << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< zeroshift << "\t" << vperch << "\t"<< q0 <<endl;
 	  outfile3 << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< zeroshiftf << "\t" << vperchf <<endl;
 	  outfile4 << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< zeroshiftc << "\t" << vperchc <<endl;
-
-	  c1->Update();
-	  if(dowait) {
-	    c2->Update();      
-	    c2->WaitPrimitive();
-	  }
 	}//end channel loop
       }//end polarity check
     }//end CBID loop
