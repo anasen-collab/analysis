@@ -61,6 +61,8 @@
   }
 
   TCanvas *c1 = new TCanvas();
+  c1->SetWindowPosition(0,63);
+  c1->SetWindowSize(1362,656);
   c1->Divide(1,2);
 
   Bool_t dowait=kFALSE; //wait betweeen fits
@@ -100,7 +102,7 @@
   ofstream outfile4;//offsets, centroid ROB
   outfile.open("PCpulserCal.dat");
   outfile3.open("PCpulserCal_full.dat");
-  outfile4.open("PCpulser_centroid.dat");
+  outfile4.open("PCpulserCal_centroid.dat");
   
   TPolyMarker *pm;
   
@@ -235,9 +237,10 @@
       FitGraph->Fit("fit2","q");
       FitGraph->Fit("fit3","q");
       
+      //centroid fit
       FitGraph2->SetMarkerColor(4);
       FitGraph2->Draw("*same");
-      FitGraph2->Fit("fit4","qROB");
+      FitGraph2->Fit("fit4","qM");//ROB may give errors
       
       leg = new TLegend(0.1,0.75,0.2,0.9);
       leg->AddEntry(fit,"pol1, ROB","l");
