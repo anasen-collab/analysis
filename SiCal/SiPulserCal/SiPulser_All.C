@@ -23,39 +23,45 @@
 void SiPulser_All (void)
 {
   //MBID CID ASICs_Chn ZeroShift VperCh
+  const Int_t run = 1262;
 
-  //run250//run251 //
-  //const Int_t npeaks = 6;
-  //Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
-  //Float_t Volts5[5] = { 1.0, 3.0, 5.0, 7.0, 9.0 };
-  //Float_t Volts4[4] = { 3.0, 5.0, 7.0, 9.0 };
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
-
-  //run 585
-  //const Int_t npeaks = 6;
-  //Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
-  //Float_t Volts5[5] = { 1.0, 3.0, 5.0, 7.0, 9.0 };
-  //Float_t Volts4[4] = { 3.0, 5.0, 7.0, 9.0 };
-  //TFile *f1 = new TFile("run585.root");//front
-
-  //run643 - negative pol//run645 - positive pol//
-  // const Int_t npeaks = 8;
-  // Float_t Volts[npeaks] = { 0.2, 0.3, 0.6, 1.2, 1.5, 2.0, 3.0, 3.5 };
-  // Float_t Volts5[5] = { 1.2, 1.5, 2.0, 3.0, 3.5 };
-  // Float_t Volts4[4] = { 1.5, 2.0, 3.0, 3.5 };
-  // TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
-
-  //run 1034-5
-  const Int_t npeaks = 8;
-  Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
-  TFile *f1 = new TFile("/data1/lighthall/root/run1034.root");
-  //TFile *f2 = new TFile("/data1/lighthall/root/run1034.root"); 
+  if(run==250||run==251) {
+    const Int_t npeaks = 6;
+    Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
+    TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
+  }
   
-  //run1262-4
-  //const Int_t npeaks = 5;
-  //Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
-  //TFile *f1 = new TFile("/data1/lighthall/root/run1262.root");
-  //TFile *f1 = new TFile("/data1/lighthall/root/run1263.root");
+  if(run==585) {
+    const Int_t npeaks = 6;
+    Float_t Volts[npeaks] = { 0.5, 1.0, 3.0, 5.0, 7.0, 9.0 };
+    TFile *f1 = new TFile("run585.root");//front
+  }
+
+  if(run==643||run==645) {
+    //run643 - negative pol//run645 - positive pol//
+    const Int_t npeaks = 8;
+    Float_t Volts[npeaks] = { 0.2, 0.3, 0.6, 1.2, 1.5, 2.0, 3.0, 3.5 };
+    TFile *f1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run643.root");//front
+  }
+
+  if(run==1034||run==1035) {
+    const Int_t npeaks = 8;
+    Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
+    if(run==1034)
+      TFile *f1 = new TFile("/data1/lighthall/root/run1034.root");
+  }
+  
+  if(run==1262||run==1263||run==1264) {
+    const Int_t npeaks = 5;
+    Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
+    if(run==1262) {
+      TFile *f1 = new TFile("/data1/lighthall/root/run1262.root");
+      TFile *f2 = new TFile("/data1/lighthall/root/run1034.root");
+    }
+    if(run==1263)
+      TFile *f1 = new TFile("/data1/lighthall/root/run1263.root");
+
+  }
 
   const int npar=npeaks*3;
   
@@ -88,9 +94,9 @@ void SiPulser_All (void)
   c1->SetWindowSize(1362,656);
   c1->Divide(1,2);
 
-  Bool_t dowait=kFALSE; //wait betweeen fits
-  Bool_t docentroid=kTRUE; //use centroid fit
-  Bool_t docomp=kFALSE; //compare two files
+  Bool_t dowait=kTRUE; //wait betweeen fits
+  Bool_t docentroid=kFALSE; //use centroid fit
+  Bool_t docomp=kTRUE; //compare two files
   
   if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",270,100);
@@ -105,6 +111,7 @@ void SiPulser_All (void)
   if(docomp) {
     TH1I *h2 = new TH1I("h2","h2",size,0,size);
     h2->SetLineColor(kRed+3);
+    h2->SetFillColor(kYellow-9);
     TTree *DataTree2 = (TTree*)f2->Get("DataTree");
   }
   
@@ -159,24 +166,31 @@ void SiPulser_All (void)
 	  //if(MBID==1 && CBID==9 &&ChNum<9)continue;
 	  //if(MBID==1 || CBID>8)continue;
 	  
-	  //if(MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)) continue;//bad at front run250
-	  //if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2)))continue;//bad at back run251
-	  //if(MBID == 2 && CBID == 7 && (ChNum ==10))continue;//bad at back run251
-	      
-	  //if(MBID==1 && CBID==1 && ChNum ==14) continue;//run 643	      
-	  //if(MBID==1 && CBID==8 && (ChNum==0 || ChNum==15))continue; //run 643
-	  //if(MBID ==1 && CBID ==12  && ChNum ==6) continue;//run 643
-	  //if(MBID ==2 && CBID ==7  && (ChNum ==4 || ChNum ==5 || ChNum ==9 || ChNum ==10))continue;//run 643
-	  //if(MBID ==2 && CBID ==12  && (ChNum ==13 || ChNum ==14))continue;//run 643
+	  if(run==250)//bad at front
+	    if(MBID==1 && CBID==1 && (ChNum==4 ||ChNum ==14)) continue;
+	  if(run==251) {//bad at back
+	    if((MBID==1 && CBID==8 && (ChNum==0 || ChNum==1 || ChNum==2))||(MBID==2 && CBID ==8 && (ChNum==1 || ChNum==2)))continue;
+	    if(MBID == 2 && CBID == 7 && (ChNum ==10))continue;
+	  }
+	  
+	  if(run==643) {
+	    if(MBID==1 && CBID==1 && ChNum ==14) continue;
+	    if(MBID==1 && CBID==8 && (ChNum==0 || ChNum==15))continue;
+	    if(MBID ==1 && CBID ==12  && ChNum ==6) continue;
+	    if(MBID ==2 && CBID ==7  && (ChNum ==4 || ChNum ==5 || ChNum ==9 || ChNum ==10))continue;//run 643
+	    if(MBID ==2 && CBID ==12  && (ChNum ==13 || ChNum ==14))continue;
+	  }
 
-	  //runs 1034 1262
-	  //if(MBID==1 && CBID==8 && ChNum==2)continue;
+	  if(run==1034||run==1262) {
+	    if(MBID==1 && CBID==8 && ChNum==2)continue;
+	    if(MBID==2 && CBID==8 && ChNum==2)continue;
+	  }
+	  
+	  if(run==1264) {
+	    if(MBID==1 && CBID==1 && ChNum==4)continue;
+	    //if(MBID==1 && CBID==8 && ChNum==2)continue;
 	  //if(MBID==2 && CBID==8 && ChNum==2)continue;
-
-	  //runs 1264
-	  if(MBID==1 && CBID==1 && ChNum==4)continue;
-	  //if(MBID==1 && CBID==8 && ChNum==2)continue;
-	  //if(MBID==2 && CBID==8 && ChNum==2)continue;
+	  }
 	      
 	  c1->cd(1);	    
 	  DataTree->Draw("Si.Energy>>h1",Form("Si.Energy>1 && Si.MBID==%d && Si.CBID==%d && Si.ChNum==%d",MBID,CBID,ChNum));
@@ -302,7 +316,16 @@ void SiPulser_All (void)
 	    }
 	    outfile5 << endl;
 	  }
+
+	  if(docomp) {
+	    h2->Draw("same");
+	    leg2 = new TLegend(0.1,0.75,0.2,0.9);
+	    leg2->AddEntry(h1,Form("Run %d",run),"lf");
+	    leg2->AddEntry(h2,"alternate","lf");
+	    leg2->Draw();
+	  }
 	  
+	  c1->cd(2);
 	  if(FitGraph!=0) {
 	    delete FitGraph;
 	  }
@@ -345,10 +368,7 @@ void SiPulser_All (void)
 	  pm2->SetMarkerStyle(2);
 	  pm2->SetMarkerSize(1.2);
 	  pm2->SetMarkerColor(6);
-	      
-	  //h2->Draw("same");
-	  c1->cd(2);
-      
+	       
 	  FitGraph->SetTitle(Form("Fit MBID %d CBID %d ChNum %d",MBID,CBID,ChNum));
 	  FitGraph->GetHistogram()->GetXaxis()->SetTitle("Peak positions (channel)");
 	  FitGraph->GetHistogram()->GetYaxis()->SetTitle("Pulser setting (voltage)");
