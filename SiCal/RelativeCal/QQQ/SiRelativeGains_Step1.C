@@ -19,76 +19,91 @@
 #include <exception>
 #include <TCutG.h>
 #include <TVector.h>
+#include <TROOT.h>
+#include <TProfile.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit(TH2F* hist, TCanvas *can) {
-  hist->Draw("colz");
-   
+  can->Clear();
+  //hist->Draw("colz");
+  TF1 *fun1 = new TF1("fun1","[0]*x +[1]",0,16384);
+  fun1->SetLineColor(3);
+  fun1->SetLineStyle(2);
+  fun1->SetLineWidth(1);
+  hist->Fit("fun1","q");
+
   Double_t x1[12] = {1450, 630, 3150, 6340, 9200, 10540, 13200, 13600, 11670, 7550, 2400, 1450};
   Double_t y1[12] = {800, 2250, 4900, 8050, 10380, 11520, 13800, 12600, 8700, 5400, 1100, 800};
   TCutG *cut = new TCutG("cut",12,x1,y1);
   //cut = (TCutG*)can->WaitPrimitive("CUTG");
-  cut->Draw("same");
-  
-  Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
-  Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
-  Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
-  Double_t maxbinY = (maxbinNumberY/hist->GetNbinsY());
-
-  if(0) {
-    printf("axis range:\n");
-    cout << " maxbinNumberX " << maxbinNumberX << endl;
-    cout << " maxbinNumberY " << maxbinNumberY << endl;
-    printf("number of bins:\n");
-    cout << " binX " << hist->GetNbinsX() << endl;
-    cout << " binY " << hist->GetNbinsY() << endl;
-    printf("bin width:\n");
-    cout << " maxbinsX" << maxbinX << endl;
-    cout << " maxbinsY" << maxbinY << endl;
-  }
+  //cut->Draw("same");
   
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++) {
     for (int j=1; j<hist->GetNbinsY(); j++) {
-      if ( !cut->IsInside((Double_t)i*maxbinX,j*maxbinY)) {
-      continue;
-       }
-      for (int k=0; k<hist->GetBinContent(i,j); k++) {
-	counter++;
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
       }
+      counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
 
+  printf(" for %s counts = %d\n",hist->GetName(),counter);
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*maxbinX,j*maxbinY) ){
-      continue;
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = i*maxbinX; 
-	y[counter] = j*maxbinY; 
-	counter++;
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
+  	counter++;
       }
     }
   }
 
   TGraph *graph = new TGraph(counter,x,y);
-  graph->Draw("*same");
-
+  //graph->Draw("*same");
   TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,16000);
+  fun2->SetLineWidth(1);
+  fun2->SetLineColor(1);
   graph->Fit("fun2","qROB");
+  //fun2->Draw("same");
+  
+    hist->ProfileX();
+  TString hname;
+  hname=hist->GetName();
+  hname+="_pfx";
+  TProfile *xprof=(TProfile *)gROOT->FindObject(hname.Data());
+  xprof->SetMarkerStyle(4);
+  xprof->SetMarkerSize(0.5);
+  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,16384);
+  fun3->SetLineColor(2);
+  fun3->SetLineStyle(1);
+  fun3->SetLineWidth(1);
+  
+  hist->Draw("colz");
+  cut->Draw("same");
+  graph->Draw("*same");
+  fun2->Draw("same");
+  xprof->Draw("same");
+  xprof->Fit("fun3","q");
+
   can->Update();
-  //can->WaitPrimitive();
+  can->WaitPrimitive();
 
   Double_t gain = fun2->GetParameter(0);
-  delete x;
-  delete y;
-  delete graph;
-  delete fun2;
+   delete x;
+   delete y;
+   delete graph;
+   delete xprof;
+   delete fun1;
+   delete fun2;
+   delete fun3;
 
   return gain;
 }
