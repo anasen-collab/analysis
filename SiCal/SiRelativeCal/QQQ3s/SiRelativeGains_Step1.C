@@ -414,7 +414,7 @@ void SiRelativeGains_Step1(void)
       }
 
       Double_t gain = MyFit4(hist,can); //set fit method here
-      slope[DetNum][FrontChNum+16] = vslope[DetNum][FrontChNum+16]*gain;
+      slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
