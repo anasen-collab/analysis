@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Relative calibration of Si gains
-////Usage:
+//// Relative calibration of Si gains for QQQ
+////
 ////root -l SiRelativeGains_Step2.C++
 ////
 //// Edited by : John Parker , 2016Jan22
@@ -20,8 +20,6 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-using namespace std;
-
 Double_t MyFit(TH2F* hist, TCanvas *can){
   hist->Draw("colz");
   vector<double> x1;
@@ -51,7 +49,6 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -86,6 +83,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
 void SiRelativeGains_Step2(void)
 {
+  using namespace std;
   TFile *f1 = new TFile("run235_245out_Step1_012816.root");//front
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
@@ -94,7 +92,6 @@ void SiRelativeGains_Step2(void)
   TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
-
   outfile.open("QQQRelativeGains012816_Step2.dat");
 
   ifstream infile;
@@ -113,13 +110,13 @@ void SiRelativeGains_Step2(void)
   }
   infile.close();
 
-  Double_t gain = 0;
-
   Int_t bad_det[288];
   Int_t bad_front[288];
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
+  Double_t gain = 0;
+  
   for (Int_t DetNum=1; DetNum<2; DetNum++){
     for (Int_t BackChNum=10; BackChNum<16; BackChNum++){
       Int_t FrontChNum = 0;
@@ -137,15 +134,13 @@ void SiRelativeGains_Step2(void)
 
       gain = MyFit(hist,can);
       slope[DetNum][BackChNum] = slope[DetNum][BackChNum]/gain;
-
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
     }
   }
-
   outfile.close();
-  cout << "List of bad detectos:\n";
+  cout << "List of bad detectors:\n";
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
