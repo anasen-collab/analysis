@@ -127,8 +127,6 @@ void SiRelativeGains_Step2(void)
     for (Int_t BackChNum=1; BackChNum<16; BackChNum++){
       Int_t FrontChNum = 0;
 
-      //if(DetNum==3 && BackChNum==13){continue;}
-
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum));
       if (hist==NULL){
@@ -143,13 +141,13 @@ void SiRelativeGains_Step2(void)
       gain = MyFit(hist,can);
       slope[DetNum][BackChNum] = slope[DetNum][BackChNum]/gain;
     }
-    for (int i=0; i<32; i++){
+    for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
     }
   }
   outfile.close();
   cout << "List of bad detectors:\n";
-  for (int i=0; i<count_bad; i++){
+  for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
 
