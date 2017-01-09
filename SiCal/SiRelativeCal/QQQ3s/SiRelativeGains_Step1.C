@@ -279,10 +279,16 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   Double_t slope = fun3->GetParameter(0);
   Double_t offset = fun3->GetParameter(1);
 
+  Int_t steps=3;
+
+  TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
+  for (int k=steps; k>-1; k--) {
   //Set cut shape here; assumes form y=mx+b
   Double_t x1=500; 
   Double_t x2=13000;
   Double_t width=400;
+  width*=TMath::Power(2,k);
+  printf("width=%f slope=%f offset=%f",width,slope,offset);
   //The corners of a parallelepiped cut window are then calculated
   Double_t y1=slope*x1+offset;
   Double_t y2=slope*x2+offset;
@@ -296,7 +302,7 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   cut->Draw("same");
   
   Int_t counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++) {
+  for (int i=1; i<hist->GetNbinsX(); i++) {//determine number of counts inside window
     for (int j=1; j<hist->GetNbinsY(); j++) {
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
@@ -310,7 +316,7 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   Double_t *y = new Double_t[counter];
 
   counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++){
+  for (int i=1; i<hist->GetNbinsX(); i++){//fill vectors with histogram entries
     for (int j=1; j<hist->GetNbinsY(); j++){
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
@@ -326,7 +332,9 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   TGraph *graph = new TGraph(counter,x,y);
   //graph->SetMarkerSize();
   //graph->Draw("same*");
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+  fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+  //fun2->SetLineWidth(1);
+  fun2->SetLineColor(k+2);
   graph->Fit("fun2","qROB");
   
   fun2->Draw("same");
@@ -335,21 +343,21 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
   leg->AddEntry(xprof,"x-profile","pe");  
   leg->AddEntry(fun3,"TProfile fit","l");   
-  leg->AddEntry(cut,"cut","l");
+  leg->AddEntry(cut,Form("cut %.0f wide",width),"l");
   //leg->AddEntry(graph,"graph","p");
-  leg->AddEntry(fun2,"TGraph fit","l");
+  leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
   leg->Draw();
   
   can->Update();
   //can->WaitPrimitive();
-
-  Double_t gain = fun2->GetParameter(0);
-  Double_t ra=fabs(gain-slope)/slope;
-  if(ra>0.016)
-    printf("  difference in gain (Meth. 3 vs Meth. 4) is %f\n",ra);
+  slope=fun2->GetParameter(0);
+  offset=fun2->GetParameter(1);
+  
   delete x;
   delete y;
   delete graph;
+  }
+  
   delete xprof;
   delete fun2;
   delete fun3;
@@ -363,7 +371,7 @@ void SiRelativeGains_Step1(void)
 
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_slope1.root");
   //TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/anasen_analysis_software/output.root");
-  TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/root/run1209m.root"); 
+  TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/root/run1226-9m.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
