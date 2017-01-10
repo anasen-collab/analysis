@@ -98,10 +98,10 @@ void SiRelativeGains_Step2(void)
   TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
-  outfile.open("QQQRelativeGains09182016_Step2.dat");
+  outfile.open("QQQRelativeGains_Step2.dat");
 
   ifstream infile;
-  infile.open("QQQRelativeGains09182016_Step1.dat");
+  infile.open("QQQRelativeGains_Step1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
