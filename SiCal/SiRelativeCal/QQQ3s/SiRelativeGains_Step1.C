@@ -5,7 +5,7 @@
 
 
 //// Edited by : John Parker , 2016Jan22
-//   Developed by : Jon Lighthall, 2016.01
+//   Developed by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -357,7 +357,8 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   delete y;
   delete graph;
   }
-  
+
+  Double_t gain = slope;
   delete xprof;
   delete fun2;
   delete fun3;
@@ -382,7 +383,7 @@ void SiRelativeGains_Step1(void)
   outfile.open("QQQRelativeGains_Step1.dat");
 
   ifstream infile;
-  infile.open("QQQRelativeGains09122016_Slope1.dat");
+  infile.open("QQQRelativeGains_Slope1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
