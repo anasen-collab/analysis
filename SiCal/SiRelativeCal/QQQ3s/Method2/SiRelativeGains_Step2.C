@@ -92,10 +92,10 @@ void SiRelativeGains_Step2(void)
   TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
-  outfile.open("QQQRelativeGains012816_Step2.dat");
+  outfile.open("QQQRelativeGains_Step2.dat");
 
   ifstream infile;
-  infile.open("QQQRelativeGains012816_Step1.dat");
+  infile.open("QQQRelativeGains_Step1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
@@ -110,15 +110,15 @@ void SiRelativeGains_Step2(void)
   }
   infile.close();
 
-  Int_t bad_det[288];
-  Int_t bad_front[288];
-  Int_t bad_back[288];
+  Int_t bad_det[128];
+  Int_t bad_front[128];
+  Int_t bad_back[128];
   Int_t count_bad = 0;
 
   Double_t gain = 0;
   
-  for (Int_t DetNum=1; DetNum<2; DetNum++){
-    for (Int_t BackChNum=10; BackChNum<16; BackChNum++){
+  for (Int_t DetNum=0; DetNum<4; DetNum++){
+    for (Int_t BackChNum=1; BackChNum<16; BackChNum++){
       Int_t FrontChNum = 0;
 
       TH2F *hist = NULL;
