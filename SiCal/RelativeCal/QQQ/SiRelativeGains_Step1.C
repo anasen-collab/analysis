@@ -366,6 +366,253 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
   return gain;
 }
 
+Double_t MyFit5(TH2F* hist, TCanvas *can) {//used for Det 2
+  //Method 1 - automated cut generation based on TProfile slope
+  can->Clear();
+  hist->Draw("colz");
+  Int_t down=1500;
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
+  hist->ProfileX("_pfx");
+  TString hname;
+  hname=hist->GetName();
+  hname+="_pfx";
+  TProfile *xprof=(TProfile *)gROOT->FindObject(hname.Data());
+  xprof->SetMarkerStyle(4);
+  xprof->SetMarkerSize(0.125);
+  xprof->Draw("same");
+  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,16384);
+  fun3->SetLineColor(4);
+  fun3->SetLineStyle(2);
+  fun3->SetLineWidth(2);
+  xprof->Fit("fun3","q");//,"",down,up);
+  Double_t slope = fun3->GetParameter(0);
+  Double_t offset = fun3->GetParameter(1);
+
+  Int_t steps=3;
+
+  TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
+  for (int k=steps; k>-1; k--) {
+  //Set cut shape here; assumes form y=mx+b
+    Double_t xa=1000;
+    Double_t xb=down;
+    Double_t dx0=(xb-xa)/steps;
+    
+  Double_t x1=xa+(dx0*k); 
+  Double_t x2=13000;
+  Double_t width=400;
+  width*=TMath::Power(2,k);
+  printf("width=%f slope=%f offset=%f",width,slope,offset);
+  //The corners of a parallelepiped cut window are then calculated
+  Double_t y1=slope*x1+offset;
+  Double_t y2=slope*x2+offset;
+  Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
+  Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
+  const Int_t nv = 5;//set number of verticies
+  Double_t xc[nv] = {x1+dx,x2+dx,x2-dx,x1-dx,x1+dx};
+  Double_t yc[nv] = {y1-dy,y2-dy,y2+dy,y1+dy,y1-dy};
+  TCutG *cut = new TCutG("cut",nv,xc,yc);
+  cut->SetLineColor(6);
+  cut->Draw("same");
+  
+  Int_t counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++) {//determine number of counts inside window
+    for (int j=1; j<hist->GetNbinsY(); j++) {
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      counter+=(Int_t)hist->GetBinContent(i,j);
+    }
+  }
+
+  printf(" for %s counts = %d in window\n",hist->GetName(),counter);
+  Double_t *x = new Double_t[counter];
+  Double_t *y = new Double_t[counter];
+
+  counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){//fill vectors with histogram entries
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
+  	counter++;
+      }
+    }
+  }
+
+  TGraph *graph = new TGraph(counter,x,y);
+  //graph->SetMarkerSize();
+  //graph->Draw("same*");
+  fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+  //fun2->SetLineWidth(1);
+  fun2->SetLineColor(k+2);
+  graph->Fit("fun2","qROB");
+  
+  fun2->Draw("same");
+  fun3->Draw("same");
+  
+  TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
+  leg->AddEntry(xprof,"x-profile","pe");  
+  leg->AddEntry(fun3,"TProfile fit","l");   
+  leg->AddEntry(cut,Form("cut %.0f wide",width),"l");
+  //leg->AddEntry(graph,"graph","p");
+  leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
+  leg->Draw();
+  
+  can->Update();
+  //can->WaitPrimitive();
+  slope=fun2->GetParameter(0);
+  offset=fun2->GetParameter(1);
+  
+  delete x;
+  delete y;
+  delete graph;
+  }
+
+  Double_t gain = slope;
+  delete xprof;
+  delete fun2;
+  delete fun3;
+
+  return gain;
+}
+
+Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial slope
+  //Method 1 - automated cut generation based on TProfile slope
+  can->Clear();
+
+  hist->Draw("colz");
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
+  hist->ProjectionX();
+  TString hname;
+  hname=hist->GetName();
+  hname+="_px";
+  TH1 *xproj=(TH1 *)gROOT->FindObject(hname.Data());
+  
+  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,16384);
+  fun3->SetLineColor(4);
+  fun3->SetLineStyle(2);
+  fun3->SetLineWidth(2);
+  fun3->FixParameter(0,1);
+  fun3->FixParameter(1,0);
+  Double_t slope = fun3->GetParameter(0);
+  Double_t offset = fun3->GetParameter(1);
+
+  Int_t highb=0;
+  for(Int_t i=0; i<xproj->GetXaxis()->GetNbins();i++) {
+    Double_t cont=xproj->GetBinContent(i);
+    if(cont>0)
+      if(i>highb)
+	highb=i;
+  }
+  Double_t high=xproj->GetBinCenter(highb);
+  printf("high bin is %d %.0f: ",highb,high);
+					
+  Int_t steps=4;
+  TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
+  for (int k=steps; k>-1; k--) {
+  //Set cut shape here; assumes form y=mx+b
+    //Set variable low-x position
+    Double_t xa=400;
+    Double_t xb=1500;
+    Double_t dxs=(xb-xa)/steps;
+    Double_t x1=xa+(dxs*k); 
+
+    //Set high-x and width
+    //Double_t x1=500;
+    Double_t x2=1.5*high;
+    Double_t width0=200;
+    Double_t width=width0;
+    
+    printf("width=%f slope=%f offset=%f",width,slope,offset);
+    //The corners of a truncated cone cut window are then calculated
+    Double_t y1=slope*x1+offset;
+    Double_t y2=slope*x2+offset;
+    Double_t dx0=(width0/2.0)*slope/sqrt(1+slope*slope);
+    Double_t dy0=(width0/2.0)*1/sqrt(1+slope*slope);
+    
+    width*=TMath::Power(2,k);
+    Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
+    Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
+
+    const Int_t nv = 5;//set number of verticies
+    Double_t xc[nv] = {x1+dx0,x2+dx,x2-dx,x1-dx0,x1+dx0};
+    Double_t yc[nv] = {y1-dy0,y2-dy,y2+dy,y1+dy0,y1-dy0};
+    TCutG *cut = new TCutG("cut",nv,xc,yc);
+    cut->SetLineColor(6);
+  cut->Draw("same");
+  
+  Int_t counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++) {//determine number of counts inside window
+    for (int j=1; j<hist->GetNbinsY(); j++) {
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      counter+=(Int_t)hist->GetBinContent(i,j);
+    }
+  }
+
+  printf(" for %s counts = %d in window\n",hist->GetName(),counter);
+  Double_t *x = new Double_t[counter];
+  Double_t *y = new Double_t[counter];
+
+  counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){//fill vectors with histogram entries
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
+  	counter++;
+      }
+    }
+  }
+
+  TGraph *graph = new TGraph(counter,x,y);
+  //graph->SetMarkerSize();
+  //graph->Draw("same*");
+  fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+  //fun2->SetLineWidth(1);
+  fun2->SetLineColor(k+2);
+  graph->Fit("fun2","qROB");
+  
+  fun2->Draw("same");
+  fun3->Draw("same");
+  
+  TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
+
+  leg->AddEntry(fun3,"TProfile fit","l");   
+  leg->AddEntry(cut,Form("cut %.0f wide",width),"l");
+  //leg->AddEntry(graph,"graph","p");
+  leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
+  leg->Draw();
+  
+  can->Update();
+  if(k==0)
+    can->WaitPrimitive();
+  slope=fun2->GetParameter(0);
+  offset=fun2->GetParameter(1);
+  
+  delete x;
+  delete y;
+  delete graph;
+  }
+
+  Double_t gain = slope;
+    delete fun2;
+  delete fun3;
+
+  return gain;
+}
+
 void SiRelativeGains_Step1(void)
 {
   using namespace std;
@@ -377,10 +624,14 @@ void SiRelativeGains_Step1(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",800,600);
+  TCanvas *can = new TCanvas("can","can",1362,656);
+  can->SetWindowPosition(0,63);
 
   ofstream outfile;
-  outfile.open("QQQRelativeGains_Step1.dat");
+  outfile.open("QQQRelativeGains_Step1_all.dat");
+
+  ofstream outfile2;
+  outfile2.open("QQQRelativeGains_Step1_list.dat");
 
   ifstream infile;
   infile.open("QQQRelativeGains_Slope1.dat");
@@ -403,12 +654,15 @@ void SiRelativeGains_Step1(void)
   Int_t bad_back[128];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=0; DetNum<4; DetNum++){
-    for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++){
-      Int_t BackChNum = 0;
-      
+  for (Int_t DetNum=2; DetNum<3; DetNum++) {
+    for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
+      for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
+      //Int_t BackChNum = 0;
       // if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
       //	 if(DetNum==2 && FrontChNum==11){continue;}
+	//if(!((FrontChNum==0)||(FrontChNum==13)))
+	if(!((FrontChNum==0)))
+	  continue;
 
       TH2F *hist = NULL;
       TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
@@ -422,8 +676,10 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
 
-      Double_t gain = MyFit4(hist,can); //set fit method here
+      Double_t gain = MyFit6(hist,can); //set fit method here
       slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
+      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
+      }
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
@@ -431,7 +687,7 @@ void SiRelativeGains_Step1(void)
   }
   outfile.close();
   cout << "List of bad detectors:\n";
-  for (int i=0; i<count_bad; i++){
+  for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
   
