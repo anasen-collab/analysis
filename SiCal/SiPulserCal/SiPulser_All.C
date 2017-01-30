@@ -47,20 +47,31 @@ void SiPulser_All (void)
   if(run==1034||run==1035) {
     const Int_t npeaks = 8;
     Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
-    if(run==1034)
+    if(run==1034) {
       TFile *f1 = new TFile("/data1/lighthall/root/run1034.root");
+      TFile *f2 = new TFile("/data1/lighthall/root/run1262.root");
+    }
+    if(run==1035) {
+       TFile *f1 = new TFile("/data1/lighthall/root/run1035.root");
+       TFile *f2 = new TFile("/data1/lighthall/root/run1264.root");
+    }
   }
   
   if(run==1262||run==1263||run==1264) {
     const Int_t npeaks = 5;
     Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
     if(run==1262) {
-      TFile *f1 = new TFile("/data1/lighthall/root/run1262.root");
-      TFile *f2 = new TFile("/data1/lighthall/root/run1034.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/run1262.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/run1034.root");
     }
-    if(run==1263)
-      TFile *f1 = new TFile("/data1/lighthall/root/run1263.root");
-
+    if(run==1263) {
+      TFile *f1 = new TFile("/data0/lighthall/root/run1263.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/run1264.root");
+    }
+    if(run==1264) {
+      TFile *f1 = new TFile("/data0/lighthall/root/run1264.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/run1035.root");
+    }
   }
 
   const int npar=npeaks*3;
