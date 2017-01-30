@@ -250,7 +250,7 @@ Double_t MyFit4(TH2F* hist, TCanvas *can) {
     leg->Draw();
   
     can->Update();
-    //can->WaitPrimitive();
+    //if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(0);
     offset=fun2->GetParameter(1);
   
@@ -379,8 +379,7 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
     leg->Draw();
   
     can->Update();
-    if(k==0)
-      can->WaitPrimitive();
+    //if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(0);
     offset=fun2->GetParameter(1);
   
@@ -437,15 +436,17 @@ void SiRelativeGains_Step1(void)
   Int_t bad_back[128];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=2; DetNum<3; DetNum++) {
+  for (Int_t DetNum=0; DetNum<4; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
-      for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
-	//Int_t BackChNum = 0;
+      //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
+	Int_t BackChNum = 0;
+	if(DetNum==2)
+	  BackChNum = 4;
 	// if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
 	//	 if(DetNum==2 && FrontChNum==11){continue;}
 	//if(!((FrontChNum==0)||(FrontChNum==13)))
-	if(!((FrontChNum==0)))
-	  continue;
+	//if(!((FrontChNum==13)))
+	//continue;
 
 	TH2F *hist = NULL;
 	TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
@@ -462,7 +463,7 @@ void SiRelativeGains_Step1(void)
 	Double_t gain = MyFit6(hist,can); //set fit method here
 	slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
 	outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
-      }
+	//}//back loop
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
