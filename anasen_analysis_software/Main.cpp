@@ -11,8 +11,9 @@
 //  g++ -o Main Main_dict.cxx Main.cpp `root-config --cflags --glibs` -O3
 //
 // To run the code:
-//  ./Main ../../../../../data0/manasta/evt2root_files_new/24Mg/runXXX.root ../../../../../data0/manasta/OrganizeRaw_files/24Mg/runXXX.root
 //  ./Main input.root output.root
+//  for example:
+//  ./Main ../../../../../data0/manasta/evt2root_files_new/24Mg/runXXX.root ../../../../../data0/manasta/OrganizeRaw_files/24Mg/runXXX.root
 //
 //  
 //
@@ -146,8 +147,8 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
 	     "Param/initialize/AlphaCalibration_09132016.dat",
-  	     "Param/24Mg_cals/initialize/X3RelativeGains_11022016_Slope1.dat",
-	     "Param/24Mg_cals/initialize/QQQRelativeGains11022016_Slope1.dat");
+  	     "Param/initialize/X3RelativeGains_Slope1.dat",
+	     "Param/initialize/QQQRelativeGains_Slope1.dat");
   
   /*
   //intialize 24Mg
