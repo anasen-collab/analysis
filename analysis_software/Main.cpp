@@ -10,6 +10,8 @@
 // To compile the code:
 //  g++ -o Main Main_dict.cxx Main.cpp `root-config --cflags --glibs` -O3
 //
+// These commands can be run using the makefile
+//
 // To run the code:
 //  ./Main input.root output.root
 //  for example:
