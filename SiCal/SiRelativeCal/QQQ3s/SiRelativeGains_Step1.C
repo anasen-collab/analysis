@@ -379,7 +379,7 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
     leg->Draw();
   
     can->Update();
-    //if(k==0) can->WaitPrimitive();
+    if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(0);
     offset=fun2->GetParameter(1);
   
@@ -400,8 +400,7 @@ void SiRelativeGains_Step1(void)
   using namespace std;
 
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_slope1.root");
-  //TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/anasen_analysis_software/output.root");
-  TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/root/run1226-9m.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
@@ -451,7 +450,7 @@ void SiRelativeGains_Step1(void)
 	TH2F *hist = NULL;
 	TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
 	hist = (TH2F*)f1->Get(hname.Data());
-	if (hist==NULL){
+	if (hist==NULL) {
 	  cout << hname << " histogram does not exist\n";
 	  bad_det[count_bad] = DetNum;
 	  bad_front[count_bad] = FrontChNum;
