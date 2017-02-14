@@ -409,7 +409,8 @@ Double_t MyFit7(TH2F* hist, TCanvas *can, Int_t DetNum, Int_t FrontChNum, Int_t 
 
   TTree *intree = (TTree*) f1->Get("MainTree");
   
-  intree->Draw("Si.Detector.EBack_Pulser:Si.Detector.EFront_Pulser","Si.Hit.HitType==11&&Si.Detector.DetID==0&&Si.Detector.FrontChNum==0&&Si.Detector.BackChNum==0","");
+  intree->Draw("Si.Detector.EBack_Pulser:Si.Detector.EFront_Pulser",Form("Si.Hit.HitType==11&&Si.Detector.DetID==%d&&Si.Detector.FrontChNum==%d&&Si.Detector.BackChNum==%d",DetNum,FrontChNum,BackChNum));
+  //printf("entries = %lld\n",intree->GetEntries(Form("Si.Hit.HitType==11&&Si.Detector.DetID==%d&&Si.Detector.FrontChNum==%d&&Si.Detector.BackChNum==%d",DetNum,FrontChNum,BackChNum)));
   
   /* TGraph *graph = new TGraph(intree->GetSelectedRows(),intree->GetV1(),intree->GetV2());
   TF1* fun2 = new TF1("fun2","[0]*x +[1]",0,up);
