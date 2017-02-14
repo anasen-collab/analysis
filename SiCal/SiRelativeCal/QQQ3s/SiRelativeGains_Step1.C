@@ -25,6 +25,8 @@
 #include <TLegend.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TFile *f1;
+
 Double_t MyFit1(TH2F* hist, TCanvas *can) {
   //Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
   hist->Draw("colz");
@@ -395,13 +397,41 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
   return gain;
 }
 
+Double_t MyFit7(TH2F* hist, TCanvas *can, Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {//used for Det 2; using fixed initial slope
+  //Method 7 - automated cut based on TGraph
+  can->Clear();
+  hist->Draw("colz");
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
+
+  printf("det = %d, fr = %d bk = %d \n", DetNum,FrontChNum, BackChNum );
+
+  TTree *intree = (TTree*) f1->Get("MainTree");
+  
+  intree->Draw("Si.Detector.EBack_Pulser:Si.Detector.EFront_Pulser",Form("Si.Hit.HitType==11&&Si.Detector.DetID==%d&&Si.Detector.FrontChNum==%d&&Si.Detector.BackChNum==%d",DetNum,FrontChNum,BackChNum));
+  //printf("entries = %lld\n",intree->GetEntries(Form("Si.Hit.HitType==11&&Si.Detector.DetID==%d&&Si.Detector.FrontChNum==%d&&Si.Detector.BackChNum==%d",DetNum,FrontChNum,BackChNum)));
+  
+  /* TGraph *graph = new TGraph(intree->GetSelectedRows(),intree->GetV1(),intree->GetV2());
+  TF1* fun2 = new TF1("fun2","[0]*x +[1]",0,up);
+  graph->Fit("fun2","qROB");
+  //fun2->Draw("same");
+  Double_t slope=fun2->GetParameter(0);
+  
+  //  delete graph;
+  Double_t gain = slope;
+  //delete fun2;
+  */
+  Double_t gain = 1;
+  return gain;
+}
+
 void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_slope1.root");
-  //TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/anasen_analysis_software/output.root");
-  TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/root/run1226-9m.root");
+  f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
@@ -436,22 +466,22 @@ void SiRelativeGains_Step1(void)
   Int_t bad_back[128];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=0; DetNum<4; DetNum++) {
-    for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
+  for (Int_t DetNum=0; DetNum<1; DetNum++) {
+    for (Int_t FrontChNum=0; FrontChNum<1; FrontChNum++) {
       //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
 	Int_t BackChNum = 0;
 	if(DetNum==2)
 	  BackChNum = 4;
-	// if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
+	//if(DetNum==0 && FrontChNum==0){continue;}
 	//	 if(DetNum==2 && FrontChNum==11){continue;}
 	//if(!((FrontChNum==0)||(FrontChNum==13)))
 	//if(!((FrontChNum==13)))
 	//continue;
-
+	printf("det= %i front = %i  back = %i\n",DetNum,FrontChNum,BackChNum);
 	TH2F *hist = NULL;
 	TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
 	hist = (TH2F*)f1->Get(hname.Data());
-	if (hist==NULL){
+	if (hist==NULL) {
 	  cout << hname << " histogram does not exist\n";
 	  bad_det[count_bad] = DetNum;
 	  bad_front[count_bad] = FrontChNum;
@@ -460,7 +490,8 @@ void SiRelativeGains_Step1(void)
 	  continue;
 	}
 
-	Double_t gain = MyFit6(hist,can); //set fit method here
+	//Double_t gain = MyFit6(hist,can); //set fit method here
+	Double_t gain = MyFit7(hist,can,DetNum,FrontChNum,BackChNum); //set fit method here
 	slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
 	outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
 	//}//back loop
@@ -475,6 +506,6 @@ void SiRelativeGains_Step1(void)
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
   
-  delete can;
+  //delete can;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		     
