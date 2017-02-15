@@ -283,8 +283,8 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
   fun3->SetLineColor(4);
   fun3->SetLineStyle(2);
   fun3->SetLineWidth(2);
-  fun3->FixParameter(0,1);
-  fun3->FixParameter(1,0);
+  fun3->FixParameter(0,1); //default slope
+  fun3->FixParameter(1,0); //default offset
   Double_t slope = fun3->GetParameter(0);
   Double_t offset = fun3->GetParameter(1);
 
