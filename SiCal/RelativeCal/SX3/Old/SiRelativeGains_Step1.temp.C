@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+qy//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
 //// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
@@ -31,19 +31,41 @@
 #include <TSpectrum.h>
 #include <fstream>
 #include <exception>
+#include <TCutG.h>
+#include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit(TH2F* hist, TCanvas* can){
   hist->Draw("colz");
+  hist->GetXaxis()->SetRange(0,180);
+  hist->GetYaxis()->SetRange(0,180);
+  
+  Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
+  Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
+  TCutG *cut = new TCutG("cut",5,x1,y1);
+  cut->Draw("same");
+  
+  
+  /* vector<double> x1;
+  vector<double> y1;
 
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+  x1.resize(cut->GetN());
+  y1.resize(cut->GetN());
+  cut->Draw("same");
+  */
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-	for (int k=0; k<hist->GetBinContent(i,j); k++){
-	  counter++;
-	}
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	counter++;
       }
     }
+  }
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
@@ -52,9 +74,12 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = i*0.01;
-	y[counter] = j*0.01;
+	x[counter] = (Double_t)i*0.1;
+	y[counter] = (Double_t)j*0.1;
 	counter++;
       }
     }
@@ -63,8 +88,8 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,2);
-  fun2->SetParameter(0,1);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
+  fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2");
   can->Update();
@@ -92,9 +117,10 @@ void SiRelativeGains_Step1(void)
 
   //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
+  //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
-  TCanvas *can = new TCanvas("can","can",800,1100);
+  TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
 
@@ -118,33 +144,37 @@ void SiRelativeGains_Step1(void)
   }
   infile.close();
 
+  Int_t bad_det[288];
+  Int_t bad_front[288];
+  Int_t count_bad = 0;
+
   for (Int_t DetNum=4; DetNum<28; DetNum++){
-    average_slope=0;
-    counter = 0;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
+	bad_det[count_bad] = DetNum;
+	bad_front[count_bad] = FrontChNum;
+	count_bad++;
 	continue;
       }
       
       average_slope += MyFit(hist,can);
-      counter++;
+      slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
-
-    if (counter>0){
-      average_slope = average_slope/counter;
-      slope[DetNum-4][FrontChNum+4] = -slope[DetNum-4][FrontChNum+4]/average_slope;
-    }
-  }    
-  for (Int_t i=0; i<24; i++){
-    for (Int_t j=0; j<12; j++){
-      outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
+    for (Int_t i=0; i<24; i++){
+      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
+  
+ 
   outfile.close();
+cout << "List of bad detectors:\n";
+  for (int i=0; i<count_bad; i++){
+    cout << bad_det[i] << "  " << bad_front[i] << endl;
+ }
   delete can;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
