@@ -13,6 +13,6 @@
 \#*#
 
 # linked directories
-root
-scripts
-data
+/*root
+/*scripts
+/*data
