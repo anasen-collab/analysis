@@ -11,3 +11,8 @@
 # Emacs
 *~
 \#*#
+
+# linked directories
+root
+scripts
+data
