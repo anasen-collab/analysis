@@ -1,4 +1,4 @@
-qy//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
 //// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
@@ -44,17 +44,7 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
   TCutG *cut = new TCutG("cut",5,x1,y1);
   cut->Draw("same");
-  
-  
-  /* vector<double> x1;
-  vector<double> y1;
-
-  TCutG *cut;
-  cut = (TCutG*)can->WaitPrimitive("CUTG");
-  x1.resize(cut->GetN());
-  y1.resize(cut->GetN());
-  cut->Draw("same");
-  */
+    
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -69,7 +59,6 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -161,20 +150,18 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      average_slope += MyFit(hist,can);
+      average_slope = MyFit(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
-    for (Int_t i=0; i<24; i++){
+    for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
-  
- 
   outfile.close();
-cout << "List of bad detectors:\n";
+  cout << "List of bad detectors:\n";
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << endl;
- }
+  }
   delete can;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
