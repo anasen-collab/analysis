@@ -44,10 +44,9 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
 	}
       }
     }
-
+  
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -117,10 +116,8 @@ void SiRelativeGains_Step1(void)
     exit(EXIT_FAILURE);
   }
   infile.close();
-
+  
   for (Int_t DetNum=4; DetNum<28; DetNum++){
-    average_slope=0;
-    counter = 0;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
@@ -131,11 +128,6 @@ void SiRelativeGains_Step1(void)
       }
       
       average_slope += MyFit(hist,can);
-      counter++;
-    }
-
-    if (counter>0){
-      average_slope = average_slope/counter;
       slope[DetNum-4][FrontChNum+4] = -slope[DetNum-4][FrontChNum+4]/average_slope;
     }
   }    
