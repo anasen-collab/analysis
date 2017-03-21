@@ -245,6 +245,8 @@ void SiRelativeGains_Step1(void)
   //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
+    if(DetNum!=21)
+      continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
