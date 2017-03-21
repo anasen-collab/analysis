@@ -67,11 +67,16 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
   //TCutG *cut = new TCutG("cut",8,x1,y1);
   cut->Draw("same");
-    
+
+  Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
+  Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
+  Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
+  Double_t maxbinY = (maxbinNumberY/hist->GetNbinsY());
+
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -86,12 +91,12 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = (Double_t)i*0.1;
-	y[counter] = (Double_t)j*0.1;
+	x[counter] = (Double_t)i*maxbinX;
+	y[counter] = (Double_t)j*maxbinY;
 	counter++;
       }
     }
@@ -108,7 +113,7 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
 
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
 
-  //can->WaitPrimitive();
+  can->WaitPrimitive();
 
   Double_t gain = fun2->GetParameter(1);
 
