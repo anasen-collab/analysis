@@ -60,13 +60,11 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   //Double_t x1[8] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
   //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
   //TCutG *cut = new TCutG("cut",8,x1,y1);
-  //cut = (TCutG*)can->WaitPrimitive("CUTG");   //not necessary to uncomment
   
   Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
   Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
   Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
   Double_t maxbinY = (maxbinNumberY/hist->GetNbinsY());
-  
 
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -82,7 +80,6 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -172,9 +169,10 @@ void SiRelativeGains_Step1(void)
   for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("down_vs_up%i_f%i",DetNum,FrontChNum));
-      if (hist==NULL){
-	cout << "Histo does not exist\n";
+      TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
+      hist = (TH2F*)f1->Get(hname.Data());
+      if (hist==NULL) {
+	cout << hname << " histogram does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
 	count_bad++;
