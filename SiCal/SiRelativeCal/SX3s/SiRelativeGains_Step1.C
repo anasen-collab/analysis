@@ -68,20 +68,13 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   //TCutG *cut = new TCutG("cut",8,x1,y1);
   cut->Draw("same");
 
-  Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
-  Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
-  Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
-  Double_t maxbinY = (maxbinNumberY/hist->GetNbinsY());
-
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
-	counter++;
-      }
+           counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
 
@@ -91,12 +84,12 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = (Double_t)i*maxbinX;
-	y[counter] = (Double_t)j*maxbinY;
+	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
 	counter++;
       }
     }
@@ -129,6 +122,8 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
 }
 
 Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
+  if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
+  if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
@@ -144,27 +139,25 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
-	continue;
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+      	continue;
       }
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
-	counter++;
-      }
+      counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
-
+  
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = (Double_t)i*0.1;
-	y[counter] = (Double_t)j*0.1;
+	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+	y[counter] = hist->GetYaxis()->GetBinCenter(j);
 	counter++;
       }
     }
@@ -259,7 +252,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      average_slope = MyFit1(hist,can);
+      average_slope = MyFit2(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
