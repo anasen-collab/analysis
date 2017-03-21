@@ -18,7 +18,24 @@
 ////   Input the new organize.root and new .dat file into Step3.C
 ////   root -l SiRelativeGains_Step3.C++
 ////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////This program fixes the relative gains for the up and down on the SX3
+////How to use: Create Histograms in the Main.C(OrganizeIC.cpp):
+////-----Plot down vs up energy for each front channel of each detector
+////-----Code reads in histogram of name down_vs_up%i_front%i--e.g. down_vs_up4_front0 (det4, channel0)
+////-----It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
+////
+////
+////The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
+////Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
+////
+////This file changes the relative gains on the down relative to the up
+////Once you have completed this program, rerun Main.C(OrganizeIC.cpp) with this new X3RelativeGains_Step1.dat
+////You will input this new root file with this new relative gains file into step 2.
+////
 //// Edited by : John Parker , 2016Jan22
+//// Edited by : Maria Anastasiou, 2016Sept20
+////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -39,10 +56,16 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
+
+  //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
+  //input below on the CUT the coordinates of the points that surround this area.
   
   Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
   Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
   TCutG *cut = new TCutG("cut",5,x1,y1);
+  //Double_t x1[8] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
+  //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
+  //TCutG *cut = new TCutG("cut",8,x1,y1);
   cut->Draw("same");
     
   Int_t counter = 0;
@@ -77,7 +100,7 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16000);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2");
@@ -172,12 +195,17 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
+  //if you are just starting the calibration you can use an .dat input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0)
+
+  //input the root file that was created in the Main(Organize) using the .dat file where ALL SLOPES are ONE.
+  
   //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
   //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
+  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
-  TCanvas *can = new TCanvas("can","can",800,1100);
+  TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
 
@@ -204,6 +232,12 @@ void SiRelativeGains_Step1(void)
   Int_t bad_det[288];
   Int_t bad_front[288];
   Int_t count_bad = 0;
+
+  //You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
+  //if you do so change the loop below.
+
+  //histo "down_vs_up_divideBack%i_front_%i" is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
+  //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
