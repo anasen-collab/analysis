@@ -35,7 +35,7 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit1(TH2F* hist, TCanvas* can){
+Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' directory
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
@@ -86,6 +86,74 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
 
   //can->WaitPrimitive();
+
+  Double_t gain = fun2->GetParameter(1);
+
+  delete x;
+  delete y;
+  delete graph;
+  delete fun2;
+
+  if (gain < -3 || gain > -0.1 ){//basically if the slope is very far from one, I don't trust the fit
+    gain = -1;
+  }
+  return gain;
+}
+
+Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
+  hist->Draw("colz");
+  hist->GetXaxis()->SetRange(0,180);
+  hist->GetYaxis()->SetRange(0,180);
+    
+  vector<double> x1;
+  vector<double> y1;
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+  x1.resize(cut->GetN());
+  y1.resize(cut->GetN());
+  
+  Int_t counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	counter++;
+      }
+    }
+  }
+
+  Double_t *x = new Double_t[counter];
+  Double_t *y = new Double_t[counter];
+
+  counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	x[counter] = (Double_t)i*0.1;
+	y[counter] = (Double_t)j*0.1;
+	counter++;
+      }
+    }
+  }
+
+  TGraph *graph = new TGraph(counter,x,y);
+  graph->Draw("*same");
+
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
+  fun2->SetParameter(0,10);
+  fun2->SetParameter(1,-1);
+  graph->Fit("fun2");
+  can->Update();
+
+  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
+
+  can->WaitPrimitive();
 
   Double_t gain = fun2->GetParameter(1);
 
