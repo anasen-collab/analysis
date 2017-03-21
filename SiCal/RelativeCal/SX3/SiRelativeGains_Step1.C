@@ -146,7 +146,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
       counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
-
+  
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
 
@@ -356,7 +356,7 @@ void SiRelativeGains_Step1(void)
   //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
-    //if(DetNum!=4) continue;
+    if(DetNum>6) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);

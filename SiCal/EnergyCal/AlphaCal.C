@@ -30,7 +30,7 @@ void AlphaCal(void){
   //for gold at spacer zero, this is what the alpha energy should be
   //see lab book page 9
   Double_t energy[28];
-  for (Int_t i=0; i<28; i++){
+  for (Int_t i=0; i<28; i++) {
     if (i==0 || i==3){
       energy[i] = 12.03;
     }else if (i==1 || i==2){
@@ -41,7 +41,6 @@ void AlphaCal(void){
       energy[i] = 12.84;
     }
   }
-
 
   TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
@@ -66,7 +65,7 @@ void AlphaCal(void){
     exit(EXIT_FAILURE);
   }
   infile.close();
-
+  
   TTree *tree = NULL;
   tree = (TTree*)f1->Get("MainTree");
   if (tree==NULL){
@@ -81,7 +80,7 @@ void AlphaCal(void){
     Float_t *average_slope;
     tree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
     hist->SetTitle(Form("Det%i",DetNum));  
-
+    
     TSpectrum *s = new TSpectrum(2);
     Int_t nfound = s->Search(hist,0.5," ",0.8);//9 and 0.15
     //hist->Fit("fun");
@@ -104,7 +103,5 @@ void AlphaCal(void){
     outfile << DetNum << "\t" << 0 << "\t" << slope[DetNum] << endl;
     can->Update();
     //can->WaitPrimitive();
-    
-    
   }
 }
