@@ -35,17 +35,11 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas* can){
+Double_t MyFit2(TH2F* hist, TCanvas* can){
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
-  /*
-  Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
-  Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
-  TCutG *cut = new TCutG("cut",5,x1,y1);
-  cut->Draw("same");
-  */
-  
+    
   vector<double> x1;
   vector<double> y1;
 
@@ -147,16 +141,17 @@ void SiRelativeGains_Step1(void)
   for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("down_vs_up%i_f%i",DetNum,FrontChNum));
+      TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
+      hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
-	cout << "Histo does not exist\n";
+	cout << hname << " histogram does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
 	count_bad++;
 	continue;
       }
       
-      average_slope = MyFit(hist,can);
+      average_slope = MyFit2(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
