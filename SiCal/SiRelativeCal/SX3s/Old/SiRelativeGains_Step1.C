@@ -1,10 +1,22 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
-//// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
-//// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
+//// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
+//// Detector number, Front channel, Slope
 ////
-//// Usage: root -l SiPulser_All.C++ (from the same directory).
+////General Usage of all three steps
+////
+////If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new .dat file
+////First, run Organize.cpp with a given X3cal.dat file
+////   Input organize.root and the .dat file into this code
+////   This code will output another .dat file that you should define
+////   root -l SiRelativeGains_Step1.C++
+////Second, run Organize.cpp again with the new .dat file
+////   Input the new organize.root and new .dat file into Step2.C
+////   root -l SiRelativeGains_Step2.C++
+////Finally, run Organize.cpp again with the new .dat file
+////   Input the new organize.root and new .dat file into Step3.C
+////   root -l SiRelativeGains_Step3.C++
 ////
 //// Edited by : John Parker , 2016Jan22
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,15 +86,15 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   return gain;
 }
 
-void SiRelativeGains(void)
+void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("run236out_nocal.root");//front
+  //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
   TCanvas *can = new TCanvas("can","can",800,1100);
-  TH2F *hist;
   
   ofstream outfile;
   ofstream outfile2;
@@ -90,10 +102,10 @@ void SiRelativeGains(void)
   Double_t average_slope = 0;
   Int_t counter = 0;
 
-  outfile.open("X3RelativeGains012216_NoClickStep1.dat");
+  outfile.open("X3RelativeGains_Step1.dat");
 
   ifstream infile;
-  infile.open("X3RelativeGains012216_slope1.dat");
+  infile.open("X3RelativeGains_Slope1.dat");
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
@@ -141,7 +153,13 @@ void SiRelativeGains(void)
 	  continue;
 	}
 	
+	TH2F *hist = NULL;
+	TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
 	hist = (TH2F*)f1->Get(Form("down_vs_up%i_%i_%i",DetNum,FrontChNum,BackChNum));
+	 if (hist==NULL) {
+	   cout << hname << " histogram does not exist\n";
+	   continue;
+	 }
 	hist->GetXaxis()->SetRange(0,100);
 	hist->GetYaxis()->SetRange(0,100);
 	

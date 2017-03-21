@@ -132,7 +132,8 @@ void SiRelativeGains_Step1(void)
 
   //input the root file that was created in the Main(Organize) using the .dat file where ALL SLOPES are ONE.
 
-  TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
+  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
   TCanvas *can = new TCanvas("can","can",800,600);
   
@@ -141,10 +142,10 @@ void SiRelativeGains_Step1(void)
   Double_t average_slope = 0;
   Int_t counter = 0;
 
-  outfile.open("X3RelativeGains09192016_Step1.dat"); //output file name
+  outfile.open("X3RelativeGains_Step1.dat"); //output file name
 
   ifstream infile;
-  infile.open("X3RelativeGains_09182016_Slope1.dat"); //input file name
+  infile.open("X3RelativeGains_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
@@ -173,7 +174,7 @@ void SiRelativeGains_Step1(void)
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
 
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
+      hist = (TH2F*)f1->Get(Form("down_vs_up%i_f%i",DetNum,FrontChNum));
       if (hist==NULL){
 	cout << "Histo does not exist\n";
 	bad_det[count_bad] = DetNum;
