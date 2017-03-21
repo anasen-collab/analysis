@@ -69,7 +69,6 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
 
-
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -83,7 +82,7 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
       }
     }
   }
-  
+
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
@@ -122,8 +121,7 @@ void SiRelativeGains_Step1(void)
   ofstream outfile;
 
   Double_t average_slope = 0;
-  Int_t counter = 0;
-
+  
   outfile.open("X3RelativeGains_Step1.dat"); //output file name
 
   ifstream infile;
@@ -146,14 +144,8 @@ void SiRelativeGains_Step1(void)
   Int_t bad_front[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=7; DetNum<9; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
-      //if (DetNum==7 || DetNum==9 || DetNum==19){
-      //for (Int_t i=0; i<12; i++){
-      //  outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
-      //}
-      //continue;
-      //}
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("down_vs_up%i_f%i",DetNum,FrontChNum));
       if (hist==NULL) {
@@ -162,7 +154,7 @@ void SiRelativeGains_Step1(void)
 	bad_front[count_bad] = FrontChNum;
 	count_bad++;
 	continue;
-      }      
+      }
       
       average_slope = MyFit(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
