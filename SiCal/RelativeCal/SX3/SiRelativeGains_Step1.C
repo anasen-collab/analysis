@@ -1,6 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
+//// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
+//// Detector number, Front channel, Slope
+////
 ////General Usage of all three steps
 ////
 ////If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new .dat file
@@ -49,18 +52,22 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas* can){
+Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' directory
   hist->Draw("colz");
-  //hist->GetXaxis()->SetRange(0,180);
-  //hist->GetYaxis()->SetRange(0,180);
-  
+  hist->GetXaxis()->SetRange(0,180);
+  hist->GetYaxis()->SetRange(0,180);
+
   //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
-  //input below on the CUT the coordinates of the points that surround this area. 
- 
+  //input below on the CUT the coordinates of the points that surround this area.
+  
+  Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
+  Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
+  TCutG *cut = new TCutG("cut",5,x1,y1);
   //Double_t x1[8] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
   //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
   //TCutG *cut = new TCutG("cut",8,x1,y1);
-  
+  cut->Draw("same");
+
   Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
   Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
   Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
@@ -69,9 +76,9 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      //if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
-      //continue;
-      //}
+      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
+	continue;
+      }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
 	counter++;
       }
@@ -84,9 +91,9 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      //if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
-      //continue;
-      //}
+      if ( !cut->IsInside((Double_t)i*maxbinX,(Double_t)j*maxbinY) ){
+	continue;
+      }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
 	x[counter] = (Double_t)i*maxbinX;
 	y[counter] = (Double_t)j*maxbinY;
@@ -99,7 +106,75 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   graph->Draw("*same");
 
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16000);
-  //fun2->SetParameter(0,10);
+  fun2->SetParameter(0,10);
+  fun2->SetParameter(1,-1);
+  graph->Fit("fun2");
+  can->Update();
+
+  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
+
+  can->WaitPrimitive();
+
+  Double_t gain = fun2->GetParameter(1);
+
+  delete x;
+  delete y;
+  delete graph;
+  delete fun2;
+
+  if (gain < -3 || gain > -0.1 ){//basically if the slope is very far from one, I don't trust the fit
+    gain = -1;
+  }
+  return gain;
+}
+
+Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
+  hist->Draw("colz");
+  hist->GetXaxis()->SetRange(0,180);
+  hist->GetYaxis()->SetRange(0,180);
+    
+  vector<double> x1;
+  vector<double> y1;
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+  x1.resize(cut->GetN());
+  y1.resize(cut->GetN());
+  
+  Int_t counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	counter++;
+      }
+    }
+  }
+
+  Double_t *x = new Double_t[counter];
+  Double_t *y = new Double_t[counter];
+
+  counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside((Double_t)i*0.1,(Double_t)j*0.1) ){
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	x[counter] = (Double_t)i*0.1;
+	y[counter] = (Double_t)j*0.1;
+	counter++;
+      }
+    }
+  }
+
+  TGraph *graph = new TGraph(counter,x,y);
+  graph->Draw("*same");
+
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
+  fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2");
   can->Update();
@@ -128,7 +203,10 @@ void SiRelativeGains_Step1(void)
   //if you are just starting the calibration you can use an .dat input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0)
 
   //input the root file that was created in the Main(Organize) using the .dat file where ALL SLOPES are ONE.
-
+  
+  //TFile *f1 = new TFile("run236out_nocal.root");//front
+  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
+  //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
@@ -167,6 +245,8 @@ void SiRelativeGains_Step1(void)
   //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
+    if(DetNum!=21)
+      continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
@@ -179,7 +259,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      average_slope = MyFit(hist,can);
+      average_slope = MyFit1(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
