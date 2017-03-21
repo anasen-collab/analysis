@@ -1,6 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
+//// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
+//// Detector number, Front channel, Slope
+////
 ////General Usage of all three steps
 ////
 ////If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new .dat file
@@ -111,7 +114,8 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
+  //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
 
   TCanvas *can = new TCanvas("can","can",800,600);
   
@@ -120,10 +124,10 @@ void SiRelativeGains_Step1(void)
   Double_t average_slope = 0;
   Int_t counter = 0;
 
-  outfile.open("X3RelativeGains051116_Step1.dat");
+  outfile.open("X3RelativeGains_Step1.dat"); //output file name
 
   ifstream infile;
-  infile.open("X3RelativeGains022316.dat");
+  infile.open("X3RelativeGains_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
@@ -151,8 +155,8 @@ void SiRelativeGains_Step1(void)
       //continue;
       //}
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
-      if (hist==NULL){
+      hist = (TH2F*)f1->Get(Form("down_vs_up%i_f%i",DetNum,FrontChNum));
+      if (hist==NULL) {
 	cout << "Histo does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
