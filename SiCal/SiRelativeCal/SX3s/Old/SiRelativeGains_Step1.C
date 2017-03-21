@@ -35,7 +35,7 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas* can){
+Double_t MyFit1(TH2F* hist, TCanvas* can){
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
@@ -150,7 +150,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      average_slope = MyFit(hist,can);
+      average_slope = MyFit1(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
