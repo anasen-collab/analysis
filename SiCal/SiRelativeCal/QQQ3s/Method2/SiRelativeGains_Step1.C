@@ -30,7 +30,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
   vector<double> x1;
   vector<double> y1;
-
+  
   TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   x1.resize(cut->GetN());
@@ -55,7 +55,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
+  
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -73,7 +73,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]*x",0,10000);
+  TF1 *fun2 = new TF1("fun2","[0]*x",0,16000);
   graph->Fit("fun2");
   can->Update();
   can->WaitPrimitive();
@@ -103,7 +103,6 @@ void SiRelativeGains_Step1(void)
   TCanvas *can = new TCanvas("can","can",800,600);
 
   ofstream outfile;
-
   outfile.open("X3RelativeGains012816_Step4.dat");
 
   ifstream infile;
@@ -159,14 +158,10 @@ void SiRelativeGains_Step1(void)
   }
   outfile.close();
   cout << "List of bad detectors:\n";
-  for (int i=0; i<count_bad; i++){
+  for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-
+  
   delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		     
