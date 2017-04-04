@@ -5,14 +5,17 @@ Developed by : Jon Lighthall, 2016.12
 ## General Usage
 The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
 ### Instructions
-root -l SiRelativeGains_Step1.C+
 1. First, run `Main.cpp` with a given `.dat` file all 1's
-   * Input `organize.root` and the `.dat` file into this code
-   * This code will output another .dat file that you should define
-   * `root -l SiRelativeGains_Step1.C++`
+   * Edit `Main.cpp` to initialize the channel map with a `.dat` file with all 1's
+   * Compile and run `Main.cpp` to generate a new `.root` file
+   * Input the new `.root` and the `.dat` file into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
+   * Run `root -l SiRelativeGains_Step1.C+`
+   * This code will output a new `.dat` file with updated gains
 2. Second, run Main.cpp again with the new .dat file
-   * Input the new organize.root and new .dat file into Step2.C
-   * `root -l SiRelativeGains_Step2.C++`
+   * Edit `Main.cpp` to initialize the channel map with the new `.dat` file
+   * Compile and run `Main.cpp` to generate a new `.root` file
+   * Input the new `.root` and the `.dat` file from Step 1 into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
+   * Run  `root -l SiRelativeGains_Step2.C+`
 
 ### .dat files
 Output file (e.g.`_Slope1.dat`) has the following columns:
@@ -21,7 +24,7 @@ The first line of dat files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
 
 ## Step 1
-Loop over front channels. channels 16-31 in the `.dat` file will be filled in.
+Loop over front channels. channels 16-31 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each front channel (`FronChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
 
 ### Methods 
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
