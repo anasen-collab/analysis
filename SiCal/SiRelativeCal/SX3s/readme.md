@@ -7,15 +7,15 @@ In all three steps
 
 If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new `.dat` file
 1. First, run `Main.cpp` with a given `X3cal.dat` file
-  * Input `organize.root` and the `.dat` file into this code
-  * This code will output another .dat file that you should define
-  * `root -l SiRelativeGains_Step1.C++`
+   * Input `organize.root` and the `.dat` file into this code
+   * This code will output another .dat file that you should define
+   * `root -l SiRelativeGains_Step1.C++`
 2. Second, run Main.cpp again with the new .dat file
-  * Input the new organize.root and new .dat file into Step2.C
-  * `root -l SiRelativeGains_Step2.C++`
+   * Input the new organize.root and new .dat file into Step2.C
+   * `root -l SiRelativeGains_Step2.C++`
 3. Finally, run Main.cpp again with the new .dat file
-  * Input the new organize.root and new .dat file into Step3.C
-  * `root -l SiRelativeGains_Step3.C++`
+   * Input the new organize.root and new .dat file into Step3.C
+   * `root -l SiRelativeGains_Step3.C++`
 
 ### .dat files
 Output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
