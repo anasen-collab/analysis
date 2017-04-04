@@ -44,7 +44,7 @@
   //run1036 24Mg data July 11, 2016
   const Int_t npeaks = 6;
   Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
-  TFile *file1 = new TFile("/data1/lighthall/root/run1036.root");
+  TFile *file1 = new TFile("/data0/lighthall/root/run1036.root");
   //TFile *file1 = new TFile("/home/lighthall/root/run1264m.root"); 
   
   const int npar=npeaks*3;

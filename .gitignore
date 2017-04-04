@@ -7,3 +7,12 @@
 # Executables
 *.exe
 *.out
+
+# Emacs
+*~
+\#*#
+
+# linked directories
+/*root
+/*scripts
+/*data
