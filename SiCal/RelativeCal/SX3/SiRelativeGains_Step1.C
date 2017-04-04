@@ -198,9 +198,6 @@ hist->Draw("colz");
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
 
-  //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
-  //input below on the CUT the coordinates of the points that surround this area.
-
   Int_t maxbin=0;
   Int_t minbin=hist->GetNbinsX();
   for (int i=1; i<hist->GetNbinsX(); i++) {
@@ -210,7 +207,6 @@ hist->Draw("colz");
 	  maxbin=j;
 	  minbin=i;
 	}
-	//if(i<minbin) minbin=i;
       }
     }
   }
@@ -296,8 +292,7 @@ hist->Draw("colz");
     delete y;
     delete graph;
   }
-  
-  
+    
   Double_t gain = fun2->GetParameter(1);
 
    delete fun2;
