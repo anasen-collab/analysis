@@ -21,7 +21,7 @@ If you loop over a subset of detectors, only the paramaters for those detectors 
 Output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
-The SX3 detectors correspond to detectors number 4--27. Each detector has 12 front channels (0--11).
+The SX3 detectors correspond to detectors number 4-27. Each detector has 12 front channels (0-11).
 The .dat files are included as an example. The run-to-run .dat file changes are excuded by .gitignore. The force a save of updated files use the command `git add -f file.dat`.
 
 ## Step 1
@@ -54,6 +54,15 @@ You can do the calibration detector by detector looping one detector at a time o
 
   histo "down_vs_up_divideBack%i_front_%i" is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
   if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
+
+### Methods 
+1. //Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. //developed from Step 1 in 'Old' directory
+2. //Method 2 - calculates slope of points wihtin user-defined cut using TGraph //manual cut, from FrontFirst directory
+  // This method works very similar to method 1, except that instead of a predefined cut, the user must
+  // draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
+  // right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
+  // A best fit line should appear through your data
+3. Automatic calculation of cut.
 
 ## Step 2
 
