@@ -60,19 +60,20 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
 
   //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
   //input below on the CUT the coordinates of the points that surround this area.
-  
+
+  Bool_t docut=kTRUE;//added to duplicate functionality of some previous versions
   Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
   Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
   TCutG *cut = new TCutG("cut",5,x1,y1);
   //Double_t x1[8] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
   //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
   //TCutG *cut = new TCutG("cut",8,x1,y1);
-  cut->Draw("same");
+  if(docut)cut->Draw("same");
 
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+      if(docut) if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
            counter+=(Int_t)hist->GetBinContent(i,j);
@@ -85,7 +86,7 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+      if(docut)if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -319,7 +320,9 @@ void SiRelativeGains_Step1(void)
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
   //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7m.root");
 
   TCanvas *can = new TCanvas("can","can",800,600);
   
@@ -356,7 +359,7 @@ void SiRelativeGains_Step1(void)
   //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
-    if(DetNum>6) continue;
+    //if(DetNum!=21) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
