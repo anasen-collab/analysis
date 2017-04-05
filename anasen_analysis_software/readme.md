@@ -13,6 +13,12 @@ To run the code:
   for example:
   `./Main ../../../../../data0/manasta/evt2root_files_new/24Mg/runXXX.root ../../../../../data0/manasta/OrganizeRaw_files/24Mg/runXXX.root`
 
+## Files
+auto-generated files can be removed using the command `make clean`.
+
+The auto-generated files `Main_dict.cxx` and `Main_dict.h` are included in the repository as an example. These filese, in addition to the executable file `Main`, are
+excuded by `.gitignore`. The force a save of updated files use the command `git add -f foo.bar`.
+
 ## Options
 To select the component of the beam, mostly for Radio-active beams, disable while you work with Calibration data & enable while you do data analysis
 
