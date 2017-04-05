@@ -150,7 +150,7 @@ int main(int argc, char* argv[]){
 	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
 	     "Param/initialize/AlphaCalibration_09132016.dat",
   	     "Param/initialize/X3RelativeGains_Slope1.dat",
-	     "Param/initialize/QQQRelativeGains_Slope1.dat");
+	     "Param/17F_cals/QQQRelativeGains_Step1_cone_cuts.dat");
   
   /*
   //intialize 24Mg
