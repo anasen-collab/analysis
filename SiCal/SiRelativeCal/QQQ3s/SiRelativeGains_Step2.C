@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Relative calibration of Si gains for QQQ Step 2
-////See readme.md for general instructions
-////root -l SiRelativeGains_Step2.C+
-////
-//// Edited by : John Parker , 2016Jan22
+// Relative calibration of Si gains for QQQ Step 2
+// See readme.md for general instructions
+// To run: root -l SiRelativeGains_Step2.C+
+//
+// Edited by : John Parker , 2016Jan22
 //   Developed by : Jon Lighthall, 2017.01
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
@@ -336,35 +336,36 @@ void SiRelativeGains_Step2(void)
   using namespace std;
 
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_step1relcal_09182016.root");
-  TFile *f1 = new TFile("/home/lighthall/repository/analysis/ANASEN/root/run1226-9mQ1.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",1362,656);
-  can->SetWindowPosition(0,63);
-
+  
   ofstream outfile;
   outfile.open("saves/QQQRelativeGains_Step2.dat");
   outfile << "DetNum\tFrontCh\tGain//////////////////////////////////////\n";
 
   ifstream infile;
-  infile.open("QQQRelativeGains_Step1.dat");
+  infile.open("saves/QQQRelativeGains_Step1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
-  if (infile.is_open()){
+  if (infile.is_open()) {
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det][ch] = dummy;
     }
   }else{
-    cout << "Infile not opened\n";
+    cout << "Error: infile not opened\n";
     exit(EXIT_FAILURE);
   }
   infile.close();
 
+  TCanvas *can = new TCanvas("can","can",1362,656);
+  can->SetWindowPosition(0,63);
+  
   Int_t bad_det[128];
   Int_t bad_front[128];
   Int_t bad_back[128];
@@ -395,7 +396,6 @@ void SiRelativeGains_Step2(void)
     }
   }
   outfile.close();
-  outfile2.close();
   cout << "List of bad detectors:\n";
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
