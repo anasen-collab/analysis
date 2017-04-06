@@ -18,7 +18,7 @@ The data for the QQQ relaive gains calibration should have high statistics over 
    * Run  `root -l SiRelativeGains_Step2.C+`
 
 ### .dat files
-Output file (e.g.`_Slope1.dat`) has the following columns:
+Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
@@ -38,7 +38,7 @@ Loop over front channels. channels 16-31 in the `.dat` file will be filled in. F
    2) slope from gated fit of TGraph (same as Method 1)		
    3) slope from un-gated fit of profile of 2D histogram (uses the average y-position for each x-position)
 4. Automated cut generation based on TProfile slope. A parrallelpiped cut is generated.
-5.Expansion of Method 4. Used for Det 2. Uses upper and lower limits for the lower bound of the gate; i.e., the gate "backs in" towards the origin over the steps.
+5. Expansion of Method 4. Used for Det 2. Uses upper and lower limits for the lower bound of the gate; i.e., the gate "backs in" towards the origin over the steps.
 6. Automated cut generation based on TProfile slope; cone-shaped cut. Calculates slopes within 0.2% of those of Mehtod 4 with the advantage of beign able to better detect the slope for detectors with multiple loci.
 
 ## Step 2
