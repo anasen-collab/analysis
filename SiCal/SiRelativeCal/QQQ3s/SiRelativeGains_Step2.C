@@ -93,6 +93,75 @@ Double_t MyFit1(TH2F* hist, TCanvas *can) {
   return gain;
 }
 
+Double_t MyFit2(TH2F* hist, TCanvas *can) {
+  //Method 2 - calculates slope of points wihtin user-defined cut using TGraph
+  // This method works very similar to method 1, except that instead of a predefined cut, the user must
+  // draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
+  // right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
+  // A best fit line should appear through your data
+  if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
+  if(!(can->GetShowToolBar()))can->ToggleToolBar();
+  hist->Draw("colz");
+
+  vector<double> x1;
+  vector<double> y1;
+  
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+  x1.resize(cut->GetN());
+  y1.resize(cut->GetN());
+
+  for(int n=0;n<cut->GetN();n++){
+    cut->GetPoint(n,x1[n],y1[n]);
+    cout << x1[n] << "\t" << y1[n] << endl;
+  }
+  cut->SetLineColor(6);
+  cut->Draw("same");
+  
+  Int_t counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      counter+=(Int_t)hist->GetBinContent(i,j);
+    }
+  }
+
+  Double_t *x = new Double_t[counter];
+  Double_t *y = new Double_t[counter];
+  
+  counter = 0;
+  for (int i=1; i<hist->GetNbinsX(); i++){
+    for (int j=1; j<hist->GetNbinsY(); j++){
+      if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
+	continue;
+      }
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
+  	counter++;
+      }
+    }
+  }
+
+  TGraph *graph = new TGraph(counter,x,y);
+  graph->Draw("*same");
+
+  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,16000);
+  graph->Fit("fun2","qROB");
+  can->Update();
+  //can->WaitPrimitive();
+
+  Double_t gain = fun2->GetParameter(0);
+  delete x;
+  delete y;
+  delete graph;
+  delete fun2;
+  
+  return gain;
+}
+
 Double_t MyFit4(TH2F* hist, TCanvas *can) {
   //Method 4 - automated cut generation based on TProfile slope
   can->Clear();
