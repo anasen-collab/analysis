@@ -20,7 +20,7 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas *can){
+Double_t MyFit(TH2F* hist, TCanvas *can) {
   hist->Draw("colz");
 
   Double_t x1[5] = { 2, 12, 9, 0.4, 2 };
@@ -41,7 +41,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
+  
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -69,7 +69,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   delete y;
   delete graph;
   delete fun2;
-
+  
   return gain;
 }
 
@@ -82,8 +82,7 @@ void SiRelativeGains_Step2(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",800,600);
-  
+    
   ofstream outfile;
   outfile.open("QQQRelativeGains_Step2.dat");
 
@@ -92,7 +91,7 @@ void SiRelativeGains_Step2(void)
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
-  if (infile.is_open()){
+  if (infile.is_open()) {
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det][ch] = dummy;
@@ -103,6 +102,8 @@ void SiRelativeGains_Step2(void)
   }
   infile.close();
 
+  TCanvas *can = new TCanvas("can","can",800,600);
+  
   Int_t bad_det[128];
   Int_t bad_front[128];
   Int_t bad_back[128];
@@ -110,8 +111,8 @@ void SiRelativeGains_Step2(void)
 
   Double_t gain = 0;
 
-  for (Int_t DetNum=0; DetNum<4; DetNum++){
-    for (Int_t BackChNum=1; BackChNum<16; BackChNum++){
+  for (Int_t DetNum=0; DetNum<4; DetNum++) {
+    for (Int_t BackChNum=1; BackChNum<16; BackChNum++) {
       Int_t FrontChNum = 0;
 
       TH2F *hist = NULL;
@@ -137,11 +138,7 @@ void SiRelativeGains_Step2(void)
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-
+  
   delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		     
