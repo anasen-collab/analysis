@@ -1,11 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////Relative calibration of Si gains for QQQ
-////Essentially the same progam as that for the SX3
-////root -l SiRelativeGains_Step1.C+
-
-
-//// Edited by : John Parker , 2016Jan22
-//   Developed by : Jon Lighthall, 2016.12
+// Relative calibration of Si gains for QQQ Step 1
+// See readme.md for general instructions
+// To run: root -l SiRelativeGains_Step1.C+
+//
+// Edited by : John Parker , 2016Jan22
+// Developed by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -66,8 +65,6 @@ Double_t MyFit1(TH2F* hist, TCanvas *can) {
   graph->Draw("*same");
 
   TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,16000);
-  //fun2->SetLineWidth(1);
-  //fun2->SetLineColor(2);
   graph->Fit("fun2","qROB");
 
   TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
@@ -379,7 +376,7 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
     leg->Draw();
   
     can->Update();
-    if(k==0) can->WaitPrimitive();
+    //if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(0);
     offset=fun2->GetParameter(1);
   
@@ -409,17 +406,20 @@ void SiRelativeGains_Step1(void)
   can->SetWindowPosition(0,63);
 
   ofstream outfile;
-  outfile.open("QQQRelativeGains_Step1_all.dat");
-
+  outfile.open("saves/QQQRelativeGains_Step1.dat");
+  outfile << "DetNum\tFrontCh\tGain//////////////////////////////////////\n";
+  
   ofstream outfile2;
-  outfile2.open("QQQRelativeGains_Step1_list.dat");
-
+  outfile2.open("saves/QQQRelativeGains_Step1_back.dat");  // file2 may be used for diagnostics
+  outfile2 << "DetNum\tFrontCh\tBackCh\tGain\n";
+  
   ifstream infile;
-  infile.open("QQQRelativeGains_Slope1.dat");
+  infile.open("saves/QQQRelativeGains_Slope1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
   if (infile.is_open()){
+    infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det][ch] = dummy;
@@ -438,37 +438,39 @@ void SiRelativeGains_Step1(void)
   for (Int_t DetNum=0; DetNum<4; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
       //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
-	Int_t BackChNum = 0;
-	if(DetNum==2)
-	  BackChNum = 4;
-	// if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
-	//	 if(DetNum==2 && FrontChNum==11){continue;}
-	//if(!((FrontChNum==0)||(FrontChNum==13)))
-	//if(!((FrontChNum==13)))
-	//continue;
+      Int_t BackChNum = 0;
+      if(DetNum==2)
+	BackChNum = 4;
+      // if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
+      //	 if(DetNum==2 && FrontChNum==11){continue;}
+      //if(!((FrontChNum==0)||(FrontChNum==13)))
+      //if(!((FrontChNum==13)))
+      //continue;
 
-	TH2F *hist = NULL;
-	TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
-	hist = (TH2F*)f1->Get(hname.Data());
-	if (hist==NULL) {
-	  cout << hname << " histogram does not exist\n";
-	  bad_det[count_bad] = DetNum;
-	  bad_front[count_bad] = FrontChNum;
-	  bad_back[count_bad] = BackChNum;
-	  count_bad++;
-	  continue;
-	}
+      TH2F *hist = NULL;
+      TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
+      hist = (TH2F*)f1->Get(hname.Data());
+      if (hist==NULL) {
+	cout << hname << " histogram does not exist\n";
+	bad_det[count_bad] = DetNum;
+	bad_front[count_bad] = FrontChNum;
+	bad_back[count_bad] = BackChNum;
+	count_bad++;
+	continue;
+      }
 
-	Double_t gain = MyFit6(hist,can); //set fit method here
-	slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
-	outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
-	//}//back loop
+      Double_t gain = MyFit6(hist,can); //set fit method here
+      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum][FrontChNum+16],gain, slope[DetNum][FrontChNum+16]*gain);
+      slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
+      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
+      //}//back loop
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
     }
   }
   outfile.close();
+  outfile2.close();
   cout << "List of bad detectors:\n";
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
