@@ -22,9 +22,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit(TH2F* hist, TCanvas *can){
   hist->Draw("colz");
+
   vector<double> x1;
   vector<double> y1;
-
+  
   TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   x1.resize(cut->GetN());
@@ -38,7 +39,7 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*20,j*20) ){
+      if ( !cut->IsInside((Double_t)i*20,j*20) ) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -49,11 +50,11 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
+  
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*20,j*20) ){
+      if ( !cut->IsInside((Double_t)i*20,j*20) ) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -70,14 +71,14 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   TF1 *fun2 = new TF1("fun2","[0]*x+[1]",0,10000);
   graph->Fit("fun2");
   can->Update();
-  can->WaitPrimitive();
+  //can->WaitPrimitive();
 
   Double_t gain = fun2->GetParameter(0);
   delete x;
   delete y;
   delete graph;
   delete fun2;
-
+  
   return gain;
 }
 
@@ -89,8 +90,7 @@ void SiRelativeGains_Step2(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",800,600);
-  
+    
   ofstream outfile;
   outfile.open("QQQRelativeGains_Step2.dat");
 
@@ -99,7 +99,7 @@ void SiRelativeGains_Step2(void)
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
-  if (infile.is_open()){
+  if (infile.is_open()) {
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det][ch] = dummy;
@@ -110,6 +110,8 @@ void SiRelativeGains_Step2(void)
   }
   infile.close();
 
+  TCanvas *can = new TCanvas("can","can",800,600);
+
   Int_t bad_det[128];
   Int_t bad_front[128];
   Int_t bad_back[128];
@@ -117,8 +119,8 @@ void SiRelativeGains_Step2(void)
 
   Double_t gain = 0;
   
-  for (Int_t DetNum=0; DetNum<4; DetNum++){
-    for (Int_t BackChNum=1; BackChNum<16; BackChNum++){
+  for (Int_t DetNum=0; DetNum<4; DetNum++) {
+    for (Int_t BackChNum=1; BackChNum<16; BackChNum++) {
       Int_t FrontChNum = 0;
 
       TH2F *hist = NULL;
@@ -144,11 +146,7 @@ void SiRelativeGains_Step2(void)
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-
+  
   delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		     
