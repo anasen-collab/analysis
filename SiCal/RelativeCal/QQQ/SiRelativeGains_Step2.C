@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Relative calibration of Si gains for QQQ Step 2
 // See readme.md for general instructions
-// To run: root -l SiRelativeGains_Step2.C+
+// Usage: root -l SiRelativeGains_Step2.C+
 //
 // Edited by : John Parker , 2016Jan22
-//   Developed by : Jon Lighthall, 2017.01
+// Developed by : Jon Lighthall, 2017.01
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -341,10 +341,17 @@ void SiRelativeGains_Step2(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  
+
+  time_t rawtime;
+  struct tm * timeinfo;
+  char filename [80];
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+
   ofstream outfile;
-  outfile.open("saves/QQQRelativeGains_Step2.dat");
-  outfile << "DetNum\tFrontCh\tGain//////////////////////////////////////\n";
+  strftime (filename,80,"saves/QQQRelativeGains_Step2_%Y-%m-%d-%H%M%S.dat",timeinfo);
+  outfile.open(filename);
+  outfile << "DetNum\tFrontCh\tGain\n";
 
   ifstream infile;
   infile.open("saves/QQQRelativeGains_Step1.dat");

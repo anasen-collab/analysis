@@ -17,14 +17,14 @@ The data for the QQQ relaive gains calibration should have high statistics over 
    * Input the new `.root` and the `.dat` file from Step 1 into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
    * Run  `root -l SiRelativeGains_Step2.C+`
 
-### .dat files
+### Output files (`.dat` files)
 Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
 
 ## Step 1
-Loop over front channels. channels 16-31 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each front channel (`FronChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
+Loop over front channels. Channels 16-31 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
 
 ### Methods 
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
@@ -42,5 +42,4 @@ Loop over front channels. channels 16-31 in the `.dat` file will be filled in. F
 6. Automated cut generation based on TProfile slope; cone-shaped cut. Calculates slopes within 0.2% of those of Mehtod 4 with the advantage of beign able to better detect the slope for detectors with multiple loci.
 
 ## Step 2
-Loop over back channels
-channels 0-15 in the `.dat` file will be filled in.
+Loop over back channels. Channels 0-15 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).

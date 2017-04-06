@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Relative calibration of Si gains for QQQ Step 1
-// See readme.md for general instructions
-// To run: root -l SiRelativeGains_Step1.C+
+// See readme.md for general instructions.
+// Usage: root -l SiRelativeGains_Step1.C+
 //
 // Edited by : John Parker , 2016Jan22
 // Developed by : Jon Lighthall, 2016.12
@@ -22,6 +22,7 @@
 #include <TROOT.h>
 #include <TProfile.h>
 #include <TLegend.h>
+#include <time.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit1(TH2F* hist, TCanvas *can) {
@@ -402,13 +403,21 @@ void SiRelativeGains_Step1(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  
+
+  time_t rawtime;
+  struct tm * timeinfo;
+  char filename [80];
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+
   ofstream outfile;
-  outfile.open("saves/QQQRelativeGains_Step1.dat");
-  outfile << "DetNum\tFrontCh\tGain//////////////////////////////////////\n";
+  strftime (filename,80,"saves/QQQRelativeGains_Step1_%Y-%m-%d-%H%M%S.dat",timeinfo);
+  outfile.open(filename);
+  outfile << "DetNum\tFrontCh\tGain\n";
   
   ofstream outfile2;
-  outfile2.open("saves/QQQRelativeGains_Step1_back.dat");  // file2 may be used for diagnostics
+  strftime (filename,80,"saves/QQQRelativeGains_Step1_%Y-%m-%d-%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
+  outfile2.open(filename);
   outfile2 << "DetNum\tFrontCh\tBackCh\tGain\n";
   
   ifstream infile;
