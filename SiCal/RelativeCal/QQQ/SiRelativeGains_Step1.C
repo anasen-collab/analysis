@@ -402,9 +402,7 @@ void SiRelativeGains_Step1(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",1362,656);
-  can->SetWindowPosition(0,63);
-
+  
   ofstream outfile;
   outfile.open("saves/QQQRelativeGains_Step1.dat");
   outfile << "DetNum\tFrontCh\tGain//////////////////////////////////////\n";
@@ -418,18 +416,21 @@ void SiRelativeGains_Step1(void)
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
-  if (infile.is_open()){
+  if (infile.is_open()) {
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det][ch] = dummy;
     }
   }else{
-    cout << "Infile not opened\n";
+    cout << "Error: infile not opened\n";
     exit(EXIT_FAILURE);
   }
   infile.close();
 
+  TCanvas *can = new TCanvas("can","can",1362,656);
+  can->SetWindowPosition(0,63);
+  
   Int_t bad_det[128];
   Int_t bad_front[128];
   Int_t bad_back[128];
