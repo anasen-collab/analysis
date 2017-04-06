@@ -101,17 +101,17 @@
   ofstream outfile;
   ofstream outfile3;//offsets, full fit
   ofstream outfile4;//offsets, centroid ROB
-  outfile.open("PCpulserCal.dat");
-  outfile3.open("PCpulserCal_full.dat");
-  outfile4.open("PCpulserCal_centroid.dat");
+  outfile.open("saves/PCpulserCal.dat");
+  outfile3.open("saves/PCpulserCal_full.dat");
+  outfile4.open("saves/PCpulserCal_centroid.dat");
   
   TPolyMarker *pm;
+  outfile << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
   
   for (Int_t id=2; id<4; id++) {
     for (Int_t chan=0; chan<32; chan++) {
     
       if(id==3 && chan>15) continue;
-
       c1->cd(1);
       h1->GetXaxis()->UnZoom();
       //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
