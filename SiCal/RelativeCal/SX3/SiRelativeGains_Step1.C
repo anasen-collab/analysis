@@ -1,41 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Relative calibration of Si gains
-////
-//// Output file (e.g."X3RelativeGains_Slope1.dat") has the following columns:
-//// Detector number, Front channel, Slope
-////
-////General Usage of all three steps
-////
-////If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new .dat file
-////First, run Organize.cpp with a given X3cal.dat file
-////   Input organize.root and the .dat file into this code
-////   This code will output another .dat file that you should define
-////   root -l SiRelativeGains_Step1.C++
-////Second, run Organize.cpp again with the new .dat file
-////   Input the new organize.root and new .dat file into Step2.C
-////   root -l SiRelativeGains_Step2.C++
-////Finally, run Organize.cpp again with the new .dat file
-////   Input the new organize.root and new .dat file into Step3.C
-////   root -l SiRelativeGains_Step3.C++
-////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////This program fixes the relative gains for the up and down on the SX3
-////How to use: Create Histograms in the Main.C(OrganizeIC.cpp):
-////-----Plot down vs up energy for each front channel of each detector
-////-----Code reads in histogram of name down_vs_up%i_front%i--e.g. down_vs_up4_front0 (det4, channel0)
-////-----It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
-////
-////
-////The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
-////Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
-////
-////This file changes the relative gains on the down relative to the up
-////Once you have completed this program, rerun Main.C(OrganizeIC.cpp) with this new X3RelativeGains_Step1.dat
-////You will input this new root file with this new relative gains file into step 2.
-////
-//// Edited by : John Parker , 2016Jan22
-//// Edited by : Maria Anastasiou, 2016Sept20
-////
+// Relative calibration of Si gains for SX3 Step 1
+// See readme.md for general instructions.
+// Useage: root -l SiRelativeGains_Step1.C+
+//
+// Edited by : John Parker , 2016Jan22
+// Edited by : Maria Anastasiou, 2016Sept20
+// Developed by : Jon Lighthall, 2017.02
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
 #include <TCanvas.h>
@@ -57,9 +27,6 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
-
-  //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
-  //input below on the CUT the coordinates of the points that surround this area.
 
   Bool_t docut=kTRUE;//added to duplicate functionality of some previous versions
   Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
@@ -307,10 +274,6 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  //if you are just starting the calibration you can use an .dat input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0)
-
-  //input the root file that was created in the Main(Organize) using the .dat file where ALL SLOPES are ONE.
-  
   //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
   //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
@@ -347,12 +310,6 @@ void SiRelativeGains_Step1(void)
   Int_t bad_front[288];
   Int_t count_bad = 0;
 
-  //You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
-  //if you do so change the loop below.
-
-  //histo "down_vs_up_divideBack%i_front_%i" is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-  //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
-
   for (Int_t DetNum=4; DetNum<28; DetNum++){
     //if(DetNum!=21) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
@@ -381,8 +338,4 @@ void SiRelativeGains_Step1(void)
   }
   delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
