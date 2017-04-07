@@ -22,7 +22,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit(TH2F* hist, TCanvas *can){
   hist->Draw("colz");
-
+  hist->GetXaxis()->SetRange(0,100);
+  hist->GetYaxis()->SetRange(0,100);
+  
   vector<double> x1;
   vector<double> y1;
 
@@ -98,10 +100,8 @@ void SiRelativeGains_Step3(void)
   TFile *f1 = new TFile("run235_245out_Step2_012816.root");//front
   
   TCanvas *can = new TCanvas("can","can",800,600);
-  TH2F *hist;
   
   ofstream outfile;
-  ofstream outfile2;
 
   Double_t gain = 0;
 
@@ -127,7 +127,7 @@ void SiRelativeGains_Step3(void)
   Int_t bad_front[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=27; DetNum<28; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
@@ -138,11 +138,8 @@ void SiRelativeGains_Step3(void)
 	count_bad++;
 	continue;
       }
-      hist->GetXaxis()->SetRange(0,100);
-      hist->GetYaxis()->SetRange(0,100);
-      
+           
       gain = -1.0/MyFit(hist,can);
-      
       slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*gain;
     }
     for (Int_t i=0; i<12; i++){
