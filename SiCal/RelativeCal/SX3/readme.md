@@ -17,7 +17,7 @@ If you loop over a subset of detectors, only the paramaters for those detectors 
    * Input the new organize.root and new .dat file into Step3.C
    * `root -l SiRelativeGains_Step3.C++`
 
-### .dat files
+### Output files (`.dat` files)
 Output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
