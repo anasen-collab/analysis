@@ -95,10 +95,6 @@ Double_t MyFit1(TH2F* hist, TCanvas *can) {
 
 Double_t MyFit2(TH2F* hist, TCanvas *can) {
   //Method 2 - calculates slope of points wihtin user-defined cut using TGraph
-  // This method works very similar to method 1, except that instead of a predefined cut, the user must
-  // draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
-  // right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
-  // A best fit line should appear through your data
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -403,7 +399,7 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
 void SiRelativeGains_Step2(void)
 {
   using namespace std;
-
+  //TFile *f1 = new TFile("run235_245out_Step1_012816.root");//front
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_step1relcal_09182016.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1.root");
   if ( !f1->IsOpen() ){
