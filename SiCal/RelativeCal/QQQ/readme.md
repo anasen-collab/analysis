@@ -43,3 +43,11 @@ Loop over front channels. Channels 16-31 in the `.dat` file will be filled in. F
 
 ## Step 2
 Loop over back channels. Channels 0-15 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
+
+## Images
+In the `images` folder there are two macros. The image in the folder was generated using the macro `Draw2.C`, however, that macro is not compatible with `Main.cpp`.
+
+```
+root -l Draw.C
+
+```

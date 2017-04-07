@@ -88,10 +88,6 @@ Double_t MyFit1(TH2F* hist, TCanvas *can) {
 
 Double_t MyFit2(TH2F* hist, TCanvas *can) {
   //Method 2 - calculates slope of points wihtin user-defined cut using TGraph
-  // This method works very similar to method 1, except that instead of a predefined cut, the user must
-  // draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
-  // right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
-  // A best fit line should appear through your data
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
