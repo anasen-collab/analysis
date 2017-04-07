@@ -22,7 +22,7 @@ Output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
 The SX3 detectors correspond to detectors number 4-27. Each detector has 12 front channels (0-11).
-The `.dat` files are included as an example. The run-to-run `.dat` file changes are excuded by `.gitignore`. The force a save of updated files use the command `git add -f file.dat`.
+The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
 
 ## Step 1
 This program fixes the relative gains for the up and down on the SX3
