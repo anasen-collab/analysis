@@ -1,7 +1,6 @@
 # QQQ Relative Calibration
 Relative calibration of Si gains for QQQ. Essentially the same progam as that for the SX3 (or vice-versa).
-Edited by : John Parker , 2016Jan22
-Developed by : Jon Lighthall, 2016.12
+
 ## General Usage
 The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
 ### Instructions
@@ -22,6 +21,7 @@ Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
+The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
 
 ## Step 1
 Loop over front channels. Channels 16-31 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
