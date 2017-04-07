@@ -23,7 +23,7 @@
 #include <TLegend.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' directory
+Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' directory, Step 3 in QQQ 'Method 2'
   hist->Draw("colz");
   hist->GetXaxis()->SetRange(0,180);
   hist->GetYaxis()->SetRange(0,180);
@@ -104,7 +104,12 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   x1.resize(cut->GetN());
   y1.resize(cut->GetN());
-  
+
+  for(int n=0;n<cut->GetN();n++){//print cut
+    cut->GetPoint(n,x1[n],y1[n]);
+    cout << x1[n] << "\t" << y1[n] << endl;
+  }
+
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
