@@ -20,8 +20,9 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas* can){
+Double_t MyFit(TH2F* hist, TCanvas *can){
   hist->Draw("colz");
+
   vector<double> x1;
   vector<double> y1;
 
@@ -35,11 +36,10 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
     cout << x1[n] << "\t" << y1[n] << endl;
   }
 
-
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.01,j*0.01) ){
+      if ( !cut->IsInside((Double_t)i*0.01,j*0.01) ) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -47,15 +47,14 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
       }
     }
   }
-
+  
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
 
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside(i*0.01,j*0.01) ){
+      if ( !cut->IsInside(i*0.01,j*0.01) ) {
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
@@ -65,7 +64,7 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
       }
     }
   }
-  
+
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
@@ -97,7 +96,7 @@ void SiRelativeGains_Step3(void)
   using namespace std;
 
   TFile *f1 = new TFile("run235_245out_Step2_012816.root");//front
-
+  
   TCanvas *can = new TCanvas("can","can",800,600);
   TH2F *hist;
   
@@ -130,7 +129,6 @@ void SiRelativeGains_Step3(void)
 
   for (Int_t DetNum=27; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
-
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
       if (hist==NULL){
@@ -156,12 +154,6 @@ void SiRelativeGains_Step3(void)
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
-
-
   delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
