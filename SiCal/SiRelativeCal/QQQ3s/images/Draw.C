@@ -1,6 +1,5 @@
 {
   TFile *f = new TFile("run235_245out_Step1_012816.root");
-  //TCanvas *can = new TCanvas("can","can",900,1100);
   TCanvas *can = new TCanvas("can","can",900,1100);
 
   /*
@@ -29,9 +28,6 @@
   /*
   TF1 *fun = new TF1("fun","1 - x",0,1);
 
-  TF1 *fun2 = new TF1("fun2","x",0,10000);
   QQQback_vs_front->Draw("colz");
-  //fun2->Draw("same");
   */
-
 }
