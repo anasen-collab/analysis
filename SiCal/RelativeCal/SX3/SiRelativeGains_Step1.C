@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Relative calibration of Si gains for SX3 Step 1
 // See readme.md for general instructions.
-// Useage: root -l SiRelativeGains_Step1.C+
+// Usage: root -l SiRelativeGains_Step1.C+
 //
 // Edited by : John Parker , 2016Jan22
 // Edited by : Maria Anastasiou, 2016Sept20
@@ -43,13 +43,13 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
       if(docut) if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
 	continue;
       }
-           counter+=(Int_t)hist->GetBinContent(i,j);
+      counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
+  
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -57,9 +57,9 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' direc
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
   	y[counter] = hist->GetYaxis()->GetBinCenter(j);
-	counter++;
+  	counter++;
       }
     }
   }
@@ -99,7 +99,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
     
   vector<double> x1;
   vector<double> y1;
-
+  
   TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   x1.resize(cut->GetN());
@@ -114,15 +114,15 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
-      	continue;
+	continue;
       }
       counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
-  
+
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
-
+  
   counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -130,9 +130,9 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
 	continue;
       }
       for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = hist->GetXaxis()->GetBinCenter(i);
-	y[counter] = hist->GetYaxis()->GetBinCenter(j);
-	counter++;
+  	x[counter] = hist->GetXaxis()->GetBinCenter(i);
+  	y[counter] = hist->GetYaxis()->GetBinCenter(j);
+  	counter++;
       }
     }
   }
@@ -165,7 +165,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
 
 Double_t MyFit3(TH2F* hist, TCanvas* can){//auto calc bin
   can->Clear();
-hist->Draw("colz");
+  hist->Draw("colz");
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
