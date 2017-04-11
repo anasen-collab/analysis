@@ -5,6 +5,8 @@
 ////-----Code reads in histogram of name down_vs_up%i_front%i--e.g. down_vs_up4_front0 (det4, channel0)
 ////-----It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
 ////
+////-----Craching fixed by putting an if-statement when histo is NULL continue //M.Anastasiou
+////
 ////The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
 ////Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
 ////
@@ -50,7 +52,7 @@ void SiRelativeGains_Clickable(void){
   outfile.open("X3RelativeGains012216_Step1_dummy.dat");
 
   ifstream infile;
-  infile.open("X3RelativeGains012216_slope1.dat");
+  infile.open("X3RelativeGains012216_slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
@@ -61,10 +63,16 @@ void SiRelativeGains_Clickable(void){
     }
   }else{
     cout << "Infile not opened\n";
+    exit(EXIT_FAILURE);
   }
+  infile.close();
 
   TCanvas *can = new TCanvas("can","can",800,600);
   TCutG *cut;
+
+  Int_t bad_det[288];
+  Int_t bad_front[288];
+  Int_t count_bad = 0;
 
   for (Int_t DetNum=16; DetNum<17; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
@@ -74,7 +82,16 @@ void SiRelativeGains_Clickable(void){
       if (DetNum==25 && FrontChNum==2){
 	continue;
       }
-      TH2F *hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
+      TH2F *hist = NULL;
+      hist = (TH2F*)f1->Get(Form("down_vs_up%i_front%i",DetNum,FrontChNum));
+      if (hist==NULL){
+	cout << "Histo does not exist\n";
+	bad_det[count_bad] = DetNum;
+	bad_front[count_bad] = FrontChNum;
+	count_bad++;
+	continue;
+      }
+      
       hist->GetXaxis()->SetRange(0,120);
       hist->GetYaxis()->SetRange(0,120);
       hist->Draw("colz");
@@ -103,6 +120,11 @@ void SiRelativeGains_Clickable(void){
     for (Int_t j=0; j<12; j++){
       outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
     }
+  } 
+  outfile.close();
+  cout << "List of bad detectors:\n";
+  for (int i=0; i<count_bad; i++){
+    cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
 
 }
