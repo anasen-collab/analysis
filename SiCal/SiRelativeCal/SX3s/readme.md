@@ -28,8 +28,8 @@ The `.dat` files are included in the repository as an example. The run-to-run ch
 This program fixes the relative gains for the up and down on the SX3
 How to use: Create Histograms in the `Main.cpp`:
 * Plot down vs up energy for each front channel of each detector
-* Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (det4, channel0) histo "down_vs_up_divideBack%i_front_%i" is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-  if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
+* Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (det4, channel0) histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
+  if your data is not normalized use histo `down_vs_up%i_front_%i` for this code. 
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
   if you do so change the loop below.
 
@@ -60,5 +60,9 @@ You will input this new root file with this new relative gains file into step 2.
 3. Automatic calculation of cut.
 
 ## Step 2
+## Step 3
+## Final fix
+histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
+`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
 
 
