@@ -20,7 +20,7 @@
 ////After the best fit line appears, double click to move onto the next channel
 ////
 ////
-////Once you have completed this program, rerun OrganizeIC.cpp with this new X3RelativeGains_Step1.dat
+////Once you have completed this program, rerun Main.C with this new X3RelativeGains_Step1.dat
 ////You will input this new root file with this new relative gains file into step 2.
 
 //// Edited by : John Parker , 2016Jan24
@@ -46,7 +46,7 @@ void SiRelativeGains_Clickable(void){
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with OrganizeIC.cpp
+  TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main.cpp
 
   ofstream outfile;
   outfile.open("X3RelativeGains09192016_Step1_det27.dat"); //output file name
@@ -82,7 +82,7 @@ void SiRelativeGains_Clickable(void){
   //histo "down_vs_up_divideBack%i_front_%i" is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
   //if your data is not normalized use histo "down_vs_up%i_front_%i" for this code. 
 
-  for (Int_t DetNum=27; DetNum<28; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
      
       TH2F *hist = NULL;

@@ -46,10 +46,10 @@ void SiRelativeGains_Clickable(void){
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  TFile *f1 = new TFile("run236out_nocal.root");
+  TFile *f1 = new TFile("run236out_nocal.root"); // root file name created with Main.cpp
 
   ofstream outfile;
-  outfile.open("X3RelativeGains012216_Step1_dummy.dat");
+  outfile.open("X3RelativeGains012216_Step1_dummy.dat"); //output file name
 
   ifstream infile;
   infile.open("X3RelativeGains012216_slope1.dat"); //input file name
@@ -74,7 +74,7 @@ void SiRelativeGains_Clickable(void){
   Int_t bad_front[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=16; DetNum<17; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       if (DetNum==22 && (FrontChNum==2 || FrontChNum==3) ){
 	continue;
@@ -126,7 +126,7 @@ void SiRelativeGains_Clickable(void){
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
-
+  delete can;
 }
 
 
