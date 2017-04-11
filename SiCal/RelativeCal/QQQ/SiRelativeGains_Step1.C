@@ -23,6 +23,7 @@
 #include <TProfile.h>
 #include <TLegend.h>
 #include <time.h>
+#include <iomanip>  //file formatting; std::setfill, std::setw
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit1(TH2F* hist, TCanvas *can) {
@@ -414,7 +415,7 @@ void SiRelativeGains_Step1(void)
   ofstream outfile2;
   strftime (filename,80,"saves/QQQRelativeGains_Step1_%Y-%m-%d-%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
   outfile2.open(filename);
-  outfile2 << "DetNum\tFrontCh\tBackCh\tGain\n";
+  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
   
   ifstream infile;
   infile.open("saves/QQQRelativeGains_Slope1.dat");
@@ -467,8 +468,11 @@ void SiRelativeGains_Step1(void)
 
       Double_t gain = MyFit6(hist,can); //set fit method here
       printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum][FrontChNum+16],gain, slope[DetNum][FrontChNum+16]*gain);
-      slope[DetNum][FrontChNum+16] = slope[DetNum][FrontChNum+16]*gain;
-      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t" << gain << endl;
+      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t"
+	       << left << fixed << setw(8) <<slope[DetNum][FrontChNum+16] << "\t"
+	       << left << fixed << setw(8) << gain << "\t"
+	       << left << fixed << setw(8) << slope[DetNum][FrontChNum+16]*gain << endl;
+      slope[DetNum][FrontChNum+16] *= gain;
       //}//back loop
     }
     for (Int_t i=0; i<32; i++){
