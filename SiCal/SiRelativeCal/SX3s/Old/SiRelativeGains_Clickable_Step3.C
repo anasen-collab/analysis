@@ -41,14 +41,14 @@ void SiRelativeGains_Clickable_Step3(void){
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  TFile *f1 = new TFile("run236out_Step2.root");
+  //TFile *f1 = new TFile("run236out_Step2.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
   ofstream outfile;
-  outfile.open("X3RelativeGains012216_Step3_dummy.dat");
-
+  outfile.open("saves/X3RelativeGains012216_Step3_click.dat");
 
   ifstream infile;
-  infile.open("X3RelativeGains012216_Step2_dummy.dat");
+  infile.open("../saves/X3RelativeGains_09182016_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
