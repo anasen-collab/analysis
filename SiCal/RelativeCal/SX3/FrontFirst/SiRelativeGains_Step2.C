@@ -15,8 +15,7 @@
 ////In the MyFit() funtion, the binning is assumed. This could cause runtime errors (probably won't crash though) if your binning is different than what the program assumes.
 ////
 ////root -l SiRelativeGains_Step1.C++
-
-
+////
 //// Edited by : John Parker , 2016Jan22
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TMath.h>
@@ -124,10 +123,7 @@ void SiRelativeGains_Step2(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=8; DetNum<9; DetNum++) {
-    for (Int_t i=0; i<4; i++) {
-      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
-    }
+  for (Int_t DetNum=4; DetNum<28; DetNum++) {
     if (DetNum==19 || DetNum==24) {
       for (Int_t i=4; i<12; i++){
 	outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
@@ -157,7 +153,7 @@ void SiRelativeGains_Step2(void)
       slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*gain;
       slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*gain;
     }
-    for (Int_t i=4; i<12; i++){
+    for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
