@@ -39,13 +39,43 @@
 #include <TCutG.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Double_t MyFit(TH2F* hist, TCanvas *can){
+  hist->Draw("colz");
+  hist->GetXaxis()->SetRange(0,120);
+  hist->GetYaxis()->SetRange(0,120);
 
-
-void SiRelativeGains_Clickable(void){
-
-  using namespace std;
   Double_t x[10];
   Double_t y[10];
+  
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+  
+  for(int n=0;n<cut->GetN()-2;n++){
+    cut->GetPoint(n,x[n],y[n]);
+    cout << x[n] << "\t" << y[n] << endl;
+  }
+  
+  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  hist->Draw("colz");
+  graph->Draw("*same");
+  
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  graph->Fit("fun");
+  
+  can->Update();
+  can->WaitPrimitive();
+
+  Double_t gain = fun2->GetParameter(1);
+
+  delete graph;
+  delete fun2;
+  
+  return gain;
+}
+
+void SiRelativeGains_Clickable(void)
+{
+  using namespace std;
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main.cpp
    TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
@@ -71,7 +101,6 @@ void SiRelativeGains_Clickable(void){
   infile.close();
 
   TCanvas *can = new TCanvas("can","can",800,600);
-  TCutG *cut;
 
   Int_t bad_det[288];
   Int_t bad_front[288];
@@ -96,26 +125,7 @@ void SiRelativeGains_Clickable(void){
 	continue;
       }  
       
-      hist->Draw("colz");
-	
-      cut = (TCutG*)can->WaitPrimitive("CUTG");
-	
-      for(int n=0;n<cut->GetN()-2;n++){
-	cut->GetPoint(n,x[n],y[n]);
-	cout << x[n] << "\t" << y[n] << endl;
-      }
-	
-      TGraph *graph = new TGraph(cut->GetN()-2,x,y);
-      hist->Draw("colz");
-      graph->Draw("*same");
-	
-      TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
-      graph->Fit("fun");
-	
-      can->Update();
-      can->WaitPrimitive();
-
-      Double_t average_slope = fun->GetParameter(1);
+      Double_t average_slope = MyFit(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }  
   }
