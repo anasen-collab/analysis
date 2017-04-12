@@ -46,15 +46,16 @@ void SiRelativeGains_Clickable(void){
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main.cpp
+  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main.cpp
+   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
   ofstream outfile;
-  outfile.open("X3RelativeGains09192016_Step1_det27.dat"); //output file name
+  outfile.open("saves/X3RelativeGains09192016_Step1_click.dat"); //output file name
 
   //if you are just starting the calibration you can use an input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0)
 
   ifstream infile;
-  infile.open("X3RelativeGains09192016_Step1_det26.dat"); //input file name
+  infile.open("saves/X3RelativeGains_09182016_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
