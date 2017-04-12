@@ -32,8 +32,8 @@ How to use: Create Histograms in the `Main.cpp`:
   if your data is not normalized use histo `down_vs_up%i_front_%i` for this code. 
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
   if you do so change the loop below.
-
-The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
+  
+  The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
 
 The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients
 Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code
@@ -46,10 +46,34 @@ This file changes the relative gains on the down relative to the up
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step1.dat`
 You will input this new root file with this new relative gains file into step 2.
 
-### Options
- 
+## Step 2
 
-### Methods 
+loop over front (clickable step 3)
+
+
+The root file should have histograms that are plotting back_vs_front
+ * Code reads in histogram of name `back_vs_front%i_0_%i`--e.g. `down_vs_up4_0_1` (`det4`, `front channel0`, `back channel 1`)
+ * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
+ * It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
+ 
+Once you have completed this program, rerun Main.C with this new `X3RelativeGains_Step2.dat`
+You will input this new root file with this new relative gains file into step 3. 
+
+## Step 3
+Loop over back; (clickable step 2).
+This program fixes the back gains in the SX3 relative to a front channel
+ * If step 2 fixed the gains relative to back (front) channel 0, in this code, you should loop over bakc (front) channels 1,2,3
+ * If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
+ * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too.
+ `hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));`
+ Once you have completed this program, rerun Main.C with this new X3RelativeGains_Step3.dat
+Everything should now be calibrated properly, but check the histograms to make sure.
+If the histograms are not as good as desired, you can repeat this process for any individual detector (all three programs). Just be sure to input the correct RelativeGains.dat file and root file.
+## Final fix
+histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
+`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
+
+### Fit Methods 
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory. if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
   input below on the CUT the coordinates of the points that surround this area.
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
@@ -57,12 +81,8 @@ You will input this new root file with this new relative gains file into step 2.
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
    right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
    A best fit line should appear through your data
+2. Use TCutG to draw a line over the data. The verticies of the cut will be used to generate a linear fit.
+More than two points must be used.
+Because the back gains are not set properly, the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. All of the segments for a detector should have the same slope.
 3. Automatic calculation of cut.
-
-## Step 2
-## Step 3
-## Final fix
-histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
-
 
