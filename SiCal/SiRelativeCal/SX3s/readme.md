@@ -57,8 +57,10 @@ The root file should have histograms that are plotting back_vs_front
  * Code reads in histogram of name `back_vs_front%i_0_%i`--e.g. `down_vs_up4_0_1` (`det4`, `front channel0`, `back channel 1`)
 qy`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));`
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
- * It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
+ * It can loop over any range of detectors you want, 
  
+The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
+Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
 The two corresponding front gains (up and down) are then multiplied by the slope to get the new gain.
 this is why the output indices are `[DetNum-4][FrontChNum+4]` and `[DetNum-4][FrontChNum+8]`
  
@@ -80,11 +82,12 @@ histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created i
 `hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
 
 ### Fit Methods 
-0. Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
+0. Method 0 Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
    Used by SX3s/Step2,3 and Old/Step2,3
    It works by dumping the x-y coordinates of a 2D histogram into a TGraph.
    The coordinates are weighted by the bin content of the 2D hist
    It then fits the TGraph with a function of the form m*x+b.
+   This method shows that a TGraph should be generated directly from the data tree.
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory. if it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
   Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit. However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
   Note: Can use method 2 or method 3 to do this easily.
@@ -93,9 +96,13 @@ histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created i
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
    right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
    A best fit line should appear through your data
-2. Use TCutG to draw a line over the data. The verticies of the cut will be used to generate a linear fit.
-More than two points must be used.
-Because the back gains are not set properly, the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. All of the segments for a detector should have the same slope.
-	Used by SX3s/Clickable and Old/Clickable_Step2,3
+3. Use TCutG to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right). The verticies of the cut will be used to generate a linear fit.
+   More than two points must be used or code should be changed.
+   All of the segments for a detector should have the same slope; the plot should look like a straight line. click along the straight line. when you are done, double click in canvas and a best fit line will appear. The best fit line should follow the data very well, if not you are doing something wrong.
+   If the back gains are not set properly (or when doing back-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
+   Used by SX3s/Clickable and Old/Clickable_Step2,3
+
+////
+////After the best fit line appears, double click to move onto the next channel
 3. Automatic calculation of cut.
 

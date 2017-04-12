@@ -43,7 +43,7 @@
 #include <TVector.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas *can){
+Double_t MyFit1(TH2F* hist, TCanvas *can){
   hist->Draw("colz");
 
   //if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
@@ -106,6 +106,38 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   return gain;
 }
 
+Double_t MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit; copied from Old/Clickable_Step3
+  hist->Draw("colz");
+
+  Double_t x[10];
+  Double_t y[10];
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+      
+  for(int n=0;n<cut->GetN()-2;n++){
+    cut->GetPoint(n,x[n],y[n]);
+    cout << x[n] << "\t" << y[n] << endl;
+  }
+	
+  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  hist->Draw("colz");
+  graph->Draw("*same");
+	
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  graph->Fit("fun");
+	
+  can->Update();
+  can->WaitPrimitive();
+
+  Double_t gain = fun->GetParameter(1);
+      
+  delete graph;
+  delete fun;
+      
+  return gain;
+}
+
 void SiRelativeGains_Step2(void)
 {
   using namespace std;
@@ -117,8 +149,7 @@ void SiRelativeGains_Step2(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",800,600);
-
+  
   ofstream outfile;
   outfile.open("X3RelativeGains09202016_Step2_all.dat"); //output file
 
@@ -137,6 +168,8 @@ void SiRelativeGains_Step2(void)
     exit(EXIT_FAILURE);
   }
   infile.close();
+
+  TCanvas *can = new TCanvas("can","can",800,600);
 
   Int_t bad_det[288];
   Int_t bad_front[288];
@@ -160,7 +193,7 @@ void SiRelativeGains_Step2(void)
 	continue;
       }
 
-      Double_t gain = MyFit(hist,can);
+      Double_t gain = MyFit1(hist,can);
       slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*gain;
       slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*gain;
     }
@@ -173,11 +206,4 @@ void SiRelativeGains_Step2(void)
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-
-  delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		 
-
-	    
-	     
-    
