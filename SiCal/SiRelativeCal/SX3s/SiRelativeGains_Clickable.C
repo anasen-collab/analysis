@@ -65,10 +65,10 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   can->Update();
   can->WaitPrimitive();
 
-  Double_t gain = fun2->GetParameter(1);
+  Double_t gain = fun->GetParameter(1);
 
   delete graph;
-  delete fun2;
+  delete fun;
   
   return gain;
 }
@@ -77,7 +77,7 @@ void SiRelativeGains_Clickable(void)
 {
   using namespace std;
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main.cpp
-   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
   ofstream outfile;
   outfile.open("saves/X3RelativeGains09192016_Step1_click.dat"); //output file name

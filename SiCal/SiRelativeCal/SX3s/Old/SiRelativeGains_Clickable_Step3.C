@@ -34,13 +34,43 @@
 #include <TCutG.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Double_t MyFit(TH2F* hist, TCanvas *can){
+    
+  hist->Draw("colz");
 
-
-void SiRelativeGains_Clickable_Step3(void){
-
-  using namespace std;
   Double_t x[10];
   Double_t y[10];
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+      
+  for(int n=0;n<cut->GetN()-2;n++){
+    cut->GetPoint(n,x[n],y[n]);
+    cout << x[n] << "\t" << y[n] << endl;
+  }
+	
+  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  hist->Draw("colz");
+  graph->Draw("*same");
+	
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  graph->Fit("fun");
+	
+  can->Update();
+  can->WaitPrimitive();
+
+  Double_t gain = fun->GetParameter(1);
+      
+  delete graph;
+  delete fun;
+      
+  return gain;
+}
+
+void SiRelativeGains_Clickable_Step3(void)
+{
+  using namespace std;
+  
   //TFile *f1 = new TFile("run236out_Step2.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
@@ -59,16 +89,22 @@ void SiRelativeGains_Clickable_Step3(void){
     }
   }else{
     cout << "Infile not opened\n";
+    exit(EXIT_FAILURE);
   }
+  infile.close();
 
   TCanvas *can = new TCanvas("can","can",800,600);
-  TCutG *cut;
 
-  for (Int_t DetNum=16; DetNum<17; DetNum++){
+  Int_t bad_det[288];
+  Int_t bad_front[288];
+  Int_t bad_back[288];
+  Int_t count_bad = 0;
+
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=1; FrontChNum<4; FrontChNum++){
-      Int_t BackChannelNumber = 0;
+      Int_t BackChanNumber = 0;
       if ( DetNum==11 ){
-	BackChannelNumber = 1;
+	BackChanNumber = 1;
       }
       if (DetNum==22 && (FrontChNum==2 || FrontChNum==3) ){
 	continue;
@@ -77,28 +113,19 @@ void SiRelativeGains_Clickable_Step3(void){
 	continue;
       }
       
-      TH2F *hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));
-      hist->Draw("colz");
-      
-      cut = (TCutG*)can->WaitPrimitive("CUTG");
-      
-      for(int n=0;n<cut->GetN()-2;n++){
-	cut->GetPoint(n,x[n],y[n]);
-	cout << x[n] << "\t" << y[n] << endl;
+      TH2F *hist = NULL;
+      hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChanNumber));
+      if (hist==NULL){
+	cout << "Histo does not exist\n";
+	bad_det[count_bad] = DetNum;
+	bad_back[count_bad] = FrontChNum;
+	count_bad++;
+	continue;
       }
-	
-      TGraph *graph = new TGraph(cut->GetN()-2,x,y);
-      hist->Draw("colz");
-      graph->Draw("*same");
-	
-      TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
-      graph->Fit("fun");
-	
-      can->Update();
-      can->WaitPrimitive();
-	
-      slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*fun->GetParameter(1);
-      slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*fun->GetParameter(1);
+      
+      Double_t average_slope = MyFit(hist,can);	
+      slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*average_slope;
+      slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*average_slope;
 	
     }
   }
@@ -106,6 +133,11 @@ void SiRelativeGains_Clickable_Step3(void){
     for (Int_t j=0; j<12; j++){
       outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
     }
+  } 
+  outfile.close();
+  cout << "List of bad detectors:\n";
+  for (int i=0; i<count_bad; i++){
+    cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
 
 }
