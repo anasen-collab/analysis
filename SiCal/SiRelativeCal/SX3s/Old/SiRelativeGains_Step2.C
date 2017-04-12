@@ -1,9 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Relative calibration of Si gains
 ////
-//// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
-//// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
-////
 //// Usage: root -l SiPulser_All.C++ (from the same directory).
 ////
 //// Edited by : John Parker , 2016Jan22
@@ -27,11 +24,11 @@ Double_t MyFit(TH2F* hist, TCanvas *can){
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
-	for (int k=0; k<hist->GetBinContent(i,j); k++){
-	  counter++;
-	}
+      for (int k=0; k<hist->GetBinContent(i,j); k++){
+	counter++;
       }
     }
+  }
 
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
@@ -78,10 +75,8 @@ void SiRelativeGains_Step2(void)
   TH2F *hist;
 
   ofstream outfile;
-  ofstream outfile2;
 
   outfile.open("X3RelativeGains012216_NoClickStep2.dat");
-  //outfile2.open("Sipulser_peaklocations22Jan2016Back2.dat");
 
   ifstream infile;
   infile.open("X3RelativeGains012216_Step1.dat");
@@ -97,7 +92,7 @@ void SiRelativeGains_Step2(void)
   }
   infile.close();
 
-  for (Int_t DetNum=16; DetNum<17; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t BackChNum=0; BackChNum<4; BackChNum++){
       if ( DetNum==11 && (BackChNum==0 || BackChNum==2 || BackChNum==3) ){
 	continue;
@@ -119,7 +114,6 @@ void SiRelativeGains_Step2(void)
 
       Double_t gain = MyFit(hist,can);
       slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
-
     }
   }
   for (Int_t i=0; i<24; i++){
@@ -127,7 +121,6 @@ void SiRelativeGains_Step2(void)
       outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
     }
   }
-
   outfile.close();
   delete can;
 }
