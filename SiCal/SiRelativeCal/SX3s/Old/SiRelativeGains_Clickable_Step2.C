@@ -41,14 +41,15 @@ void SiRelativeGains_Clickable_Step2(void){
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  TFile *f1 = new TFile("run236out_Step1.root");
+  //TFile *f1 = new TFile("run236out_Step1.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
 
   ofstream outfile;
-  outfile.open("X3RelativeGains012216_Step2_dummy.dat");
+  outfile.open("saves/X3RelativeGains012216_Step2_click.dat");
 
 
   ifstream infile;
-  infile.open("X3RelativeGains012216_Step1_dummy.dat");
+  infile.open("../saves/X3RelativeGains_09182016_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[24][12];
@@ -59,10 +60,16 @@ void SiRelativeGains_Clickable_Step2(void){
     }
   }else{
     cout << "Infile not opened\n";
+    exit(EXIT_FAILURE);
   }
+  infile.close();
 
   TCanvas *can = new TCanvas("can","can",800,600);
   TCutG *cut;
+
+  Int_t bad_det[288];
+  Int_t bad_front[288];
+  Int_t count_bad = 0;
 
   Double_t new_slope[24][12];
   for (int i=0; i<24; i++){
@@ -89,7 +96,15 @@ void SiRelativeGains_Clickable_Step2(void){
 	  continue;
 	}
 
-      TH2F *hist = (TH2F*)f1->Get(Form("back_vs_front%i_0_%i",DetNum,BackChNum));
+      TH2F *hist = NULL;
+      hist = (TH2F*)f1->Get(Form("back_vs_front%i_0_%i",DetNum,BackChNum));
+      if (hist==NULL){
+	cout << "Histo does not exist\n";
+	bad_det[count_bad] = DetNum;
+
+	count_bad++;
+	continue;
+      }  
       hist->Draw("colz");
 	
       cut = (TCutG*)can->WaitPrimitive("CUTG");
@@ -117,6 +132,11 @@ void SiRelativeGains_Clickable_Step2(void){
     for (Int_t j=0; j<12; j++){
       outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
     }
+  } 
+  outfile.close();
+  cout << "List of bad detectors:\n";
+  for (int i=0; i<count_bad; i++){
+    cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
 
 }
