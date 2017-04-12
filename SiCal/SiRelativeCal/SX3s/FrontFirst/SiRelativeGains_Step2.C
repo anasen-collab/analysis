@@ -124,11 +124,11 @@ void SiRelativeGains_Step2(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=8; DetNum<9; DetNum++){
-    for (Int_t i=0; i<4; i++){
+  for (Int_t DetNum=8; DetNum<9; DetNum++) {
+    for (Int_t i=0; i<4; i++) {
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
-    if (DetNum==19 || DetNum==24){
+    if (DetNum==19 || DetNum==24) {
       for (Int_t i=4; i<12; i++){
 	outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
       }
@@ -136,10 +136,10 @@ void SiRelativeGains_Step2(void)
     }
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       Int_t BackChNum = 1;
-      if ( DetNum==11 ){
+      if ( DetNum==11 ) {
 	BackChNum = 1;
       }
-      if (DetNum==24 ){
+      if (DetNum==24 ) {
 	BackChNum = 1;
       }
       TH2F *hist = NULL;
