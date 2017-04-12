@@ -125,18 +125,14 @@ void SiRelativeGains_Step3(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  Double_t gain = 0;
-
   for (Int_t DetNum=4; DetNum<28; DetNum++){
-    
     for (Int_t BackChNum=0; BackChNum<4; BackChNum++){
       if ( DetNum==8 ){
       	BackChNum = 3;
       }
       
-     Int_t FrontChNum = 1;
+      Int_t FrontChNum = 1;
       
-
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum));
       if (hist==NULL){
@@ -148,7 +144,7 @@ void SiRelativeGains_Step3(void)
 	continue;
       }
 
-      gain = MyFit(hist,can);
+      Double_t gain = MyFit(hist,can);
       slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
     }
     for (int i=0; i<12; i++){

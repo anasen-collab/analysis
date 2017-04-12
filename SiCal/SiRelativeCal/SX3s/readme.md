@@ -47,14 +47,20 @@ Once you have completed this program, rerun `Main.cpp` with this new `X3Relative
 You will input this new root file with this new relative gains file into step 2.
 
 ## Step 2
-
 loop over front (clickable step 3)
-
+This step fixes the relative gains of the 4 front strips with respect to a single back strip
+First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
+Whichever gains file was used in the program that creates the histos should be the input file to this program.
 
 The root file should have histograms that are plotting back_vs_front
+
  * Code reads in histogram of name `back_vs_front%i_0_%i`--e.g. `down_vs_up4_0_1` (`det4`, `front channel0`, `back channel 1`)
+qy`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));`
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
  * It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
+ 
+The two corresponding front gains (up and down) are then multiplied by the slope to get the new gain.
+this is why the output indices are `[DetNum-4][FrontChNum+4]` and `[DetNum-4][FrontChNum+8]`
  
 Once you have completed this program, rerun Main.C with this new `X3RelativeGains_Step2.dat`
 You will input this new root file with this new relative gains file into step 3. 
@@ -74,8 +80,14 @@ histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created i
 `hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
 
 ### Fit Methods 
-1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory. if it is necessary to limit the area of your data that you want to fit see in our Canvas and 
-  input below on the CUT the coordinates of the points that surround this area.
+0. Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
+   Used by SX3s/Step2,3 and Old/Step2,3
+   It works by dumping the x-y coordinates of a 2D histogram into a TGraph.
+   The coordinates are weighted by the bin content of the 2D hist
+   It then fits the TGraph with a function of the form m*x+b.
+1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory. if it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
+  Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit. However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
+  Note: Can use method 2 or method 3 to do this easily.
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
    This method works very similar to method 1, except that instead of a predefined cut, the user must
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
@@ -84,5 +96,6 @@ histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created i
 2. Use TCutG to draw a line over the data. The verticies of the cut will be used to generate a linear fit.
 More than two points must be used.
 Because the back gains are not set properly, the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. All of the segments for a detector should have the same slope.
+	Used by SX3s/Clickable and Old/Clickable_Step2,3
 3. Automatic calculation of cut.
 

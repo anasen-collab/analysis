@@ -24,8 +24,7 @@
 
 ////
 ////root -l SiRelativeGains_Step2.C++
-
-
+////
 //// Edited by : John Parker , 2016Jan22
 //// Edited by : Maria Anastasiou, 2016Sept20
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,13 +143,12 @@ void SiRelativeGains_Step2(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=4; DetNum<28; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       Int_t BackChNum = 0;   // some if-statements that differ between each data set
       if ( DetNum==8 ){
       	BackChNum = 3;
-       }
-
+      }
       TH2F *hist = NULL;
       hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));
       if (hist==NULL){
