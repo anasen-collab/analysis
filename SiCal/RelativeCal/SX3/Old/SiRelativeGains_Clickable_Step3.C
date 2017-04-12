@@ -3,7 +3,7 @@
 ////----Code reads in histogram of name back_vs_front%i_%i_0--e.g. down_vs_up4_1_0 (det4, front channel1, back channel 0)
 ////----If step 2 fixed the gains relative to front channel 0, in this code, you should loop over front channels 1,2,3
 ////-----If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
-////-----It can loop over any range of detectors you want, but if the histogram does not exist, the code will crash and your work will not be saved
+////-----It can loop over any range of detectors you want
 ////
 ////The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
 ////Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
@@ -35,7 +35,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Double_t MyFit(TH2F* hist, TCanvas *can){
-    
   hist->Draw("colz");
 
   Double_t x[10];
@@ -80,8 +79,8 @@ void SiRelativeGains_Clickable_Step3(void)
   ifstream infile;
   infile.open("../saves/X3RelativeGains_09182016_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
-  Double_t dummy_slope = 0;
   Double_t slope[24][12];
+  Double_t dummy_slope = 0;
   if (infile.is_open()){
     while (!infile.eof()){
       infile >> det >> ch >> dummy_slope;
@@ -100,11 +99,11 @@ void SiRelativeGains_Clickable_Step3(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=4; DetNum<28; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++) {
     for (Int_t FrontChNum=1; FrontChNum<4; FrontChNum++){
-      Int_t BackChanNumber = 0;
+      Int_t BackChNum = 0;
       if ( DetNum==11 ){
-	BackChanNumber = 1;
+	BackChNum = 1;
       }
       if (DetNum==22 && (FrontChNum==2 || FrontChNum==3) ){
 	continue;
@@ -112,32 +111,29 @@ void SiRelativeGains_Clickable_Step3(void)
       if (DetNum==25 && FrontChNum==2){
 	continue;
       }
-      
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChanNumber));
+      hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));
       if (hist==NULL){
 	cout << "Histo does not exist\n";
 	bad_det[count_bad] = DetNum;
-	bad_back[count_bad] = FrontChNum;
+	bad_front[count_bad] = FrontChNum;
+	bad_back[count_bad] = BackChNum;
 	count_bad++;
 	continue;
       }
-      
-      Double_t average_slope = MyFit(hist,can);	
-      slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*average_slope;
-      slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*average_slope;
-	
+
+      Double_t gain = MyFit(hist,can);
+      slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*gain;
+      slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*gain;
+    }
+    for (Int_t i=0; i<12; i++){
+      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
-  for (Int_t i=0; i<24; i++){
-    for (Int_t j=0; j<12; j++){
-      outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
-    }
-  } 
   outfile.close();
   cout << "List of bad detectors:\n";
   for (int i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << endl;
+    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
 
 }
