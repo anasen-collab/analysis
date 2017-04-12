@@ -95,7 +95,6 @@ void SiRelativeGains_Step3(void)
   TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
-
   outfile.open("X3RelativeGains051116_Step3.dat");
 
   ifstream infile;
@@ -119,11 +118,9 @@ void SiRelativeGains_Step3(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  Double_t gain = 0;
-
-  for (Int_t DetNum=8; DetNum<9; DetNum++){
-    if (DetNum==7 || DetNum==9 || DetNum==19 || DetNum==24){
-      for (int i=0; i<12; i++){
+  for (Int_t DetNum=8; DetNum<9; DetNum++) {
+    if (DetNum==7 || DetNum==9 || DetNum==19 || DetNum==24) {
+      for (Int_t i=0; i<12; i++){
 	outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
       }
       continue;
@@ -145,10 +142,10 @@ void SiRelativeGains_Step3(void)
 	continue;
       }
 
-      gain = MyFit(hist,can);
+      Double_t gain = MyFit(hist,can);
       slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
     }
-    for (int i=0; i<12; i++){
+    for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
