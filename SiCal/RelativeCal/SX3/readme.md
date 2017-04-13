@@ -97,17 +97,21 @@ This program fixes the back gains in the SX3 relative to a front channel
 This step fixes the relative gains of the 3 remaining back channels to that of a designated front channel
 It works in the same was as step 2
 ### Histograms
+The root file should have histograms that are plotting `back_vs_front`
+Code reads in histogram of name `back_vs_front%i_0_%i`--e.g. `down_vs_up4_0_1` (`det4`, `front channel0`, `back channel 1`)
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));` (Old)
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
+Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
+`MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
+
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
 
  * If step 2 fixed the gains relative to back (front) channel 0, in this code, you should loop over bakc (front) channels 1,2,3
  * If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
-`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));` (Old)
-`hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
-Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
-`MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
+
 ### Files
-The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
+The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients
 Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
 Whichever gains file was used in the program that creates the histos should be the input file to this program.
 Input histogram file and relative gains file
@@ -148,8 +152,8 @@ If it is necessary to limit the area of your data that you want to fit see in ou
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
    right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
    A best fit line should appear through your data
-3. Use TCutG to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right). The verticies of the cut will be used to generate a linear fit.
-   More than two points must be used or code should be changed.
+3. Use TCutG to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right).
+   The verticies of the cut will be used to generate a linear fit. More than two points must be used or code should be changed.
    All of the segments for a detector should have the same slope; the plot should look like a straight line. click along the straight line. when you are done, double click in canvas and a best fit line will appear. The best fit line should follow the data very well, if not you are doing something wrong.
    If the back gains are not set properly (or when doing back-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
    Used by SX3s/Clickable and Old/Clickable_Step2,3
