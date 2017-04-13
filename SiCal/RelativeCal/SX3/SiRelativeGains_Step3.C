@@ -97,10 +97,8 @@ void SiRelativeGains_Step3(void)
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  TCanvas *can = new TCanvas("can","can",800,600);
   
   ofstream outfile;
-
   outfile.open("X3RelativeGains09202016_Step3.dat");
   //outfile.open("test_det26.dat");
 
@@ -120,6 +118,8 @@ void SiRelativeGains_Step3(void)
   }
   infile.close();
 
+  TCanvas *can = new TCanvas("can","can",800,600);
+ 
   Int_t bad_det[288];
   Int_t bad_front[288];
   Int_t bad_back[288];

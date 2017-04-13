@@ -70,12 +70,8 @@ void SiRelativeGains_Step2(void)
   using namespace std;
 
   TFile *f1 = new TFile("run236out_Step1.root");//front
-  TCanvas *can = new TCanvas("can","can",800,1100);\
-
-  TH2F *hist;
-
+  
   ofstream outfile;
-
   outfile.open("X3RelativeGains012216_NoClickStep2.dat");
 
   ifstream infile;
@@ -91,6 +87,8 @@ void SiRelativeGains_Step2(void)
     exit(EXIT_FAILURE);
   }
   infile.close();
+
+  TCanvas *can = new TCanvas("can","can",800,1100);
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t BackChNum=0; BackChNum<4; BackChNum++){
@@ -110,15 +108,14 @@ void SiRelativeGains_Step2(void)
 	continue;
       }
       //cout << DetNum << "  " << BackChNum << endl;
+      TH2F *hist;
       hist = (TH2F*)f1->Get(Form("back_vs_front%i_0_%i",DetNum,BackChNum));
 
       Double_t gain = MyFit(hist,can);
       slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
     }
-  }
-  for (Int_t i=0; i<24; i++){
-    for (Int_t j=0; j<12; j++){
-      outfile << i+4 << "\t" << j << "\t" << slope[i][j] << endl;
+    for (int i=0; i<12; i++){
+      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
   outfile.close();
