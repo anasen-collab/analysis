@@ -86,24 +86,26 @@ Once you have completed this program, rerun Main.C with this new `X3RelativeGain
 You will input this new root file with this new relative gains file into step 3. 
 
 ## Step 3
-Loop over back; (old, clickable step 2).
+Loop over back; (old, clickable Step 2).
+This program fixes the back gains in the SX3 relative to a front channel
 This step fixes the relative gains of the 3 remaining back channels to that of a designated front channel
 It works in the same was as step 2
 ### Histograms
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
 Whichever gains file was used in the program that creates the histos should be the input file to this program.
 Input histogram file and relative gains file
-Things to watch out for:
-In the MyFit() funtion, the binning is assumed. This could cause runtime errors (probably won't crash though) if your binning is different than what the program assumes.
-This program fixes the back gains in the SX3 relative to a front channel
+
  * If step 2 fixed the gains relative to back (front) channel 0, in this code, you should loop over bakc (front) channels 1,2,3
  * If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
- * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too.
+ * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
 `hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));` (Old)
 `hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
 Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
 `MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
 ### Files
+The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
+Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
+
 The back gain is equal to the inverse of the slope of the best fit line.
 The gains are applied as [old]/[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 
@@ -122,7 +124,7 @@ If the histograms are not as good as desired, you can repeat this process for an
 	  MyFill(Form("offset_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/Si.det_obj.EBack_Rel[0]));
 	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
 ````
-### Fit Methods 
+## Fit Methods 
 0. Method 0 Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
    Used by SX3s/Step2,3 and Old/Step2,3
    It works by dumping the x-y coordinates of a 2D histogram into a TGraph.
