@@ -151,7 +151,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   delete y;
   delete graph;
   delete fun2;
-  
+
   return gain;
 }
 
@@ -211,13 +211,14 @@ Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
       }
     }
   }
-  printf("maxbin is %d, at %f\n",maxbin,hist->GetYaxis()->GetBinCenter(maxbin));
-  printf("minbin is %d, at %f\n",minbin,hist->GetXaxis()->GetBinCenter(minbin));
+  printf(" for %s ",hist->GetName());
+  printf("maxbin is %4d, at %6g ",maxbin,hist->GetYaxis()->GetBinCenter(maxbin));
+  printf("minbin is %4d, at %6g\n",minbin,hist->GetXaxis()->GetBinCenter(minbin));
 
   Double_t slope = -1;
   Double_t offset = hist->GetYaxis()->GetBinCenter(maxbin)+hist->GetXaxis()->GetBinCenter(minbin);
 
-  Int_t steps=1;
+  Int_t steps=2;
 
   TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
   for (int k=steps; k>-1; k--) {
@@ -226,7 +227,7 @@ Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
     Double_t x2=13000;
     Double_t width=400;
     width*=TMath::Power(2,k);
-    printf("width=%f slope=%f offset=%f",width,slope,offset);
+    printf(" Step %d: width=%5f slope=%9.5f offset=%7f",steps-k+1,width,slope,offset);
     //The corners of a parallelepiped cut window are then calculated
     Double_t y1=slope*x1+offset;
     Double_t y2=slope*x2+offset;
@@ -249,7 +250,7 @@ Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
       }
     }
 
-    printf(" for %s counts = %d in window\n",hist->GetName(),counter);
+    printf(" counts = %d in window\n",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
@@ -294,7 +295,7 @@ Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
     delete graph;
   }
     
-  Double_t gain = fun2->GetParameter(1);
+  Double_t gain = slope;
   delete fun2;
  
   return gain;
@@ -315,7 +316,7 @@ void SiRelativeGains_Step1(void)
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
-
+  
   //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
   infile.open("saves/X3RelativeGains_Slope1.dat");
@@ -345,10 +346,10 @@ void SiRelativeGains_Step1(void)
   outfile.open(filename);
   outfile << "DetNum\tFrontCh\tGain\n";
 
-  // ofstream outfile2;
-  // strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
-  // outfile2.open(filename);
-  // outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+   ofstream outfile2;
+   strftime (filename,80,"saves/X3RelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
+   outfile2.open(filename);
+   outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
 
   TCanvas *can = new TCanvas("can","can",800,600);
 
@@ -368,28 +369,27 @@ void SiRelativeGains_Step1(void)
 	cout << hname << " histogram does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
-	bad_back[count_bad] = BackChNum;
+	//bad_back[count_bad] = BackChNum;
 	count_bad++;
 	continue;
       }
       
       Double_t gain = MyFit4(hist,can);
-      //Int_t deti=DetNum-4;
-      //Int_t frti=FrontChNum+8;
-      // printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum-4][FrontChNum+8],gain, -slope[DetNum][FrontChNum+8]/gain);
-      // outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
-      // 	       << left << fixed << setw(8) <<slope[DetNum-4][FrontChNum+8] << "\t"
-      // 	       << left << fixed << setw(8) << gain << "\t"
-      // 	       << left << fixed << setw(8) << slope[DetNum-4][FrontChNum+8]*gain << endl;
-      // slope[DetNum][FrontChNum+16] *= gain;
-      // slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
+      Int_t deti=DetNum-4;
+      Int_t frti=FrontChNum+8;
+      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[deti][frti],gain, -slope[deti][frti]/gain);
+      outfile2 << DetNum << "\t" << frti << "\t" << BackChNum << "\t"
+       	       << left << fixed << setw(8) <<slope[deti][frti] << "\t"
+       	       << left << fixed << setw(8) << gain << "\t"
+	       << left << fixed << setw(8) << -slope[deti][frti]/gain << endl;
+      slope[deti][frti] = -slope[deti][frti]/gain;
     }
     for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
   outfile.close();
-  //outfile2.close();
+  outfile2.close();
   cout << "List of bad detectors:\n";
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
