@@ -24,43 +24,61 @@ The first line of dat files is a dummy line.
 The SX3 detectors correspond to detectors number 4-27. Each detector has 12 front channels (0-11).
 The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
 
+### A note on history
+In the previous development of the code, contained in the `Old` folder, the backs were gain-matched first. That is, in Step 2, each back channel was gain-matched to a particular front channel. This is true for both the standard and "clickable" sets of code.
+
+while looping over the front, both new and old sets of code use the histogram `hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));` 
+This same histogram is used for looping over the back in Step 2 old. In the new step which loops over the back, Step 3, the following histogram is used.
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
+
+The fit function used in `Old` was a one-parameter scaling coefficient. In all other versions, the fit function is a linear function.
+
 ## Step 1
 This program fixes the relative gains for the up and down on the SX3
 How to use: Create Histograms in the `Main.cpp`:
+### Histograms
 * Plot down vs up energy for each front channel of each detector
+//Step 0 RelCal/U-D
+	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
+	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
+histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
+`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
 * Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (det4, channel0) histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
   if your data is not normalized use histo `down_vs_up%i_front_%i` for this code. 
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
   if you do so change the loop below.
-  
-  The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
+### Files
+The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
 
 The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients
-Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code
+Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code. If you are just starting the calibration you can use an `.dat` input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0).  input the root file that was created in the Main(Organize) using the `.dat` file where ALL SLOPES are ONE.
 
-if you are just starting the calibration you can use an `.dat` input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0)
-
-  input the root file that was created in the Main(Organize) using the `.dat` file where ALL SLOPES are ONE.
-
-This file changes the relative gains on the down relative to the up
+This file changes the relative gains on the down relative to the up.
+The gains are applied as -[old]/[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step1.dat`
 You will input this new root file with this new relative gains file into step 2.
 
 ## Step 2
-loop over front (clickable step 3)
+Loop over front (clickable step 3)
 This step fixes the relative gains of the 4 front strips with respect to a single back strip
+### Histograms
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
 Whichever gains file was used in the program that creates the histos should be the input file to this program.
 
-The root file should have histograms that are plotting back_vs_front
+The root file should have histograms that are plotting `back_vs_front`
 
  * Code reads in histogram of name `back_vs_front%i_0_%i`--e.g. `down_vs_up4_0_1` (`det4`, `front channel0`, `back channel 1`)
 qy`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));`
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
  * It can loop over any range of detectors you want, 
  
-The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
+//Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
+	`MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
+
+### Files
+The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients.
 Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
+The gains are applied as [old]*[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 The two corresponding front gains (up and down) are then multiplied by the slope to get the new gain.
 this is why the output indices are `[DetNum-4][FrontChNum+4]` and `[DetNum-4][FrontChNum+8]`
  
@@ -68,19 +86,42 @@ Once you have completed this program, rerun Main.C with this new `X3RelativeGain
 You will input this new root file with this new relative gains file into step 3. 
 
 ## Step 3
-Loop over back; (clickable step 2).
+Loop over back; (old, clickable step 2).
+This step fixes the relative gains of the 3 remaining back channels to that of a designated front channel
+It works in the same was as step 2
+### Histograms
+First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
+Whichever gains file was used in the program that creates the histos should be the input file to this program.
+Input histogram file and relative gains file
+Things to watch out for:
+In the MyFit() funtion, the binning is assumed. This could cause runtime errors (probably won't crash though) if your binning is different than what the program assumes.
 This program fixes the back gains in the SX3 relative to a front channel
  * If step 2 fixed the gains relative to back (front) channel 0, in this code, you should loop over bakc (front) channels 1,2,3
  * If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too.
- `hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));`
- Once you have completed this program, rerun Main.C with this new X3RelativeGains_Step3.dat
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChannelNumber));` (Old)
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
+Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
+`MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
+### Files
+The back gain is equal to the inverse of the slope of the best fit line.
+The gains are applied as [old]/[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
+
+Once you have completed this program, rerun Main.C with this new X3RelativeGains_Step3.dat
 Everything should now be calibrated properly, but check the histograms to make sure.
 If the histograms are not as good as desired, you can repeat this process for any individual detector (all three programs). Just be sure to input the correct RelativeGains.dat file and root file.
-## Final fix
-histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
 
+## Final fix
+### Hisotgrams
+````
+//check offset
+  	  MyFill(Form("sx3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
+	  
+	  MyFill(Form("sx3offset_back_vs_front_normback%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],300,-0.2,0.2,((Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0]))/Si.det_obj.EBack_Rel[0]));
+
+	  MyFill(Form("offset_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/Si.det_obj.EBack_Rel[0]));
+	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
+````
 ### Fit Methods 
 0. Method 0 Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
    Used by SX3s/Step2,3 and Old/Step2,3
@@ -102,7 +143,5 @@ histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created i
    If the back gains are not set properly (or when doing back-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
    Used by SX3s/Clickable and Old/Clickable_Step2,3
 
-////
-////After the best fit line appears, double click to move onto the next channel
+After the best fit line appears, double click to move onto the next channel
 3. Automatic calculation of cut.
-
