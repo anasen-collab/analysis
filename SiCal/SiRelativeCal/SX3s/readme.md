@@ -27,7 +27,8 @@ The `.dat` files are included in the repository as an example. The run-to-run ch
 ### A note on history
 In the previous development of the code, contained in the `Old` folder, the backs were gain-matched first. That is, in Step 2, each back channel was gain-matched to a particular front channel. This is true for both the standard and "clickable" sets of code.
 
-while looping over the front, both new and old sets of code use the histogram `hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));` 
+while looping over the front, both new and old sets of code use the histogram 
+`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));` 
 This same histogram is used for looping over the back in Step 2 old. In the new step which loops over the back, Step 3, the following histogram is used.
 `hist = (TH2F*)f1->Get(Form("back_vs_front%i_back%i",DetNum,BackChNum))` (New)
 
@@ -53,8 +54,11 @@ The input `.root` file should be generated from runs with fixed particle energy;
 The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients
 Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code. If you are just starting the calibration you can use an `.dat` input file where ALL SLOPES ARE ONE(1) apart from the MASKED CHANNELS which are ZERO(0).  input the root file that was created in the Main(Organize) using the `.dat` file where ALL SLOPES are ONE.
 
+### Gains
 This file changes the relative gains on the down relative to the up.
 The gains are applied as -[old]/[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
+
+### Next steps
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step1.dat`
 You will input this new root file with this new relative gains file into step 2.
 
@@ -63,7 +67,6 @@ Loop over front (clickable step 3)
 This step fixes the relative gains of the 4 front strips with respect to a single back strip
 ### Histograms
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
-Whichever gains file was used in the program that creates the histos should be the input file to this program.
 
 The root file should have histograms that are plotting `back_vs_front`
 
@@ -71,17 +74,20 @@ The root file should have histograms that are plotting `back_vs_front`
 qy`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));`
  * If the front channel 0 does not exist for a given detector, choose a different front channel for everything to be relative to.
  * It can loop over any range of detectors you want, 
- 
+```` 
 //Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
 	`MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);`
-
+````
 ### Files
-The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients.
-Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
+The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients.
+Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code. That is, whichever gains file was used in the program that creates the histograms (`Main.cpp`) should be the input file to this program.
+
+### Gains
 The gains are applied as [old]*[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 The two corresponding front gains (up and down) are then multiplied by the slope to get the new gain.
 this is why the output indices are `[DetNum-4][FrontChNum+4]` and `[DetNum-4][FrontChNum+8]`
  
+#### Next steps
 Once you have completed this program, rerun Main.C with this new `X3RelativeGains_Step2.dat`
 You will input this new root file with this new relative gains file into step 3. 
 
@@ -92,8 +98,6 @@ This step fixes the relative gains of the 3 remaining back channels to that of a
 It works in the same was as step 2
 ### Histograms
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
-Whichever gains file was used in the program that creates the histos should be the input file to this program.
-Input histogram file and relative gains file
 
  * If step 2 fixed the gains relative to back (front) channel 0, in this code, you should loop over bakc (front) channels 1,2,3
  * If the back channel 0 does not exist for a given detector, choose a different front channel for everything to be relative too (in this code, det 11 uses back channel 1).
@@ -105,10 +109,14 @@ Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
 ### Files
 The program reads in an X3RelativeGains.dat file and outputs a new file with updated coefficients
 Before running, make sure that the root file you are reading in has the right histograms and has been created using the X3RelativeGains.dat file that you are inputting into this code
+Whichever gains file was used in the program that creates the histos should be the input file to this program.
+Input histogram file and relative gains file
 
+### Gains
 The back gain is equal to the inverse of the slope of the best fit line.
 The gains are applied as [old]/[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 
+### Next steps
 Once you have completed this program, rerun Main.C with this new X3RelativeGains_Step3.dat
 Everything should now be calibrated properly, but check the histograms to make sure.
 If the histograms are not as good as desired, you can repeat this process for any individual detector (all three programs). Just be sure to input the correct RelativeGains.dat file and root file.
@@ -131,7 +139,8 @@ If the histograms are not as good as desired, you can repeat this process for an
    The coordinates are weighted by the bin content of the 2D hist
    It then fits the TGraph with a function of the form m*x+b.
    This method shows that a TGraph should be generated directly from the data tree.
-1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory. if it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
+1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory.
+If it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
   Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit. However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
   Note: Can use method 2 or method 3 to do this easily.
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
