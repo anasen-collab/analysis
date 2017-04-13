@@ -80,6 +80,38 @@ Double_t MyFit1(TH2F* hist, TCanvas *can){
   return gain;
 }
 
+Double_t MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit; copied from Old/Clickable_Step3
+  hist->Draw("colz");
+
+  Double_t x[10];
+  Double_t y[10];
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+      
+  for(int n=0;n<cut->GetN()-2;n++){
+    cut->GetPoint(n,x[n],y[n]);
+    cout << x[n] << "\t" << y[n] << endl;
+  }
+	
+  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  hist->Draw("colz");
+  graph->Draw("*same");
+	
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  graph->Fit("fun");
+	
+  can->Update();
+  can->WaitPrimitive();
+
+  Double_t gain = fun->GetParameter(1);
+      
+  delete graph;
+  delete fun;
+      
+  return gain;
+}
+
 void SiRelativeGains_Step3(void)
 {
   using namespace std;
