@@ -145,25 +145,19 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   fun2->SetParameter(1,-1);
   graph->Fit("fun2");
   can->Update();
-
-  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
-
   can->WaitPrimitive();
 
+  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   Double_t gain = fun2->GetParameter(1);
-
   delete x;
   delete y;
   delete graph;
   delete fun2;
 
-  if (gain < -3 || gain > -0.1 ){//basically if the slope is very far from one, I don't trust the fit
-    gain = -1;
-  }
   return gain;
 }
 
-Double_t MyFit3(TH2F* hist, TCanvas* can){//auto calc bin
+Double_t MyFit3(TH2F* hist, TCanvas* can){//auto calc cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -286,33 +280,36 @@ void SiRelativeGains_Step1(void)
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7m.root");
-
-  TCanvas *can = new TCanvas("can","can",800,600);
+  if ( !f1->IsOpen() ){
+    cout << "Error: Root file does not exist\n";
+    exit(EXIT_FAILURE);
+  }
   
-  ofstream outfile;
-
-  Double_t average_slope = 0;
-  
-  outfile.open("X3RelativeGains_Step1.dat"); //output file name
-
+  //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
   infile.open("X3RelativeGains_Slope1.dat"); //input file name
   Int_t det=0,ch=0;
-  Double_t dummy_slope = 0;
   Double_t slope[24][12];
+  Double_t dummy_slope = 0;
   if (infile.is_open()){
     while (!infile.eof()){
       infile >> det >> ch >> dummy_slope;
       slope[det-4][ch] = dummy_slope;
     }
   }else{
-    cout << "Infile not opened\n";
+    cout << "Error: Dat file does not exist\n";
     exit(EXIT_FAILURE);
   }
   infile.close();
 
+  ofstream outfile;
+  outfile.open("X3RelativeGains_Step1.dat");
+  
+  TCanvas *can = new TCanvas("can","can",800,600);
+
   Int_t bad_det[288];
   Int_t bad_front[288];
+  Int_t bad_back[288];
   Int_t count_bad = 0;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++){
@@ -329,7 +326,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      average_slope = MyFit3(hist,can);
+      Double_t average_slope = MyFit3(hist,can);
       slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
