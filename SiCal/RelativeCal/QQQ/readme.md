@@ -24,9 +24,22 @@ The QQQ detectors correspond to detectors number 0-3. Each detector has 32 chann
 The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
 
 ## Step 1
-Loop over front channels. Channels 16-31 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
+Loop over front channels.
+For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
+###Files
+Channels 16-31 in the `.dat` file will be filled in; this is written in the code as '[FrontChNum+16]'.
+###Gains
+The measured slope is multiplied by the previous gain (typically 1) to produce the new gain.
+### Next steps
 
-### Methods 
+## Step 2
+Loop over back channels. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
+###Files
+Channels 0-15 in the `.dat` file will be filled in. 
+### Gains
+### Next steps
+
+### Fitting Methods 
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph
    This method works very similar to method 1, except that instead of a predefined cut, the user must
@@ -41,8 +54,7 @@ Loop over front channels. Channels 16-31 in the `.dat` file will be filled in. F
 5. Expansion of Method 4. Used for Det 2. Uses upper and lower limits for the lower bound of the gate; i.e., the gate "backs in" towards the origin over the steps.
 6. Automated cut generation based on TProfile slope; cone-shaped cut. Calculates slopes within 0.2% of those of Mehtod 4 with the advantage of beign able to better detect the slope for detectors with multiple loci.
 
-## Step 2
-Loop over back channels. Channels 0-15 in the `.dat` file will be filled in. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
+
 
 ## Images
 In the `images` folder there are two macros. The image in the folder was generated using the macro `Draw2.C`, however, that macro is not compatible with `Main.cpp`.

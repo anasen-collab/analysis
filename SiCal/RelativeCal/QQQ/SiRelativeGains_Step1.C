@@ -30,9 +30,10 @@ Double_t MyFit1(TH2F* hist, TCanvas *can) {
   //Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
   hist->Draw("colz");
   
-  Double_t x1[12] = {1450, 630, 3150, 6340, 9200, 10540, 13200, 13600, 11670, 7550, 2400, 1450};
-  Double_t y1[12] = {800, 2250, 4900, 8050, 10380, 11520, 13800, 12600, 8700, 5400, 1100, 800};
-  TCutG *cut = new TCutG("cut",12,x1,y1);
+  const Int_t nv = 12;
+  Double_t x1[nv] = {1450, 630, 3150, 6340, 9200, 10540, 13200, 13600, 11670, 7550, 2400, 1450};
+  Double_t y1[nv] = {800, 2250, 4900, 8050, 10380, 11520, 13800, 12600, 8700, 5400, 1100, 800};
+  TCutG *cut = new TCutG("cut",nv,x1,y1);
   cut->SetLineColor(6);
   cut->Draw("same");
   
@@ -318,7 +319,6 @@ Double_t MyFit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial
     width*=TMath::Power(2,k);
     Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
     Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
-
     const Int_t nv = 5;//set number of verticies
     Double_t xc[nv] = {x1+dx0,x2+dx,x2-dx,x1-dx0,x1+dx0};
     Double_t yc[nv] = {y1-dy0,y2-dy,y2+dy,y1+dy0,y1-dy0};
@@ -395,30 +395,17 @@ void SiRelativeGains_Step1(void)
   using namespace std;
 
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run924_16O_sp7_slope1.root");
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1.root");
   if ( !f1->IsOpen() ){
-    cout << "Error: Root File Does Not Exist\n";
+    cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
 
-  time_t rawtime;
-  struct tm * timeinfo;
-  char filename [80];
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-
-  ofstream outfile;
-  strftime (filename,80,"saves/QQQRelativeGains_Step1_%Y-%m-%d-%H%M%S.dat",timeinfo);
-  outfile.open(filename);
-  outfile << "DetNum\tFrontCh\tGain\n";
-  
-  ofstream outfile2;
-  strftime (filename,80,"saves/QQQRelativeGains_Step1_%Y-%m-%d-%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
-  outfile2.open(filename);
-  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
-  
+  //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
-  infile.open("saves/QQQRelativeGains_Slope1.dat");
+  //infile.open("saves/QQQRelativeGains_Slope1.dat");
+  infile.open("saves/QQQRelativeGains_Step1.dat");
   Int_t det=0,ch=0;
   Double_t slope[4][32];
   Double_t dummy;
@@ -429,11 +416,27 @@ void SiRelativeGains_Step1(void)
       slope[det][ch] = dummy;
     }
   }else{
-    cout << "Error: infile not opened\n";
+    cout << "Error: Dat file does not exist\n";
     exit(EXIT_FAILURE);
   }
   infile.close();
 
+  time_t rawtime;
+  struct tm * timeinfo;
+  char filename [80];
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+
+  ofstream outfile;
+  strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S.dat",timeinfo);
+  outfile.open(filename);
+  outfile << "DetNum\tFrontCh\tGain\n";
+  
+  ofstream outfile2;
+  strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
+  outfile2.open(filename);
+  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+  
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
   
@@ -444,8 +447,8 @@ void SiRelativeGains_Step1(void)
 
   for (Int_t DetNum=0; DetNum<4; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
-      //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
       Int_t BackChNum = 0;
+      //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
       if(DetNum==2)
 	BackChNum = 4;
       // if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
@@ -468,7 +471,7 @@ void SiRelativeGains_Step1(void)
 
       Double_t gain = MyFit6(hist,can); //set fit method here
       printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum][FrontChNum+16],gain, slope[DetNum][FrontChNum+16]*gain);
-      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t"
+      outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
 	       << left << fixed << setw(8) <<slope[DetNum][FrontChNum+16] << "\t"
 	       << left << fixed << setw(8) << gain << "\t"
 	       << left << fixed << setw(8) << slope[DetNum][FrontChNum+16]*gain << endl;
@@ -485,7 +488,4 @@ void SiRelativeGains_Step1(void)
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-  
-  delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		     

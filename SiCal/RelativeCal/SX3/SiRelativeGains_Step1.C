@@ -23,7 +23,7 @@
 #include <TLegend.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit1(TH2F* hist, TCanvas* can){
+Double_t MyFit1(TH2F* hist, TCanvas* can) {
   hist->Draw("colz");
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
@@ -71,23 +71,17 @@ Double_t MyFit1(TH2F* hist, TCanvas* can){
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16000);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
-  graph->Fit("fun2");
+  graph->Fit("fun2","qROB");
   can->Update();
-
-  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
-
   can->WaitPrimitive();
 
+  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   Double_t gain = fun2->GetParameter(1);
-
   delete x;
   delete y;
   delete graph;
   delete fun2;
-
-  if (gain < -3 || gain > -0.1 ){//basically if the slope is very far from one, I don't trust the fit
-    gain = -1;
-  }
+  
   return gain;
 }
 
@@ -107,11 +101,13 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   x1.resize(cut->GetN());
   y1.resize(cut->GetN());
 
-  for(int n=0;n<cut->GetN();n++){//print cut
+  for(int n=0;n<cut->GetN();n++){
     cut->GetPoint(n,x1[n],y1[n]);
     cout << x1[n] << "\t" << y1[n] << endl;
   }
-
+  cut->SetLineColor(6);
+  cut->Draw("same");
+  
   Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
@@ -145,7 +141,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
-  graph->Fit("fun2");
+  graph->Fit("fun2","qROB");
   can->Update();
   can->WaitPrimitive();
 
@@ -155,7 +151,7 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   delete y;
   delete graph;
   delete fun2;
-
+  
   return gain;
 }
 
@@ -319,14 +315,14 @@ void SiRelativeGains_Step1(void)
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
-  
+
   //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
   infile.open("saves/X3RelativeGains_Slope1.dat");
   Int_t det=0,ch=0;
   Double_t slope[24][12];
   Double_t dummy = 0;
-  if (infile.is_open()){
+  if (infile.is_open()) {
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
@@ -361,9 +357,9 @@ void SiRelativeGains_Step1(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=4; DetNum<28; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++) {
     //if(DetNum!=21) continue;
-    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
+    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);           //unnormalized
@@ -372,6 +368,7 @@ void SiRelativeGains_Step1(void)
 	cout << hname << " histogram does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
+	bad_back[count_bad] = BackChNum;
 	count_bad++;
 	continue;
       }
@@ -392,8 +389,9 @@ void SiRelativeGains_Step1(void)
     }
   }
   outfile.close();
+  //outfile2.close();
   cout << "List of bad detectors:\n";
-  for (int i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << endl;
+  for (Int_t i=0; i<count_bad; i++){
+    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
 }
