@@ -1,24 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
-//
 // This file creates a tree with vectors, objects and members
-// To do so, we have to create a dictionary
-////
-// To create a dictionary:
-//  rootcint -f Main_dict.cxx -c tree_structure.h LinkDef.h
+// See readme.md for general instructions.
 //
-// To compile the code:
-//  g++ -o Main Main_dict.cxx Main.cpp `root-config --cflags --glibs` -O3
-//
-// These commands can be run using the makefile
-//
-// To run the code:
-//  ./Main input.root output.root
-//  for example:
-//  ./Main ../../../../../data0/manasta/evt2root_files_new/24Mg/runXXX.root ../../../../../data0/manasta/OrganizeRaw_files/24Mg/runXXX.root
-//
-//  
-//
+// Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
+// Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //#define MaxSiHits   500
 #define MaxADCHits  500
@@ -150,7 +135,7 @@ int main(int argc, char* argv[]){
 	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
 	     "Param/initialize/AlphaCalibration_09132016.dat",
   	     "Param/initialize/X3RelativeGains_Slope1.dat",
-	     "Param/17F_cals/QQQRelativeGains_Step1_cone_cuts.dat");
+	     "Param/17F_cals/QQQRelativeGains_Step2_auto.dat");
   
   /*
   //intialize 24Mg
@@ -589,13 +574,13 @@ int main(int argc, char* argv[]){
 
 	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
-	  //Step 0 RelCal/U-D
+	  //Step 1 RelCal/U-D
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
 
-	  //Step 1 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
+	  //Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
-	  //Step 2 RelCal//F-B //RelGain Cal from Step 1 is applied
+	  //Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
 	  MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
 	  
 	  //// just for checking histograms per detector
