@@ -38,16 +38,22 @@ The fit function used in `Old` was a one-parameter scaling coefficient. In all o
 This program fixes the relative gains for the up and down on the SX3
 How to use: Create Histograms in the `Main.cpp`:
 ### Histograms
+Create Histograms in the Main.C:
 * Plot down vs up energy for each front channel of each detector
+````
 //Step 0 RelCal/U-D
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
+````
+
 histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
-* Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (det4, channel0) histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
   if your data is not normalized use histo `down_vs_up%i_front_%i` for this code. 
+  
+`hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
+* Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (`det4`, `channel0`) 
+
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
-  if you do so change the loop below.
+  if you do so change the loop
 ### Files
 The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
 
@@ -136,7 +142,7 @@ If the histograms are not as good as desired, you can repeat this process for an
 	  MyFill(Form("offset_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/Si.det_obj.EBack_Rel[0]));
 	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
 ````
-## Fit Methods 
+## Fiting Methods 
 0. Method 0 Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
    Used by SX3s/Step2,3 and Old/Step2,3
    It works by dumping the x-y coordinates of a 2D histogram into a TGraph.
