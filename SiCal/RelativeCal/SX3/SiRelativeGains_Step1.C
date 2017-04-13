@@ -157,7 +157,41 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   return gain;
 }
 
-Double_t MyFit3(TH2F* hist, TCanvas* can){//auto calc cut
+Double_t MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit; copied from Old/Clickable_Step2,3
+  hist->Draw("colz");
+  hist->GetXaxis()->SetRange(0,120);
+  hist->GetYaxis()->SetRange(0,120);
+
+  Double_t x[10];
+  Double_t y[10];
+
+  TCutG *cut;
+  cut = (TCutG*)can->WaitPrimitive("CUTG");
+      
+  for(int n=0;n<cut->GetN()-2;n++){
+    cut->GetPoint(n,x[n],y[n]);
+    cout << x[n] << "\t" << y[n] << endl;
+  }
+	
+  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  hist->Draw("colz");
+  graph->Draw("*same");
+	
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  graph->Fit("fun");
+	
+  can->Update();
+  can->WaitPrimitive();
+
+  Double_t gain = fun->GetParameter(1);
+      
+  delete graph;
+  delete fun;
+      
+  return gain;
+}
+
+Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -316,7 +350,8 @@ void SiRelativeGains_Step1(void)
     //if(DetNum!=21) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       TH2F *hist = NULL;
-      TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);
+      //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
+      TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);           //unnormalized
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
@@ -338,6 +373,4 @@ void SiRelativeGains_Step1(void)
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << endl;
   }
-  delete can;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
