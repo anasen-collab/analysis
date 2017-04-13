@@ -153,6 +153,7 @@ If the histograms are not as good as desired, you can repeat this process for an
 If it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
   Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit. However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
   Note: Can use method 2 or method 3 to do this easily.
+  developed from Step 1 in 'Old' directory and  Step 3 in QQQ 'Method 2'
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
    This method works very similar to method 1, except that instead of a predefined cut, the user must
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top

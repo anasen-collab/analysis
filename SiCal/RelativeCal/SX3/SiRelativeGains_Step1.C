@@ -23,18 +23,19 @@
 #include <TLegend.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit1(TH2F* hist, TCanvas* can){//developed from Step 1 in 'Old' directory, Step 3 in QQQ 'Method 2'
+Double_t MyFit1(TH2F* hist, TCanvas* can){
   hist->Draw("colz");
-  hist->GetXaxis()->SetRange(0,180);
-  hist->GetYaxis()->SetRange(0,180);
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
 
   Bool_t docut=kTRUE;//added to duplicate functionality of some previous versions
-  Double_t x1[5] = { 450, 5000, 6200, 530, 450 };
-  Double_t y1[5] = { 4800, 10, 1100, 6150, 4800 };
-  TCutG *cut = new TCutG("cut",5,x1,y1);
-  //Double_t x1[8] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
-  //Double_t y1[8] = {315, 3215, 13100, 780, 420, 170, 136, 315};
-  //TCutG *cut = new TCutG("cut",8,x1,y1);
+  const Int_t nv = 5;
+  Double_t x1[nv] = { 450, 5000, 6200, 530, 450 };
+  Double_t y1[nv] = { 4800, 10, 1100, 6150, 4800 };
+  //Double_t x1[nv] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
+  //Double_t y1[nv] = {315, 3215, 13100, 780, 420, 170, 136, 315};
+  TCutG *cut = new TCutG("cut",nv,x1,y1);
   if(docut)cut->Draw("same");
 
   Int_t counter = 0;
@@ -94,8 +95,9 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
-  hist->GetXaxis()->SetRange(0,180);
-  hist->GetYaxis()->SetRange(0,180);
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
     
   vector<double> x1;
   vector<double> y1;
@@ -157,10 +159,13 @@ Double_t MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst director
   return gain;
 }
 
-Double_t MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit; copied from Old/Clickable_Step2,3
+Double_t MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit
+  if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
+  if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
-  hist->GetXaxis()->SetRange(0,120);
-  hist->GetYaxis()->SetRange(0,120);
+  Int_t up=6000;
+  hist->GetXaxis()->SetRangeUser(0,up);
+  hist->GetYaxis()->SetRangeUser(0,up);
 
   Double_t x[10];
   Double_t y[10];
@@ -294,12 +299,8 @@ Double_t MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
   }
     
   Double_t gain = fun2->GetParameter(1);
-
-   delete fun2;
-
-  if (gain < -3 || gain > -0.1 ){//basically if the slope is very far from one, I don't trust the fit
-    gain = -1;
-  }
+  delete fun2;
+ 
   return gain;
 }
 
@@ -310,7 +311,7 @@ void SiRelativeGains_Step1(void)
   //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
   //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
-  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); // root file name created with Main(Organize)
+  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); 
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7m.root");
@@ -321,14 +322,15 @@ void SiRelativeGains_Step1(void)
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
-  infile.open("X3RelativeGains_Slope1.dat"); //input file name
+  infile.open("saves/X3RelativeGains_Slope1.dat");
   Int_t det=0,ch=0;
   Double_t slope[24][12];
-  Double_t dummy_slope = 0;
+  Double_t dummy = 0;
   if (infile.is_open()){
+    infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
-      infile >> det >> ch >> dummy_slope;
-      slope[det-4][ch] = dummy_slope;
+      infile >> det >> ch >> dummy;
+      slope[det-4][ch] = dummy;
     }
   }else{
     cout << "Error: Dat file does not exist\n";
@@ -336,9 +338,22 @@ void SiRelativeGains_Step1(void)
   }
   infile.close();
 
+  time_t rawtime;
+  struct tm * timeinfo;
+  char filename [80];
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+
   ofstream outfile;
-  outfile.open("X3RelativeGains_Step1.dat");
-  
+  strftime (filename,80,"saves/X3RelativeGains_Step1_%y%m%d.%H%M%S.dat",timeinfo);
+  outfile.open(filename);
+  outfile << "DetNum\tFrontCh\tGain\n";
+
+  // ofstream outfile2;
+  // strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
+  // outfile2.open(filename);
+  // outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+
   TCanvas *can = new TCanvas("can","can",800,600);
 
   Int_t bad_det[288];
@@ -361,8 +376,16 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      Double_t average_slope = MyFit3(hist,can);
-      slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
+      Double_t gain = MyFit4(hist,can);
+      //Int_t deti=DetNum-4;
+      //Int_t frti=FrontChNum+8;
+      // printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum-4][FrontChNum+8],gain, -slope[DetNum][FrontChNum+8]/gain);
+      // outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
+      // 	       << left << fixed << setw(8) <<slope[DetNum-4][FrontChNum+8] << "\t"
+      // 	       << left << fixed << setw(8) << gain << "\t"
+      // 	       << left << fixed << setw(8) << slope[DetNum-4][FrontChNum+8]*gain << endl;
+      // slope[DetNum][FrontChNum+16] *= gain;
+      // slope[DetNum-4][FrontChNum+8] = -slope[DetNum-4][FrontChNum+8]/average_slope;
     }
     for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
