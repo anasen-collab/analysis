@@ -147,7 +147,7 @@ void SiRelativeGains_Step3(void)
       Double_t gain = MyFit(hist,can);
       slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
     }
-    for (int i=0; i<12; i++){
+    for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
     }
   }
