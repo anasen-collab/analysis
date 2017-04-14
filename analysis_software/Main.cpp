@@ -134,7 +134,7 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
 	     "Param/initialize/AlphaCalibration_09132016.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step1_170413.184304.dat",
+  	     "Param/17F_cals/X3RelativeGains_Step1_edit.dat",
 	     "Param/17F_cals/QQQRelativeGains_Step2_auto.dat");
   
   /*
