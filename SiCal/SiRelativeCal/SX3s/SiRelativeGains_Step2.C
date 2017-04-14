@@ -17,73 +17,10 @@
 #include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
-#include <TGraph.h>
 #include <TF1.h>
-#include <TSpectrum.h>
-#include <TCutG.h>
-#include <TVector.h>
 //Methods
 #include "SiRelativeGains.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit1(TH2F* hist, TCanvas *can){
-  hist->Draw("colz");
-
-  Double_t x1[5] = { 2, 12, 9, 0.4, 2 };
-  Double_t y1[5] = { 0.8, 9.8, 11, 1.1, 0.8 };
-  TCutG *cut = new TCutG("cut",5,x1,y1);
-  //cut->Draw("same"); 
-
-  Double_t maxbinNumberX = hist->GetXaxis()->GetXmax();
-  Double_t maxbinNumberY = hist->GetYaxis()->GetXmax();
-  Double_t maxbinX = (maxbinNumberX/hist->GetNbinsX());
-  Double_t maxbinY = (maxbinNumberY/hist->GetNbinsY());
-
-  Int_t counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++){
-    for (int j=1; j<hist->GetNbinsY(); j++){
-      //if ( !cut->IsInside((Double_t)i*maxbinX,j*maxbinY) ){
-      //	continue;
-      //}
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
-	counter++;
-      }
-    }
-  }
-
-  Double_t *x = new Double_t[counter];
-  Double_t *y = new Double_t[counter];
-  
-  counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++){
-    for (int j=1; j<hist->GetNbinsY(); j++){
-      //if ( !cut->IsInside((Double_t)i*maxbinX,j*maxbinY) ){
-      //	continue;
-      //}
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
-	x[counter] = i*maxbinX;
-	y[counter] = j*maxbinY;
-	counter++;
-      }
-    }
-  }
-
-  TGraph *graph = new TGraph(counter,x,y);
-  graph->Draw("*same");
-
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,10000);
-  graph->Fit("fun2");
-  can->Update();
-  can->WaitPrimitive();
-
-  Double_t gain = fun2->GetParameter(0);
-  delete x;
-  delete y;
-  delete graph;
-  delete fun2;
-
-  return gain;
-}
-
 void SiRelativeGains_Step2(void)
 {
   using namespace std;
@@ -94,20 +31,21 @@ void SiRelativeGains_Step2(void)
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
-
+  
   //Input the .dat file used by Main.cpp to generate the .root file given above
   ifstream infile;
-  infile.open("X3RelativeGains_Step1.dat");
+  infile.open("saves/X3RelativeGains_Step1.dat");
   Int_t det=0,ch=0;
   Double_t slope[24][12];
-  Double_t dummy;
-  if (infile.is_open()){
+  Double_t dummy = 0;
+  if (infile.is_open()) {
+    infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
       slope[det-4][ch] = dummy;
     }
   }else{
-    cout << "Infile not opened\n";
+    cout << "Error: Dat file does not exist\n";
     exit(EXIT_FAILURE);
   }
   infile.close();
@@ -122,6 +60,8 @@ void SiRelativeGains_Step2(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
+  GainMatch gainmatch;
+
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       Int_t BackChNum = 0;   // some if-statements that differ between each data set
@@ -129,9 +69,10 @@ void SiRelativeGains_Step2(void)
       	BackChNum = 3;
       }
       TH2F *hist = NULL;
-      hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum));
-      if (hist==NULL){
-	cout << "Histo does not exist\n";
+      TString hname=Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
+      hist = (TH2F*)f1->Get(hname.Data());
+      if (hist==NULL) {
+	cout << hname << " histogram does not exist\n";
 	bad_det[count_bad] = DetNum;
 	bad_front[count_bad] = FrontChNum;
 	bad_back[count_bad] = BackChNum;
@@ -139,7 +80,7 @@ void SiRelativeGains_Step2(void)
 	continue;
       }
 
-      Double_t gain = MyFit1(hist,can);
+      Double_t gain = gainmatch.Fit1(hist,can,kFALSE);
       slope[DetNum-4][FrontChNum+4] = slope[DetNum-4][FrontChNum+4]*gain;
       slope[DetNum-4][FrontChNum+8] = slope[DetNum-4][FrontChNum+8]*gain;
     }
@@ -149,7 +90,7 @@ void SiRelativeGains_Step2(void)
   }
   outfile.close();
   cout << "List of bad detectors:\n";
-  for (int i=0; i<count_bad; i++){
+  for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
 }
