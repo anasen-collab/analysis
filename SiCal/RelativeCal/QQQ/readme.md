@@ -26,6 +26,8 @@ The `.dat` files are included in the repository as an example. The run-to-run ch
 ## Step 1
 Loop over front channels.
 For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
+### Histograms
+`Q3_back_vs_front%i_%i_%i`
 ###Files
 Channels 16-31 in the `.dat` file will be filled in; this is written in the code as '[FrontChNum+16]'.
 ###Gains
@@ -34,8 +36,17 @@ The measured slope is multiplied by the previous gain (typically 1) to produce t
 
 ## Step 2
 Loop over back channels. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
+### Histograms
+`Q3_back_vs_front%i_b%i`
 ###Files
 Channels 0-15 in the `.dat` file will be filled in. 
+### Gains
+### Next steps
+Check historams `Q3_back_vs_front%i`
+## Final Fix
+### Histograms
+`q3offset_back_vs_front%i`
+### Files
 ### Gains
 ### Next steps
 
