@@ -32,7 +32,6 @@ class GainMatch {
   Double_t Fit4(TH2F*,TCanvas*);
 };
 
-
 Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   hist->Draw("colz");
   Int_t up=6000;
@@ -98,7 +97,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   return gain;
 }
 
-Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
+Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
