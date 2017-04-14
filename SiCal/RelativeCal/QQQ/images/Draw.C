@@ -1,6 +1,6 @@
 {
   //TFile *f1 = new TFile("run235_245out_Step1_012816.root");
-  TFile *f1 = new TFile("../../../../root/run1226-9mQ1.root");
+  TFile *f1 = new TFile("../../../../root/run1226-9mQ2.root");
   TCanvas *can = new TCanvas("can","can",900,1100);
 
   Double_t x1[5] = { 1550, 8071, 7065, 1000, 1550 };

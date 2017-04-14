@@ -11,7 +11,7 @@
 
   can->cd(2);
   //TFile *f2 = new TFile("run235_245out_Step2_012816.root");
-  TFile *f2 = new TFile("../../../../root/run1226-9mQ1.root");
+  TFile *f2 = new TFile("../../../../root/run1226-9mQ2.root");
   Q3_back_vs_front->Draw("colz");
   //fun2->Draw("same");
 }
