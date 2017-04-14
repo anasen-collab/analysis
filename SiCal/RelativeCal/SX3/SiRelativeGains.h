@@ -26,25 +26,29 @@ using namespace std;
 
 class GainMatch {
  public:
-  Double_t Fit1(TH2F*,TCanvas*);
+  Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
   Double_t Fit2(TH2F*,TCanvas*);
   Double_t Fit3(TH2F*,TCanvas*);
   Double_t Fit4(TH2F*,TCanvas*);
 };
 
 
-Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can) {
+Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   hist->Draw("colz");
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
-
-  Bool_t docut=kTRUE;//added to duplicate functionality of some previous versions
+  
   const Int_t nv = 5;
+  // Step 1
   Double_t x1[nv] = { 450, 5000, 6200, 530, 450 };
   Double_t y1[nv] = { 4800, 10, 1100, 6150, 4800 };
   //Double_t x1[nv] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
   //Double_t y1[nv] = {315, 3215, 13100, 780, 420, 170, 136, 315};
+  // Step 2
+  //Double_t x1[nv] = { 2, 12, 9, 0.4, 2 };
+  //Double_t y1[nv] = { 0.8, 9.8, 11, 1.1, 0.8 };
+    
   TCutG *cut = new TCutG("cut",nv,x1,y1);
   if(docut)cut->Draw("same");
 
@@ -83,8 +87,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can) {
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
   can->Update();
-  can->WaitPrimitive();
-
+  
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   Double_t gain = fun2->GetParameter(1);
   delete x;
