@@ -7,29 +7,25 @@
 // Edited by : Maria Anastasiou, 2016Sept20
 // Developed by : Jon Lighthall, 2017.02
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+#include <exception>
+#include <iomanip>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
-#include <TGraph.h>
 #include <TF1.h>
-#include <TSpectrum.h>
-#include <fstream>
-#include <exception>
-#include <TCutG.h>
-#include <TVector.h>
-#include <TLegend.h>
+//Methods
 #include "SiRelativeGains.h"
-#include <iomanip>  //file formatting; std::setfill, std::setw
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  newclass cls;
   //TFile *f1 = new TFile("run236out_nocal.root");//front
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
   //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
@@ -83,6 +79,8 @@ void SiRelativeGains_Step1(void)
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
+  GainMatch gainmatch;
+
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
     //if(DetNum!=21) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
@@ -99,7 +97,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      Double_t gain = cls.MyFit1(hist,can);
+      Double_t gain = gainmatch.Fit4(hist,can);
       Int_t deti=DetNum-4;
       Int_t frti=FrontChNum+8;
       printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[deti][frti],gain, -slope[deti][frti]/gain);

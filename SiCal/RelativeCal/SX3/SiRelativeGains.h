@@ -1,12 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Relative calibration of Si gains for SX3 Step 1
+// Fit methods for relative calibration of Si gains for SX3
 // See readme.md for general instructions.
-// Usage: root -l SiRelativeGains_Step1.C+
 //
-// Edited by : John Parker , 2016Jan22
-// Edited by : Maria Anastasiou, 2016Sept20
-// Developed by : Jon Lighthall, 2017.02
+// Developed by : Jon Lighthall, 2017.04
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+#include <exception>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -16,8 +17,6 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <exception>
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLegend.h>
@@ -25,16 +24,16 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
 
-class newclass {
+class GainMatch {
  public:
-  Double_t MyFit1(TH2F*,TCanvas*);
-  Double_t MyFit2(TH2F*,TCanvas*);
-  Double_t MyFit3(TH2F*,TCanvas*);
-  Double_t MyFit4(TH2F*,TCanvas*);
+  Double_t Fit1(TH2F*,TCanvas*);
+  Double_t Fit2(TH2F*,TCanvas*);
+  Double_t Fit3(TH2F*,TCanvas*);
+  Double_t Fit4(TH2F*,TCanvas*);
 };
 
 
-Double_t newclass::MyFit1(TH2F* hist, TCanvas* can) {
+Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can) {
   hist->Draw("colz");
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
@@ -96,7 +95,7 @@ Double_t newclass::MyFit1(TH2F* hist, TCanvas* can) {
   return gain;
 }
 
-Double_t newclass::MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
+Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirst directory
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -166,7 +165,7 @@ Double_t newclass::MyFit2(TH2F* hist, TCanvas* can){//manual cut, from FrontFirs
   return gain;
 }
 
-Double_t newclass::MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit
+Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -203,7 +202,7 @@ Double_t newclass::MyFit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   return gain;
 }
 
-Double_t newclass::MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
+Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can){//auto calc cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -238,7 +237,7 @@ Double_t newclass::MyFit4(TH2F* hist, TCanvas* can){//auto calc cut
     Double_t x2=13000;
     Double_t width=400;
     width*=TMath::Power(2,k);
-    printf(" Step %d: width=%5f slope=%9.5f offset=%7f",steps-k+1,width,slope,offset);
+    printf(" Step %d: width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,width,slope,offset);
     //The corners of a parallelepiped cut window are then calculated
     Double_t y1=slope*x1+offset;
     Double_t y2=slope*x2+offset;
