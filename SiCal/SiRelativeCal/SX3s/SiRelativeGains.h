@@ -113,9 +113,10 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   x1.resize(cut->GetN());
   y1.resize(cut->GetN());
 
-  for(int n=0;n<cut->GetN();n++){
-    cut->GetPoint(n,x1[n],y1[n]);
-    cout << x1[n] << "\t" << y1[n] << endl;
+  printf("Verticies of cut are:\n");
+    for(int n=0;n<cut->GetN();n++){
+      cut->GetPoint(n,x1[n],y1[n]);
+      cout << "\t" << x1[n] << "\t" << y1[n] << endl;
   }
   cut->SetLineColor(6);
   cut->Draw("same");
