@@ -51,7 +51,7 @@ void SiRelativeGains_Step2(void)
   infile.close();
 
   ofstream outfile;
-  outfile.open("X3RelativeGains_Step2.dat"); 
+  outfile.open("saves/X3RelativeGains_Step2.dat"); 
   
   TCanvas *can = new TCanvas("can","can",800,600);
 

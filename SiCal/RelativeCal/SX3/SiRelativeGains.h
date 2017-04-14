@@ -45,7 +45,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   Double_t y1[nv] = { 4800, 10, 1100, 6150, 4800 };
   //Double_t x1[nv] = {190, 240, 240, 13900, 4230, 1700, 165, 190};
   //Double_t y1[nv] = {315, 3215, 13100, 780, 420, 170, 136, 315};
-  // Step 2
+  // Step 2, 3
   //Double_t x1[nv] = { 2, 12, 9, 0.4, 2 };
   //Double_t y1[nv] = { 0.8, 9.8, 11, 1.1, 0.8 };
     
