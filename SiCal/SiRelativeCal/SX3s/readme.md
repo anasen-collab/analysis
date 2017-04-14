@@ -3,26 +3,24 @@ Relative calibration of Si gains
 
 ## General Usage
 ### Instructions
-In all three steps
-
-If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new `.dat` file
 1. First, run `Main.cpp` with a given `X3cal.dat` file
-   * Input `organize.root` and the `.dat` file into this code
-   * This code will output another .dat file that you should define
-   * `root -l SiRelativeGains_Step1.C++`
-2. Second, run Main.cpp again with the new .dat file
-   * Input the new organize.root and new .dat file into Step2.C
-   * `root -l SiRelativeGains_Step2.C++`
-3. Finally, run Main.cpp again with the new .dat file
-   * Input the new organize.root and new .dat file into Step3.C
-   * `root -l SiRelativeGains_Step3.C++`
+   * Input the `.root` file and the `.dat` file into `Step1.C`
+   * Run `root -l SiRelativeGains_Step1.C+`
+   * This code will output another `.dat` file.
+2. Second, run `Main.cpp` again with the new `.dat` file from Step 1.
+   * Input the new `.root` and new `.dat` file into `Step2.C`
+   * `root -l SiRelativeGains_Step2.C+`
+3. Finally, run `Main.cpp` again with the new `.dat` file from Step 2.
+   * Input the new organize.root and new .dat file into `Step3.C`
+   * `root -l SiRelativeGains_Step3.C+`
 
 ### Output files (`.dat` files)
+If you loop over a subset of detectors, only the paramaters for those detectors will be written into the new `.dat` file
 Output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
 Detector number, Front channel, Slope
-The first line of dat files is a dummy line.
+The first line of dat files is a header line.
 The SX3 detectors correspond to detectors number 4-27. Each detector has 12 front channels (0-11).
-The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
+The `.dat` files  included in the repository are an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
 
 ### A note on history
 In the previous development of the code, contained in the `Old` folder, the backs were gain-matched first. That is, in Step 2, each back channel was gain-matched to a particular front channel. This is true for both the standard and "clickable" sets of code.
@@ -36,20 +34,18 @@ The fit function used in `Old` was a one-parameter scaling coefficient. In all o
 
 ## Step 1
 This program fixes the relative gains for the up and down on the SX3
-How to use: Create Histograms in the `Main.cpp`:
 ### Histograms
-Create Histograms in the Main.C:
-* Plot down vs up energy for each front channel of each detector
+Plot down vs up energy for each front channel of each detector.
+These histograms are created in in `Main.cpp` with the following code.
 ````
 //Step 0 RelCal/U-D
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
 ````
 
-histo `down_vs_up_divideBack%i_front_%i` is a new extra histo that was created in the OrganizeIC.cpp for data that are normalized with the BackEnergy
-  if your data is not normalized use histo `down_vs_up%i_front_%i` for this code. 
-  
+Histograms named `down_vs_up_divideBack%i_front_%i` are an extra histogram, also created in `Main.cpp` for data that are normalized with the BackEnergy. If your data is not normalized use the histograms previously mentioned.
 `hist = (TH2F*)f1->Get(Form("down_vs_up_divideBack%i_front%i",DetNum,FrontChNum));`
+
 * Code reads in histogram of name `down_vs_up%i_front%i`--e.g. `down_vs_up4_front0` (`DetNum=4`, `FrontChNum=0`) 
 
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
@@ -147,27 +143,37 @@ If the histograms are not as good as desired, you can repeat this process for an
 	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
 ````
 ## Fiting Methods 
-0. Method 0 Convert the histogram bin-by-bin to a TGraph and fit. The do-cut flag is added to method 1 to turn on or off the use of a gate.
-   Used by SX3s/Step2,3 and Old/Step2,3
+The fitting methods have been collected in the file `SiRelativeGains.h` and are shared by each step.
+
+0. `Fit1`
+   Convert the histogram bin-by-bin to a TGraph and fit.
    It works by dumping the x-y coordinates of a 2D histogram into a TGraph.
    The coordinates are weighted by the bin content of the 2D hist
    It then fits the TGraph with a function of the form m*x+b.
-   This method shows that a TGraph should be generated directly from the data tree.
-1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. developed from Step 1 in 'Old' directory.
-If it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
-  Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit. However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
-  Note: Can use method 2 or method 3 to do this easily.
+   
+   The do-cut flag is added to method 1 to turn on or off the use of a gate.
+    * `docut=kFALSE` Method 0  
+   Used by SX3s/Step2,3 and Old/Step2,3
+    This method shows that a TGraph should be generated directly from the data tree.
+    * `docut=kTRUE` Method 1 - calculates slope of points wihtin pre-defined cut using TGraph. 
+	If it is necessary to limit the area of your data that you want to fit see in our Canvas and input below on the CUT the coordinates of the points that surround this area.
+  Only the coordinates that fall within a predefined cut are accepted. This gets rid of noise that can affect the fit.
+  However, on first iteration, not all of the data will fit neatly into the cut, so it may need to be adjusted for a few detectors. 
   developed from Step 1 in 'Old' directory and  Step 3 in QQQ 'Method 2'
-2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
+  Note: Can use Fit4 to calulate the gate automaticly.
+2. `Fit2`
+   Method 2 - calculates slope of points wihtin user-defined cut using TGraph manual cut, from FrontFirst directory
    This method works very similar to method 1, except that instead of a predefined cut, the user must
    draw their own graphical cut. To do this, in the canvas: View->Toolbar and click on the scissors on the top
    right hand corner. Then, select the region around your data by clicking. Double click to close the cut.
    A best fit line should appear through your data
-3. Use TCutG to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right).
+   Developed from FrontFirst directory
+3. `Fit3`
+   Use TCutG to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right).
    The verticies of the cut will be used to generate a linear fit. More than two points must be used or code should be changed.
    All of the segments for a detector should have the same slope; the plot should look like a straight line. click along the straight line. when you are done, double click in canvas and a best fit line will appear. The best fit line should follow the data very well, if not you are doing something wrong.
    If the back gains are not set properly (or when doing back-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
-   Used by SX3s/Clickable and Old/Clickable_Step2,3
+   Used by SX3s/Clickable and Old/Clickable_Step2,3 
 
 After the best fit line appears, double click to move onto the next channel
-3. Automatic calculation of cut.
+3. `Fit4`Automatic calculation of cut.
