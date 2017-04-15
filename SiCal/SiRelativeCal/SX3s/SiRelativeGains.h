@@ -36,6 +36,7 @@ class BadDetectors {
   Int_t front[288];
   Int_t back[288];
   Int_t count;
+  void Add(Int_t,Int_t,Int_t BackChNum=-1);
   void Print();
 };
 
@@ -74,6 +75,13 @@ void Gains::Print() {
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
     }
   }
+}
+
+void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
+  det[count] = DetNum;
+  front[count] = FrontChNum;
+  back[count] = BackChNum;
+  count++;
 }
 
 void BadDetectors::Print() {
