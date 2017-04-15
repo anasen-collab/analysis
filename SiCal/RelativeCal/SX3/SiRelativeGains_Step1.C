@@ -41,8 +41,7 @@ void SiRelativeGains_Step1(void)
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
   gains.Load("saves/X3RelativeGains_Slope1.dat");
-  gains.Print();
-  
+    
   time_t rawtime;
   struct tm * timeinfo;
   char filename [80];
@@ -61,15 +60,12 @@ void SiRelativeGains_Step1(void)
 
   TCanvas *can = new TCanvas("can","can",800,600);
 
-  Int_t bad_det[288];
-  Int_t bad_front[288];
-  Int_t bad_back[288];
-  Int_t count_bad = 0;
-
+  BadDetectors bad;
+  bad.count=0;
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
-    //if(DetNum!=27) continue;
+    if(DetNum>6) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
@@ -79,10 +75,10 @@ void SiRelativeGains_Step1(void)
       Int_t frti=FrontChNum+8;
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad_det[count_bad] = DetNum;
-	bad_front[count_bad] = FrontChNum;
-	//bad_back[count_bad] = BackChNum;
-	count_bad++;
+	bad.det[bad.count] = DetNum;
+	bad.front[bad.count] = FrontChNum;
+	//bad.back[bad.count] = BackChNum;
+	bad.count++;
 	outfile2 << DetNum << "\t" << frti << "\t"
 		 << left << fixed << setw(8) <<gains.old[deti][frti] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"
@@ -106,8 +102,5 @@ void SiRelativeGains_Step1(void)
   }
   outfile.close();
   outfile2.close();
-  cout << "List of bad detectors:\n";
-  for (Int_t i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
-  }
+  bad.Print();
 }
