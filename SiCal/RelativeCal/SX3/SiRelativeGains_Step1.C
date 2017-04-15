@@ -26,10 +26,6 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  //TFile *f1 = new TFile("run236out_nocal.root");//front
-  //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run251_NSCL11_Pulser.root");//back
-  //TFile *f1 = new TFile("../../../OrganizeRaw_root/run567_051116.root");//front
-  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); 
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");
@@ -41,22 +37,17 @@ void SiRelativeGains_Step1(void)
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
   gains.Load("saves/X3RelativeGains_Slope1.dat");
-    
-  time_t rawtime;
-  struct tm * timeinfo;
-  char filename [80];
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
+  
+  Time time;
+  time.Get();
 
   ofstream outfile;
-  strftime (filename,80,"saves/X3RelativeGains_Step1_%y%m%d.%H%M%S.dat",timeinfo);
-  outfile.open(filename);
+  outfile.open(Form("saves/X3RelativeGains_Step1_%s.dat",time.stamp));
   outfile << "DetNum\tFrontCh\tGain\n";
-
-   ofstream outfile2;
-   strftime (filename,80,"saves/X3RelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
-   outfile2.open(filename);
-   outfile2 << "DetNum\tFrontCh\tOld\t\tSlope\t\tNew\n";
+  
+  ofstream outfile2;
+  outfile2.open(Form("saves/X3RelativeGains_Step1_%s_back.dat",time.stamp));
+  outfile2 << "DetNum\tFrontCh\tOld\t\tSlope\t\tNew\n";
 
   TCanvas *can = new TCanvas("can","can",800,600);
 
