@@ -25,7 +25,6 @@ void SiRelativeGains_Step2(void)
 {
   using namespace std;
 
-  //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3step1_divideback.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S1.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
@@ -36,8 +35,12 @@ void SiRelativeGains_Step2(void)
   Gains gains;
   gains.Load("saves/X3RelativeGains_Step1_edit.dat");
   
+  Time time;
+  time.Get();
+
   ofstream outfile;
-  outfile.open("saves/X3RelativeGains_Step2.dat"); 
+  outfile.open(Form("saves/X3RelativeGains_Step1_%s.dat",time.stamp));
+  outfile << "DetNum\tFrontCh\tGain\n";
   
   TCanvas *can = new TCanvas("can","can",800,600);
 
@@ -46,7 +49,7 @@ void SiRelativeGains_Step2(void)
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
-    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
+    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       Int_t BackChNum = 0;   // some if-statements that differ between each data set
       if ( DetNum==8 ){
       	BackChNum = 3;

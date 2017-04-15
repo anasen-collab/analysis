@@ -24,7 +24,7 @@ void SiRelativeGains_Step3(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3step2_divideback.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S1.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -36,6 +36,7 @@ void SiRelativeGains_Step3(void)
   
   ofstream outfile;
   outfile.open("saves/X3RelativeGains_Step3.dat");
+  outfile << "DetNum\tFrontCh\tGain\n";
   
   TCanvas *can = new TCanvas("can","can",800,600);
 

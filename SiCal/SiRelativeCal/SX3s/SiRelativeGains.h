@@ -7,6 +7,7 @@
 //C++
 #include <fstream>
 #include <exception>
+#include <time.h>
 //ROOT
 #include <TMath.h>
 #include <TCanvas.h>
@@ -28,6 +29,12 @@ class Gains {
   Double_t old[24][12];
   void Load(TString);
   void Print();
+};
+
+class Time {
+ public:
+  char stamp[80];
+  void Get();
 };
 
 class BadDetectors {
@@ -75,6 +82,15 @@ void Gains::Print() {
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
     }
   }
+}
+
+void Time::Get() {
+  time_t rawtime;
+  struct tm * timeinfo;
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  strftime (stamp,80,"%y%m%d.%H%M%S",timeinfo);
+  printf("Time stamp is %s\n",stamp);
 }
 
 void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
@@ -140,7 +156,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16000);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16384);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
@@ -210,7 +226,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,6000);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16384);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
@@ -250,7 +266,7 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   hist->Draw("colz");
   graph->Draw("*same");
 	
-  TF1 *fun = new TF1("fun","[0] + [1]*x",0,1);
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,16384);
   graph->Fit("fun");
 	
   can->Update();
