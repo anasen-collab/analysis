@@ -31,26 +31,12 @@ void SiRelativeGains_Step3(void)
   }
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
-  ifstream infile;
-  infile.open("saves/X3RelativeGains_Step2.dat");
-  Int_t det=0,ch=0;
-  Double_t slope[24][12];
-  Double_t dummy = 0;
-  if (infile.is_open()) {
-    infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()){
-      infile >> det >> ch >> dummy;
-      slope[det-4][ch] = dummy;
-    }
-  }else{
-    cout << "Error: Dat file does not exist\n";
-    exit(EXIT_FAILURE);
-  }
-  infile.close();
-
+  Gains gains;
+  gains.Load("saves/X3RelativeGains_Step2.dat");
+  
   ofstream outfile;
   outfile.open("saves/X3RelativeGains_Step3.dat");
-    
+  
   TCanvas *can = new TCanvas("can","can",800,600);
 
   Int_t bad_det[288];
@@ -79,10 +65,10 @@ void SiRelativeGains_Step3(void)
       }
 
       Double_t gain = gainmatch.MyFit1(hist,can,kFALSE);
-      slope[DetNum-4][BackChNum] = slope[DetNum-4][BackChNum]/gain;
+      gains.old[DetNum-4][BackChNum] = gains.old[DetNum-4][BackChNum]/gain;
     }
     for (Int_t i=0; i<12; i++){
-      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
+      outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum-4][i] << endl;
     }
   }
   outfile.close();
