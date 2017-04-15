@@ -62,7 +62,7 @@ void Gains::Load(TString fname) {
   Int_t det=0,ch=0;
   Double_t dummy = 0;
   if (infile.is_open()) {
-    cout << "Read OK\n"<<endl;
+    cout << "Read OK"<<endl;
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
@@ -90,6 +90,9 @@ void Time::Get() {
   time (&rawtime);
   timeinfo = localtime (&rawtime);
   strftime (stamp,80,"%y%m%d.%H%M%S",timeinfo);
+  char date[80];
+  strftime (date,80,"%a %b %d %Y at %H:%M:%S. ",timeinfo);
+  printf("The date is %s",date);
   printf("Time stamp is %s\n",stamp);
 }
 
@@ -231,7 +234,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
   can->Update();
-  can->WaitPrimitive();
+  //can->WaitPrimitive();
 
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   Double_t gain = fun2->GetParameter(1);
