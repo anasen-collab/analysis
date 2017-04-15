@@ -75,10 +75,7 @@ void SiRelativeGains_Step1(void)
       Int_t frti=FrontChNum+8;
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad.det[bad.count] = DetNum;
-	bad.front[bad.count] = FrontChNum;
-	//bad.back[bad.count] = BackChNum;
-	bad.count++;
+	bad.Add(DetNum,FrontChNum);
 	outfile2 << DetNum << "\t" << frti << "\t"
 		 << left << fixed << setw(8) <<gains.old[deti][frti] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"

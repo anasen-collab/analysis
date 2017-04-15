@@ -54,10 +54,7 @@ void SiRelativeGains_Step3(void)
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad_det[bad.count] = DetNum;
-	bad_front[bad.count] = FrontChNum;
-	bad_back[bad.count] = BackChNum;
-	bad.count++;
+	bad.Add(DetNum,FrontChNum,BackChNum);
 	continue;
       }
 
