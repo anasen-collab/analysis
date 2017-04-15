@@ -41,11 +41,8 @@ void SiRelativeGains_Step2(void)
   
   TCanvas *can = new TCanvas("can","can",800,600);
 
-  Int_t bad_det[288];
-  Int_t bad_front[288];
-  Int_t bad_back[288];
-  Int_t count_bad = 0;
-
+  BadDetectors bad;
+  bad.count=0;
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
@@ -59,10 +56,10 @@ void SiRelativeGains_Step2(void)
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad_det[count_bad] = DetNum;
-	bad_front[count_bad] = FrontChNum;
-	bad_back[count_bad] = BackChNum;
-	count_bad++;
+	bad.det[bad.count] = DetNum;
+	bad.front[bad.count] = FrontChNum;
+	bad.back[bad.count] = BackChNum;
+	bad.count++;
 	continue;
       }
 
@@ -75,8 +72,5 @@ void SiRelativeGains_Step2(void)
     }
   }
   outfile.close();
-  cout << "List of bad detectors:\n";
-  for (Int_t i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
-  }
+  bad.Print();
 }

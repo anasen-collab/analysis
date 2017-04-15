@@ -30,6 +30,15 @@ class Gains {
   void Print();
 };
 
+class BadDetectors {
+ public:
+  Int_t det[288];
+  Int_t front[288];
+  Int_t back[288];
+  Int_t count;
+  void Print();
+};
+
 class GainMatch {
  public:
   Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
@@ -40,12 +49,12 @@ class GainMatch {
 
 void Gains::Load(TString fname) {
   ifstream infile;
-  printf("Loading file %s\n",fname.Data());
+  printf("Loading file %s...",fname.Data());
   infile.open(fname.Data());
   Int_t det=0,ch=0;
   Double_t dummy = 0;
   if (infile.is_open()) {
-    cout << "Read OK"<<endl;
+    cout << "Read OK\n"<<endl;
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
@@ -64,6 +73,13 @@ void Gains::Print() {
     for (Int_t j=0; j<12; j++){
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
     }
+  }
+}
+
+void BadDetectors::Print() {
+printf("DetNum\tFrontCh\tBackCh\n");
+  for (Int_t i=0; i<count; i++){
+    cout << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
   }
 }
 
