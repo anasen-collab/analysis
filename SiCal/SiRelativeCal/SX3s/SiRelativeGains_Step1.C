@@ -32,30 +32,17 @@ void SiRelativeGains_Step1(void)
   //TFile *f1 = new TFile("/data0/manasta/OrganizeRaw_files/run930_931_nospacer_X3slope1_divideback.root"); 
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7m.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
-  ifstream infile;
-  infile.open("saves/X3RelativeGains_Slope1.dat");
-  Int_t det=0,ch=0;
-  Double_t slope[24][12];
-  Double_t dummy = 0;
-  if (infile.is_open()) {
-    infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()){
-      infile >> det >> ch >> dummy;
-      slope[det-4][ch] = dummy;
-    }
-  }else{
-    cout << "Error: Dat file does not exist\n";
-    exit(EXIT_FAILURE);
-  }
-  infile.close();
-
+  Gains gains;
+  gains.Load("saves/X3RelativeGains_Slope1.dat");
+  gains.Print();
+  
   time_t rawtime;
   struct tm * timeinfo;
   char filename [80];
@@ -82,7 +69,7 @@ void SiRelativeGains_Step1(void)
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
-    //if(DetNum!=21) continue;
+    //if(DetNum!=27) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
@@ -97,24 +84,24 @@ void SiRelativeGains_Step1(void)
 	//bad_back[count_bad] = BackChNum;
 	count_bad++;
 	outfile2 << DetNum << "\t" << frti << "\t"
-		 << left << fixed << setw(8) <<slope[deti][frti] << "\t"
+		 << left << fixed << setw(8) <<gains.old[deti][frti] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"
 		 << left << fixed << setw(8) << 0 << endl;
-	slope[deti][frti]=0;
+	gains.old[deti][frti]=0;
 	continue;
       }
       
       Double_t gain = gainmatch.Fit4(hist,can);
       
-      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[deti][frti],gain, -slope[deti][frti]/gain);
+      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[deti][frti],gain, -gains.old[deti][frti]/gain);
       outfile2 << DetNum << "\t" << frti << "\t"
-       	       << left << fixed << setw(8) <<slope[deti][frti] << "\t"
+       	       << left << fixed << setw(8) <<gains.old[deti][frti] << "\t"
        	       << left << fixed << setw(8) << gain << "\t"
-	       << left << fixed << setw(8) << -slope[deti][frti]/gain << endl;
-      slope[deti][frti] = -slope[deti][frti]/gain;
+	       << left << fixed << setw(8) << -gains.old[deti][frti]/gain << endl;
+      gains.old[deti][frti] = -gains.old[deti][frti]/gain;
     }
     for (Int_t i=0; i<12; i++){
-      outfile << DetNum << "\t" << i << "\t" << slope[DetNum-4][i] << endl;
+      outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum-4][i] << endl;
     }
   }
   outfile.close();

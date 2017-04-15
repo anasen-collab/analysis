@@ -20,9 +20,15 @@
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLegend.h>
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
+
+class Gains {
+ public:
+  Double_t old[24][12];
+  void Load(TString);
+  void Print();
+};
 
 class GainMatch {
  public:
@@ -31,6 +37,35 @@ class GainMatch {
   Double_t Fit3(TH2F*,TCanvas*);
   Double_t Fit4(TH2F*,TCanvas*);
 };
+
+void Gains::Load(TString fname) {
+  ifstream infile;
+  printf("Loading file %s\n",fname.Data());
+  infile.open(fname.Data());
+  Int_t det=0,ch=0;
+  Double_t dummy = 0;
+  if (infile.is_open()) {
+    cout << "Read OK"<<endl;
+    infile.ignore(100,'\n');//read in dummy line
+    while (!infile.eof()){
+      infile >> det >> ch >> dummy;
+      old[det-4][ch] = dummy;
+    }
+  }else{
+    cout << "Error: Dat file " << fname.Data() << " does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  infile.close();
+}
+
+void Gains::Print() {
+  printf("DetNum\tFrontCh\tGain\n");
+  for (Int_t i=0; i<24; i++){
+    for (Int_t j=0; j<12; j++){
+      printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
+    }
+  }
+}
 
 Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   hist->Draw("colz");
