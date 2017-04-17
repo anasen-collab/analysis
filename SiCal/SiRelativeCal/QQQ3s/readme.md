@@ -11,7 +11,7 @@ The data for the QQQ relaive gains calibration should have high statistics over 
    * Run `root -l SiRelativeGains_Step1.C+`
    * This code will output a new `.dat` file with updated gains
 2. Second, run Main.cpp again with the new .dat file
-   * Edit `Main.cpp` to initialize the channel map with the new `.dat` file
+   * Edit `Main.cpp` to initialize the channel map with the new `.dat` file generated in Step 1
    * Compile and run `Main.cpp` to generate a new `.root` file
    * Input the new `.root` and the `.dat` file from Step 1 into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
    * Run  `root -l SiRelativeGains_Step2.C+`
@@ -41,6 +41,7 @@ Loop over back channels. For each detector (`DetNum=0-3`), each back channel (`B
 ###Files
 Channels 0-15 in the `.dat` file will be filled in. 
 ### Gains
+Using this method, that is, using fits on histotrams to generate the slope parameters, the results are good to within 0.3%. That is the final slopes will be within 1.000 +/- 0.003 or better.
 ### Next steps
 Check historams `Q3_back_vs_front%i`
 ## Final Fix
