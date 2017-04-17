@@ -25,7 +25,7 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1z.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -33,30 +33,14 @@ void SiRelativeGains_Step1(void)
 
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  //gains.Load("saves/QQQRelativeGains_Step1.dat");
-  gains.Load("saves/QQQRelativeGains_Slope1.dat");
-
-  gains.Print();
+  gains.Load("saves/QQQRelativeGains_Step1_cone_zero.dat");
+  gains.Open("saves/QQQRelativeGains_Step1");
     
-  Time time;
-  time.Get();
-  
-  ofstream outfile;
-  outfile.open(Form("saves/QQQRelativeGains_Step1_%s.dat",time.stamp));
-  outfile << "DetNum\tFrontCh\tGain\n";
-  
-  ofstream outfile2;
-  outfile2.open(Form("saves/QQQRelativeGains_Step1_%s_back.dat",time.stamp));
-  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
-  
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
   
-  Int_t bad_det[128];
-  Int_t bad_front[128];
-  Int_t bad_back[128];
-  Int_t count_bad = 0;
-
+  BadDetectors bad;
+  bad.count=0;
   GainMatch gainmatch;
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
@@ -76,10 +60,7 @@ void SiRelativeGains_Step1(void)
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad_det[count_bad] = DetNum;
-	bad_front[count_bad] = FrontChNum;
-	bad_back[count_bad] = BackChNum;
-	count_bad++;
+	bad.Add(DetNum,FrontChNum,BackChNum);
 	outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
 		 << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"
@@ -103,9 +84,5 @@ void SiRelativeGains_Step1(void)
   }
   outfile.close();
   outfile2.close();
-  gains.Print();
-  cout << "List of bad detectors:\n";
-  for (Int_t i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
-  }
+  bad.Print();
 }
