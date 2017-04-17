@@ -38,20 +38,15 @@ void SiRelativeGains_Step1(void)
 
   gains.Print();
     
-  time_t rawtime;
-  struct tm * timeinfo;
-  char filename [80];
-  time (&rawtime);
-  timeinfo = localtime (&rawtime);
-
+  Time time;
+  time.Get();
+  
   ofstream outfile;
-  strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S.dat",timeinfo);
-  outfile.open(filename);
+  outfile.open(Form("saves/QQQRelativeGains_Step1_%s.dat",time.stamp));
   outfile << "DetNum\tFrontCh\tGain\n";
   
   ofstream outfile2;
-  strftime (filename,80,"saves/QQQRelativeGains_Step1_%y%m%d.%H%M%S_back.dat",timeinfo);  // file2 may be used for diagnostics
-  outfile2.open(filename);
+  outfile2.open(Form("saves/QQQRelativeGains_Step1_%s_back.dat",time.stamp));
   outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
   
   TCanvas *can = new TCanvas("can","can",1362,656);
@@ -94,7 +89,7 @@ void SiRelativeGains_Step1(void)
       }
 
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
-      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][FrontChNum+16],gain, gains.old[DetNum][FrontChNum+16]*gain);
+      printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][FrontChNum+16],gain, gains.old[DetNum][FrontChNum+16]*gain);
       outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
 	       << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
 	       << left << fixed << setw(8) << gain << "\t"

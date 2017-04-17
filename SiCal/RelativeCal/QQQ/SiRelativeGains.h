@@ -37,6 +37,12 @@ class Gains {
   void Print();
 };
 
+class Time {
+ public:
+  char stamp[80];
+  void Get();
+};
+
 class GainMatch {
  public:
   Double_t Fit1(TH2F*,TCanvas*);
@@ -72,6 +78,18 @@ void Gains::Print() {
       printf("%d\t%d\t%f\n",i,j,old[i][j]);
     }
   }
+}
+
+void Time::Get() {
+  time_t rawtime;
+  struct tm * timeinfo;
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  strftime (stamp,80,"%y%m%d.%H%M%S",timeinfo);
+  char date[80];
+  strftime (date,80,"%a %b %d %Y at %H:%M:%S. ",timeinfo);
+  printf("The date is %s",date);
+  printf("Time stamp is %s\n",stamp);
 }
 
 Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
@@ -232,7 +250,6 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
   xprof->Fit("fun3","q");
   Double_t slope = fun3->GetParameter(0);
   Double_t offset = fun3->GetParameter(1);
-
 
   printf(" for %s ",hist->GetName());
   Int_t steps=3;
