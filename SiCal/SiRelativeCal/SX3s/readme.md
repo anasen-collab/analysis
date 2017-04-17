@@ -88,6 +88,7 @@ qy`hist = (TH2F*)f1->Get(Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNu
 The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients.
 Before running, make sure that the `.root` file you are reading in has the right histograms and has been created using the `X3RelativeGains.dat` file that you are inputting into this code. That is, whichever gains file was used in the program that creates the histograms (`Main.cpp`) should be the input file to this program.
 
+Channel numbers 4-11 will be updated.
 ### Gains
 The gains are applied as [old]*[new] where old is the previous gain read in by the file and new is the measured slope of the histogram.
 The two corresponding front gains (up and down) are then multiplied by the slope to get the new gain.
