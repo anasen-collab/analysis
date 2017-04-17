@@ -31,8 +31,11 @@ For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain
 ###Files
 Channels 16-31 in the `.dat` file will be filled in; this is written in the code as '[FrontChNum+16]'.
 ###Gains
-The measured slope is multiplied by the previous gain (typically 1) to produce the new gain.
+The measured slope is multiplied by the previous gain (typically 1) to produce the new gain. Using this method, that is, using fits on histotrams to generate the slope parameters, the results are good to within 0.1 or better%. That is the final slopes will be within 1.000 +/- 0.003 or better.
 ### Next steps
+Once you have completed this program, edit, recompile, and re-run `Main.cpp` using the new `QQQRelativeGains_Step1.dat` file.
+Once complet, verify that the slope of each histogram measured in Step 1 is now equal to 1.00.
+You will input this new root file with this new relative gains file into Step 2.
 
 ## Step 2
 Loop over back channels. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
