@@ -35,6 +35,9 @@ void SiRelativeGains_Step2(void)
   gains.Load("saves/QQQRelativeGains_Step1.dat");
   //gains.Load("saves/QQQRelativeGains_Step2_auto.dat");
   
+  Time time;
+  time.Get();
+
   ofstream outfile;
   outfile.open(Form("saves/QQQRelativeGains_Step2_%s.dat",time.stamp));
   outfile << "DetNum\tFrontCh\tGain\n";
@@ -46,11 +49,8 @@ void SiRelativeGains_Step2(void)
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
   
-  Int_t bad_det[128];
-  Int_t bad_front[128];
-  Int_t bad_back[128];
-  Int_t count_bad = 0;
-
+  BadDetectors bad;
+  bad.count=0;
   GainMatch gainmatch;
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
@@ -62,10 +62,7 @@ void SiRelativeGains_Step2(void)
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad_det[count_bad] = DetNum;
-	bad_front[count_bad] = FrontChNum;
-	bad_back[count_bad] = BackChNum;
-	count_bad++;
+	bad.Add(DetNum,FrontChNum,BackChNum);
 	outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
 		 << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"
@@ -88,9 +85,5 @@ void SiRelativeGains_Step2(void)
   }
   outfile.close();
   outfile2.close();
-  gains.Print();
-  cout << "List of bad detectors:\n";
-  for (Int_t i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
-  }
+  bad.Print();
 }
