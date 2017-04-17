@@ -26,6 +26,16 @@
 #include <TLegend.h>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
+const Int_t ndets=4;
+const Int_t nchan=32;
+const Int_t range=4096*4;
+
+class Gains {
+ public:
+  Double_t old[ndets][nchan];
+  void Load(TString);
+  void Print();
+};
 
 class GainMatch {
  public:
@@ -34,6 +44,35 @@ class GainMatch {
   Double_t Fit4(TH2F*,TCanvas*);
   Double_t Fit6(TH2F*,TCanvas*);
 };
+
+void Gains::Load(TString fname) {
+  ifstream infile;
+  printf("Loading file %s...",fname.Data());
+  infile.open(fname.Data());
+  Int_t det=0,ch=0;
+  Double_t dummy = 0;
+  if (infile.is_open()) {
+    cout << "Read OK"<<endl;
+    infile.ignore(100,'\n');//read in dummy line
+    while (!infile.eof()){
+      infile >> det >> ch >> dummy;
+      old[det][ch] = dummy;
+    }
+  }else{
+    cout << "Error: Dat file " << fname.Data() << " does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  infile.close();
+}
+
+void Gains::Print() {
+  printf("DetNum\tFrontCh\tGain\n");
+  for (Int_t i=0; i<ndets; i++){
+    for (Int_t j=0; j<nchan; j++){
+      printf("%d\t%d\t%f\n",i,j,old[i][j]);
+    }
+  }
+}
 
 Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   //Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
@@ -85,7 +124,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,16384);
+  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,range);
   graph->Fit("fun2","qROB");
 
   TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
@@ -157,7 +196,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,16384);
+  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,range);
   graph->Fit("fun2","qROB");
   can->Update();
   //can->WaitPrimitive();
@@ -186,7 +225,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
   xprof->SetMarkerStyle(4);
   xprof->SetMarkerSize(0.125);
   xprof->Draw("same");
-  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,16384);
+  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,range);
   fun3->SetLineColor(4);
   fun3->SetLineStyle(2);
   fun3->SetLineWidth(2);
@@ -194,6 +233,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
   Double_t slope = fun3->GetParameter(0);
   Double_t offset = fun3->GetParameter(1);
 
+
+  printf(" for %s ",hist->GetName());
   Int_t steps=3;
 
   TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
@@ -203,7 +244,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
     Double_t x2=13000;
     Double_t width=400;
     width*=TMath::Power(2,k);
-    printf("width=%f slope=%f offset=%f",width,slope,offset);
+    printf(" Step: %d width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,width,slope,offset);
     //The corners of a parallelepiped cut window are then calculated
     Double_t y1=slope*x1+offset;
     Double_t y2=slope*x2+offset;
@@ -226,7 +267,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
       }
     }
 
-    printf(" for %s counts = %d in window\n",hist->GetName(),counter);
+    printf(" counts = %d in window\n",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
@@ -293,7 +334,7 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
   hname=hist->GetName();
   hname+="_px";
   TH1 *xproj=(TH1 *)gROOT->FindObject(hname.Data());
-  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,16384);
+  TF1 *fun3 = new TF1("fun3","[0]*x +[1]",0,range);
   fun3->SetLineColor(4);
   fun3->SetLineStyle(2);
   fun3->SetLineWidth(2);
@@ -310,7 +351,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
 	highb=i;
   }
   Double_t high=xproj->GetBinCenter(highb);
-  printf("high bin is %d %.0f: ",highb,high);
+  printf("For %s: ",hist->GetName());
+  printf("high bin is %d %.0f\n",highb,high);
 					
   Int_t steps=4;
   TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
@@ -327,7 +369,6 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     Double_t width0=200;
     Double_t width=width0;
     
-    printf("width=%f slope=%f offset=%f",width,slope,offset);
     //The corners of a truncated cone cut window are then calculated
     Double_t y1=slope*x1+offset;
     Double_t y2=slope*x2+offset;
@@ -335,6 +376,7 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     Double_t dy0=(width0/2.0)*1/sqrt(1+slope*slope);
     
     width*=TMath::Power(2,k);
+    printf(" Step %d: low=%4.0f width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,x1,width,slope,offset);
     Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
     Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
     const Int_t nv = 5;//set number of verticies
@@ -354,7 +396,7 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
       }
     }
 
-    printf(" for %s counts = %d in window\n",hist->GetName(),counter);
+    printf(" counts = %d in window\n",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
