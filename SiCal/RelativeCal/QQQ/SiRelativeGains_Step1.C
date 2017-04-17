@@ -33,7 +33,7 @@ void SiRelativeGains_Step1(void)
 
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/QQQRelativeGains_Step1_cone_zero.dat");
+  gains.Load("saves/QQQRelativeGains_Slope1.dat");
   gains.Open("saves/QQQRelativeGains_Step1");
     
   TCanvas *can = new TCanvas("can","can",1362,656);
