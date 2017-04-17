@@ -23,10 +23,13 @@
 #include <TLegend.h>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
+const Int_t ndets=24;
+const Int_t nchan=12;
+const Int_t range=4096*4;
 
 class Gains {
  public:
-  Double_t old[24][12];
+  Double_t old[ndets][nchan];
   void Load(TString);
   void Print();
 };
@@ -39,9 +42,9 @@ class Time {
 
 class BadDetectors {
  public:
-  Int_t det[288];
-  Int_t front[288];
-  Int_t back[288];
+  Int_t det[ndets*nchan];
+  Int_t front[ndets*nchan];
+  Int_t back[ndets*nchan];
   Int_t count;
   void Add(Int_t,Int_t,Int_t BackChNum=-1);
   void Print();
@@ -77,8 +80,8 @@ void Gains::Load(TString fname) {
 
 void Gains::Print() {
   printf("DetNum\tFrontCh\tGain\n");
-  for (Int_t i=0; i<24; i++){
-    for (Int_t j=0; j<12; j++){
+  for (Int_t i=0; i<ndets; i++){
+    for (Int_t j=0; j<nchan; j++){
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
     }
   }
@@ -104,9 +107,10 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
 }
 
 void BadDetectors::Print() {
-printf("DetNum\tFrontCh\tBackCh\n");
+  printf("List of bad detectors: ");
+  printf(" DetNum\tFrontCh\tBackCh\n");
   for (Int_t i=0; i<count; i++){
-    cout << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
+    cout << " " << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
   }
 }
 
@@ -159,7 +163,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16384);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
@@ -229,7 +233,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,16384);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
@@ -269,7 +273,7 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   hist->Draw("colz");
   graph->Draw("*same");
 	
-  TF1 *fun = new TF1("fun","[0] + [1]*x",0,16384);
+  TF1 *fun = new TF1("fun","[0] + [1]*x",0,range);
   graph->Fit("fun");
 	
   can->Update();
