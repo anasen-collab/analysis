@@ -38,11 +38,11 @@ Once complet, verify that the slope of each histogram measured in Step 1 is now 
 You will input this new root file with this new relative gains file into Step 2.
 
 ## Step 2
-Loop over back channels. For each detector (`DetNum=0-3`), each back channel (`BackChNum=1-15`) is gain-matched with a particular back channel (typically `FrontChNum=0`).
+Loop over back channels. For each detector (`DetNum=0-3`), each new back channel (`BackChNum=1-15`) is gain-matched with a particular front channel (typically `FrontChNum=0`). Since `FrontChNum=0` was already gain matched to `BackChNum=0` in Step 1, the loop runs over the range 1-15.
 ### Histograms
 `Q3_back_vs_front%i_b%i`
 ###Files
-Channels 0-15 in the `.dat` file will be filled in. 
+Channels 1-15 in the `.dat` file will be filled in. 
 ### Gains
 Using this method, that is, using fits on histotrams to generate the slope parameters, the results are good to within 0.3%. That is the final slopes will be within 1.000 +/- 0.003 or better.
 ### Next steps
