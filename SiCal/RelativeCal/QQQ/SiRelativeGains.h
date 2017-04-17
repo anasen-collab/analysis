@@ -37,7 +37,6 @@ class Gains {
   Double_t old[ndets][nchan];
   void Load(TString);
   void Print();
-  void Save();
   void Open(TString);
 };
 
@@ -85,6 +84,15 @@ void Gains::Load(TString fname) {
   infile.close();
 }
 
+void Gains::Print() {
+  printf("DetNum\tFrontCh\tGain\n");
+  for (Int_t i=0; i<ndets; i++){
+    for (Int_t j=0; j<nchan; j++){
+      printf("%d\t%d\t%f\n",i,j,old[i][j]);
+    }
+  }
+}
+
 void Gains::Open(TString fname) {
   Time time;
   time.Get();
@@ -93,15 +101,6 @@ void Gains::Open(TString fname) {
   
   outfile2.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
   outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
-}
-
-void Gains::Print() {
-  printf("DetNum\tFrontCh\tGain\n");
-  for (Int_t i=0; i<ndets; i++){
-    for (Int_t j=0; j<nchan; j++){
-      printf("%d\t%d\t%f\n",i,j,old[i][j]);
-    }
-  }
 }
 
 void Time::Get() {
