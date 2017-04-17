@@ -24,7 +24,7 @@
 void SiRelativeGains_Step2(void)
 {
   using namespace std;
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1z.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -32,19 +32,11 @@ void SiRelativeGains_Step2(void)
 
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/QQQRelativeGains_Step1.dat");
+  //gains.Load("saves/QQQRelativeGains_Step1.dat");
+  gains.Load("saves/QQQRelativeGains_Step1_cone_zero.dat");
   //gains.Load("saves/QQQRelativeGains_Step2_auto.dat");
   
-  Time time;
-  time.Get();
-
-  ofstream outfile;
-  outfile.open(Form("saves/QQQRelativeGains_Step2_%s.dat",time.stamp));
-  outfile << "DetNum\tFrontCh\tGain\n";
-  
-  ofstream outfile2;
-  outfile2.open(Form("saves/QQQRelativeGains_Step2_%s_back.dat",time.stamp));
-  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+  gains.Open("saves/QQQRelativeGains_Step2");  
   
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
@@ -54,7 +46,7 @@ void SiRelativeGains_Step2(void)
   GainMatch gainmatch;
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
-    for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
+    for (Int_t BackChNum=1; BackChNum<16; BackChNum++) {
       Int_t FrontChNum = 0;
 
       TH2F *hist = NULL;
@@ -63,20 +55,20 @@ void SiRelativeGains_Step2(void)
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
 	bad.Add(DetNum,FrontChNum,BackChNum);
-	outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
-		 << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
+	outfile2 << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t"
+		 << left << fixed << setw(8) << gains.old[DetNum][BackChNum] << "\t"
 		 << left << fixed << setw(8) << "N/A\t\t"
 		 << left << fixed << setw(8) << 0 << endl;
-	gains.old[DetNum][FrontChNum+16] = 0;
+	gains.old[DetNum][BackChNum] = 0;
 	continue;
       }
 
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
-      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][BackChNum],gain, gains.old[DetNum][BackChNum]/gain);
-      outfile2 << DetNum << "\t" << FrontChNum << "\t" <<BackChNum << "\t"
-	       << left << fixed << setw(8) <<gains.old[DetNum][BackChNum] << "\t"
-	       << left << fixed << setw(8) << gain << "\t"
-	       << left << fixed << setw(8) << gains.old[DetNum][BackChNum]*gain << endl;
+      printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][BackChNum],gain, gains.old[DetNum][BackChNum]/gain);
+      outfile2 << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t"
+      	       << left << fixed << setw(8) << gains.old[DetNum][BackChNum] << "\t"
+      	       << left << fixed << setw(8) << gain << "\t"
+      	       << left << fixed << setw(8) << gains.old[DetNum][BackChNum]/gain << endl;
       gains.old[DetNum][BackChNum] = gains.old[DetNum][BackChNum]/gain;
     }
     for (Int_t i=0; i<32; i++){
