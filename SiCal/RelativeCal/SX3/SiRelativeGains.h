@@ -26,12 +26,15 @@ using namespace std;
 const Int_t ndets=24;
 const Int_t nchan=12;
 const Int_t range=4096*4;
+ofstream outfile;
+ofstream outfile2;
 
 class Gains {
  public:
   Double_t old[ndets][nchan];
   void Load(TString);
   void Print();
+  void Open(TString);
 };
 
 class Time {
@@ -55,7 +58,7 @@ class GainMatch {
   Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
   Double_t Fit2(TH2F*,TCanvas*);
   Double_t Fit3(TH2F*,TCanvas*);
-  Double_t Fit4(TH2F*,TCanvas*);
+  Double_t Fit4(TH2F*,TCanvas*,Double_t);
 };
 
 void Gains::Load(TString fname) {
@@ -87,6 +90,16 @@ void Gains::Print() {
   }
 }
 
+void Gains::Open(TString fname) {
+  Time time;
+  time.Get();
+  outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
+  outfile << "DetNum\tFrontCh\tGain\n";
+   
+  outfile2.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
+  outfile2 << "DetNum\tFrontCh\tOld     \tSlope   \tNew\n";
+}
+
 void Time::Get() {
   time_t rawtime;
   struct tm * timeinfo;
@@ -111,6 +124,10 @@ void BadDetectors::Print() {
   printf(" DetNum\tFrontCh\tBackCh\n");
   for (Int_t i=0; i<count; i++){
     cout << " " << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
+  }
+  for(int i=0;i<3;i++) {//print beeps at end of program
+    printf(" beep!\a\n");
+    sleep(1);
   }
 }
 
@@ -287,32 +304,39 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   return gain;
 }
 
-Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can){//auto calc cut
+Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto calc cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
 
-  Int_t maxbin=0;
-  Int_t minbin=hist->GetNbinsX();
-  for (int i=1; i<hist->GetNbinsX(); i++) {
-    for (int j=1; j<hist->GetNbinsY(); j++){
-      if(hist->GetBinContent(i,j)>0) {
-	if(j>maxbin) {
-	  maxbin=j;
-	  minbin=i;
+  Double_t slope=slope_guess;
+  Double_t offset=0;
+  printf("For %s ",hist->GetName());
+  if(slope_guess<0) {
+    printf("Slope %f assumed. Estimating offset...",slope);
+    Int_t maxbin=0;
+    Int_t minbin=hist->GetNbinsX();
+    for (int i=1; i<hist->GetNbinsX(); i++) {
+      for (int j=1; j<hist->GetNbinsY(); j++){
+	if(hist->GetBinContent(i,j)>0) {
+	  if(j>maxbin) {
+	    maxbin=j;
+	    minbin=i;
+	  }
 	}
       }
     }
+    
+    printf("maxbin is %4d, at %6g ",maxbin,hist->GetYaxis()->GetBinCenter(maxbin));
+    printf("minbin is %4d, at %6g\n",minbin,hist->GetXaxis()->GetBinCenter(minbin));
+    
+    offset = hist->GetYaxis()->GetBinCenter(maxbin)+hist->GetXaxis()->GetBinCenter(minbin);
   }
-  printf(" for %s ",hist->GetName());
-  printf("maxbin is %4d, at %6g ",maxbin,hist->GetYaxis()->GetBinCenter(maxbin));
-  printf("minbin is %4d, at %6g\n",minbin,hist->GetXaxis()->GetBinCenter(minbin));
-
-  Double_t slope = -1;
-  Double_t offset = hist->GetYaxis()->GetBinCenter(maxbin)+hist->GetXaxis()->GetBinCenter(minbin);
-
+  else
+    cout<<endl;
+  
   Int_t steps=2;
 
   TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);

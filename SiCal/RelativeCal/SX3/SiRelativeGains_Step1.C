@@ -26,9 +26,9 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61m.root");//all proton scattering
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");//in gas
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S1f.root");//all proton scattering
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1_2x.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -36,19 +36,9 @@ void SiRelativeGains_Step1(void)
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Slope1.dat");
+  gains.Load("saves/X3RelativeGains_Step1_10MeV.dat");
+  gains.Open("saves/X3RelativeGains_Step1");
   
-  Time time;
-  time.Get();
-
-  ofstream outfile;
-  outfile.open(Form("saves/X3RelativeGains_Step1_%s.dat",time.stamp));
-  outfile << "DetNum\tFrontCh\tGain\n";
-  
-  ofstream outfile2;
-  outfile2.open(Form("saves/X3RelativeGains_Step1_%s_back.dat",time.stamp));
-  outfile2 << "DetNum\tFrontCh\tOld\t\tSlope\t\tNew\n";
-
   TCanvas *can = new TCanvas("can","can",800,600);
 
   BadDetectors bad;
@@ -56,7 +46,7 @@ void SiRelativeGains_Step1(void)
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<28; DetNum++) {
-    if(DetNum>6) continue;
+    //if(DetNum!=11) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
@@ -75,7 +65,7 @@ void SiRelativeGains_Step1(void)
 	continue;
       }
       
-      Double_t gain = gainmatch.Fit4(hist,can);
+      Double_t gain = gainmatch.Fit4(hist,can,-1);
       
       printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[deti][frti],gain, -gains.old[deti][frti]/gain);
       outfile2 << DetNum << "\t" << frti << "\t"
