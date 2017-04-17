@@ -25,31 +25,19 @@ void SiRelativeGains_Step1(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ1.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
 
   //Input the .dat file used by Main.cpp to generate the .root file given above
-  ifstream infile;
-  //infile.open("saves/QQQRelativeGains_Slope1.dat");
-  infile.open("saves/QQQRelativeGains_Step1.dat");
-  Int_t det=0,ch=0;
-  Double_t slope[4][32];
-  Double_t dummy;
-  if (infile.is_open()) {
-    infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()){
-      infile >> det >> ch >> dummy;
-      slope[det][ch] = dummy;
-    }
-  }else{
-    cout << "Error: Dat file does not exist\n";
-    exit(EXIT_FAILURE);
-  }
-  infile.close();
+  Gains gains;
+  //gains.Load("saves/QQQRelativeGains_Step1.dat");
+  gains.Load("saves/QQQRelativeGains_Slope1.dat");
 
+  gains.Print();
+    
   time_t rawtime;
   struct tm * timeinfo;
   char filename [80];
@@ -76,7 +64,7 @@ void SiRelativeGains_Step1(void)
 
   GainMatch gainmatch;
   
-  for (Int_t DetNum=0; DetNum<4; DetNum++) {
+  for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<16; FrontChNum++) {
       Int_t BackChNum = 0;
       //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
@@ -97,24 +85,30 @@ void SiRelativeGains_Step1(void)
 	bad_front[count_bad] = FrontChNum;
 	bad_back[count_bad] = BackChNum;
 	count_bad++;
+	outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
+		 << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
+		 << left << fixed << setw(8) << "N/A\t\t"
+		 << left << fixed << setw(8) << 0 << endl;
+	gains.old[DetNum][FrontChNum+16] = 0;
 	continue;
       }
 
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
-      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",slope[DetNum][FrontChNum+16],gain, slope[DetNum][FrontChNum+16]*gain);
+      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][FrontChNum+16],gain, gains.old[DetNum][FrontChNum+16]*gain);
       outfile2 << DetNum << "\t" << FrontChNum+16 << "\t" <<BackChNum << "\t"
-	       << left << fixed << setw(8) <<slope[DetNum][FrontChNum+16] << "\t"
+	       << left << fixed << setw(8) <<gains.old[DetNum][FrontChNum+16] << "\t"
 	       << left << fixed << setw(8) << gain << "\t"
-	       << left << fixed << setw(8) << slope[DetNum][FrontChNum+16]*gain << endl;
-      slope[DetNum][FrontChNum+16] *= gain;
+	       << left << fixed << setw(8) << gains.old[DetNum][FrontChNum+16]*gain << endl;
+      gains.old[DetNum][FrontChNum+16] *= gain;
       //}//back loop
     }
     for (Int_t i=0; i<32; i++){
-      outfile << DetNum << "\t" << i << "\t" << slope[DetNum][i] << endl;
+      outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum][i] << endl;
     }
   }
   outfile.close();
   outfile2.close();
+  gains.Print();
   cout << "List of bad detectors:\n";
   for (Int_t i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
