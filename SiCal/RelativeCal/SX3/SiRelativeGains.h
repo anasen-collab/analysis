@@ -34,7 +34,7 @@ class Gains {
   Double_t old[ndets][nchan];
   void Load(TString);
   void Print();
-  void Open(TString);
+  void Save(TString);
 };
 
 class Time {
@@ -90,7 +90,7 @@ void Gains::Print() {
   }
 }
 
-void Gains::Open(TString fname) {
+void Gains::Save(TString fname) {
   Time time;
   time.Get();
   outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
@@ -120,7 +120,7 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
 }
 
 void BadDetectors::Print() {
-  printf("List of bad detectors: ");
+  printf("List of bad detectors:\n");
   printf(" DetNum\tFrontCh\tBackCh\n");
   for (Int_t i=0; i<count; i++){
     cout << " " << det[i] << "\t" << front[i] << "\t" << back[i] << endl;

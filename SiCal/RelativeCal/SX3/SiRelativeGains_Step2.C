@@ -26,8 +26,8 @@ void SiRelativeGains_Step2(void)
 {
   using namespace std;
 
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S2.root");
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2.root");//10MeV only
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S1.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -35,8 +35,8 @@ void SiRelativeGains_Step2(void)
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step2_no1.dat");
-  gains.Open("saves/X3RelativeGains_Step2");  
+  gains.Load("saves/X3RelativeGains_Step1_10MeV_rerun.dat");
+  gains.Save("saves/X3RelativeGains_Step2");  
  
   TCanvas *can = new TCanvas("can","can",800,600);
 
@@ -49,9 +49,10 @@ void SiRelativeGains_Step2(void)
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
 
       Int_t BackChNum = 0;   // some if-statements that differ between each data set
-      //if(DetNum==8) {
-      //BackChNum = 3;
-      //}
+      //if(DetNum!=12) continue;
+      if(DetNum==12&&FrontChNum>1) {
+	BackChNum = 3;
+      }
       TH2F *hist = NULL;
       TString hname=Form("back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
       hist = (TH2F*)f1->Get(hname.Data());
@@ -67,12 +68,12 @@ void SiRelativeGains_Step2(void)
       }
 
       Double_t gain = gainmatch.Fit4(hist,can,1.0);
-      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum-4][FrontChNum+4],gain, -gains.old[DetNum-4][FrontChNum+4]/gain);
+      printf("Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum-4][FrontChNum+4],gain,gains.old[DetNum-4][FrontChNum+4]*gain);
       outfile2 << DetNum << "\t" << FrontChNum+4 << "\t"
-       	       << left << fixed << setw(8) <<gains.old[DetNum-4][FrontChNum+4] << "\t"
+       	       << left << fixed << setw(8) << gains.old[DetNum-4][FrontChNum+4] << "\t"
        	       << left << fixed << setw(8) << gain << "\t"
-	       << left << fixed << setw(8) << -gains.old[DetNum-4][FrontChNum+4]*gain << "\t"
-      	       << left << fixed << setw(8) << -gains.old[DetNum-4][FrontChNum+8]*gain << endl;
+	       << left << fixed << setw(8) << gains.old[DetNum-4][FrontChNum+4]*gain << "\t"
+      	       << left << fixed << setw(8) << gains.old[DetNum-4][FrontChNum+8]*gain << endl;
       gains.old[DetNum-4][FrontChNum+4] = gains.old[DetNum-4][FrontChNum+4]*gain;
       gains.old[DetNum-4][FrontChNum+8] = gains.old[DetNum-4][FrontChNum+8]*gain;
     }

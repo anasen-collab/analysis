@@ -33,10 +33,7 @@ void SiRelativeGains_Step3(void)
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
   gains.Load("saves/X3RelativeGains_Step2.dat");
-  
-  ofstream outfile;
-  outfile.open("saves/X3RelativeGains_Step3.dat");
-  outfile << "DetNum\tFrontCh\tGain\n";
+  gains.Save("saves/X3RelativeGains_Step3.dat");
   
   TCanvas *can = new TCanvas("can","can",800,600);
 
