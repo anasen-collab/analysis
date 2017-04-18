@@ -28,7 +28,7 @@ void SiRelativeGains_Step1(void)
 
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9m.root");//in gas
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S1f.root");//all proton scattering
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1_2x.root");//10MeV only
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -36,8 +36,8 @@ void SiRelativeGains_Step1(void)
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step1_10MeV.dat");
-  gains.Open("saves/X3RelativeGains_Step1");
+  gains.Load("saves/X3RelativeGains_Step1_10MeV_rerun.dat");
+  gains.Save("saves/X3RelativeGains_Step1");
   
   TCanvas *can = new TCanvas("can","can",800,600);
 
