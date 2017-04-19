@@ -8,6 +8,7 @@
 #include <fstream>
 #include <exception>
 #include <time.h>
+#include <iomanip>
 //ROOT
 #include <TMath.h>
 #include <TCanvas.h>
@@ -35,6 +36,7 @@ class Gains {
   void Load(TString);
   void Print();
   void Save(TString);
+  void Add(Int_t,Int_t,Double_t,Double_t);
 };
 
 class Time {
@@ -98,6 +100,17 @@ void Gains::Save(TString fname) {
    
   outfile2.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
   outfile2 << "DetNum\tFrontCh\tOld     \tSlope   \tNew\n";
+}
+
+void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t slope,Double_t new_gain) {
+  if(new_gain)
+    printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",old[DetNum][ChNum],slope,new_gain);
+  Int_t wide=8;
+  outfile2 << DetNum +4 << "\t" << ChNum << "\t"
+	   << left << fixed << setw(wide) << old[DetNum][ChNum] << "\t"
+	   << left << fixed << setw(wide) << slope << "\t"
+	   << left << fixed << setw(wide) << new_gain << "\t" << endl;
+  old[DetNum][ChNum] = new_gain;
 }
 
 void Time::Get() {
@@ -404,7 +417,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
     leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
     leg->Draw();
   
-    can->Update();
+    //can->Update();
     //if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(0);
     offset=fun2->GetParameter(1);
