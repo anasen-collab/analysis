@@ -53,7 +53,7 @@ void Gains::Save(TString fname) {
   Time time;
   time.Get();
   outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
-  outfile << "DetNum\tFrontCh\tBackCh\t\n";
+  outfile << "DetNum\tFrontCh\tBackCh\tmin\tmax\n";
 }
 
 void Time::Get() {
