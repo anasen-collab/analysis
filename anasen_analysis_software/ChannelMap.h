@@ -217,7 +217,7 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
     TotalAlignedASICsChannels = j-1;
   }
   else {
-    cout << "*** ERROR: File " << TotalAlignedASICsChannels << " could not be opened!" << endl;
+    cout << "*** ERROR: File " << ASICsPulserFilename  << " could not be opened!" << endl;
     return 0;
   }
   
@@ -416,7 +416,7 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   }
   
   if(status == 0) {
-    cout << "LoadQ3RelativeSlopes faild on" << Q3RelativeSlopeFilename << endl;
+    cout << "LoadQ3RelativeSlopes failed on " << Q3RelativeSlopeFilename << endl;
     cout << "Macro terminated abnormally !" << endl;
   }
   

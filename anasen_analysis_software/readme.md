@@ -16,7 +16,7 @@ To run the code:
 ## Files
 auto-generated files can be removed using the command `make clean`.
 
-The auto-generated files `Main_dict.cxx` and `Main_dict.h` are included in the repository as an example. These filese, in addition to the executable file `Main`, are
+The auto-generated files `Main_dict.cxx` and `Main_dict.h` may be included in the repository as an example. These filese, in addition to the executable file `Main`, are
 excuded by `.gitignore`. The force a save of updated files use the command `git add -f foo.bar`.
 
 ## Options
