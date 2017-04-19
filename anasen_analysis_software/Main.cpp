@@ -22,7 +22,7 @@
 //#define MCP_RF_Cut
 
 //Select the Histograms for Calibration or for a Check.
-#define Hist_after_Cal
+//#define Hist_after_Cal
 
 #define Hist_for_Cal
 #define ZPosCal 
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
 	     "Param/initialize/AlphaCalibration_09132016.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step1_edit.dat",
-	     "Param/17F_cals/QQQRelativeGains_Step2_auto.dat");
+	     "Param/17F_cals/X3RelativeGains_Step3_170418.dat",
+	     "Param/17F_cals/QQQRelativeGains_Step2_cone_zero.dat");
   
   /*
   //intialize 24Mg
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]){
 	     "Param/QQQRelativeGains09122016_Slope1.dat");
   */
   
-  CMAP->FinalInit("Param/initialize/FinalFix012516.dat","Param/X3geometry_10052016.dat");
+  CMAP->FinalInit("Param/initialize/FinalFix012516.dat","Param/SX3Geo/X3geometry_10052016.dat");
   CMAP->LoadQ3FinalFix("Param/initialize/QQQ3FinalFix.012216");
   CMAP->InitWorldCoordinates("Param/initialize/NewWorld_030316.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
@@ -574,13 +574,16 @@ int main(int argc, char* argv[]){
 
 	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
-	  //Step 1 RelCal/U-D
-	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
-	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
+	  //Step 1 RelCal/U-D, all energies changed to E_Cal
+	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
+		 600,0,6000, Si.det_obj.EUp_Cal[0],600,0,6000,Si.det_obj.EDown_Cal[0]);
+	  MyFill(Form("down_vs_up_divideBack%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
+		 100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
 
 	  //Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
-	  //Step 3 RelCal//F-B //RelGain Cal from Step 1 is applied
+
+	  //Step 3 RelCal//F-B //RelGain Cal from Step 2 is applied
 	  MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
 	  
 	  //// just for checking histograms per detector
@@ -759,7 +762,10 @@ int main(int argc, char* argv[]){
   cout << "RootObjects are Written" << endl;
   outputFile->Close();
   cout << "Outputfile Closed\n";
-
+  for(int i=0;i<3;i++) {//print beeps at end of program
+    printf(" beep!\a\n");
+    sleep(1);
+  }
   return 0;
 }
 //end of Main()
