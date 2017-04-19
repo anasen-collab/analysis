@@ -1,11 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////////////
 // Class ChannelMap describes ANASEN channel map.
-// Calculates X,Y,Z,Phi,...etc. for Q3 && SX3 in the Foreward Annular & 2 Barrel configurations Detectors.
-// Loads all the Calibration Coefficients from Files when called in Main.
-// Calculation Solely depends on the Files loaded.
+// Calculates X,Y,Z,Phi,...etc. for Q3 && SX3 in the forward annular & 2 barrel configurations detectors.
+// Loads all the calibration coefficients from files when called in Main.
+// Calculation solely depends on the files loaded.
 //
 // Usage: Include in the Main.cpp
-//
 //
 // Authors: Nabin Rijal, John Parker, Ingo Wiedenhover, DSG, JAB, KTM, JCB.
 //
