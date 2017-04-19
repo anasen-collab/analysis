@@ -184,8 +184,8 @@ int main(int argc, char* argv[]){
 	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
   */
   
-  CMAP->FinalInit("Param/initialize/FinalFix012516.dat","Param/SX3Geo/X3geometry_10052016.dat");
-  CMAP->LoadQ3FinalFix("Param/initialize/QQQ3FinalFix.012216");
+  CMAP->FinalInit("Param/initialize/FinalFix.dat","Param/SX3Geo/X3geometry_10052016.dat");
+  CMAP->LoadQ3FinalFix("Param/initialize/QQQFinalFix.dat");
   CMAP->InitWorldCoordinates("Param/initialize/NewWorld_030316.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
