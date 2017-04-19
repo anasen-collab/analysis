@@ -20,7 +20,8 @@
 #include <TSpectrum.h>
 #include <TCutG.h>
 #include <TLine.h>
-
+//Methods
+#include "SiGeometry.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeometryCal(void){
 
@@ -30,28 +31,22 @@ void GeometryCal(void){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
-  ofstream outfile;
-  outfile.open("saves/X3geometry.dat");
+  Gains gains;
+  gains.Save("saves/X3geometry.dat");
 
   TCanvas *can = new TCanvas("can","can",800,600);
-  Int_t bad_det[288];
-  Int_t bad_front[288];
-  Int_t bad_back[288];
-  Int_t count_bad = 0;
-
-  for (Int_t DetNum=4; DetNum<28; DetNum++){
-    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
-      for (Int_t BackChNum=0; BackChNum<4; BackChNum++){
-
+  BadDetectors bad;
+  bad.count=0;
+  
+  for (Int_t DetNum=4; DetNum<ndets; DetNum++) {
+    for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
+      for (Int_t BackChNum=0; BackChNum<4; BackChNum++) { 
 	TH1F *hist = NULL;
 	TString hname=Form("SX3ZposCal_%i_%i_%i",DetNum,FrontChNum,BackChNum);
 	hist = (TH1F*)f1->Get(hname.Data());
 	if (hist==NULL){
 	  cout << hname << " histogram does not exist\n";
-	  bad_det[count_bad] = DetNum;
-	  bad_front[count_bad] = FrontChNum;
-	  bad_back[count_bad] = BackChNum;
-	  count_bad++;
+	  bad.Add(DetNum,FrontChNum,BackChNum);
 	  outfile << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t" << 0 << "\t" << 0 << endl;
 	  continue;
 	}
@@ -107,7 +102,6 @@ void GeometryCal(void){
       }
     }
   }
-  for (int i=0; i<count_bad; i++){
-    cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
-  }
+  outfile.close();
+  bad.Print();
 }
