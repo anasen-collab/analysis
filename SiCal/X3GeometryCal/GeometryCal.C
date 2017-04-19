@@ -1,7 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//// Edited by : John Parker , 2016Jan24
+// Geometry calibration for SX3
+// 
+// Usage: root -l GeomtryCal.C+
+//
+// Edited by : John Parker , 2016Jan24
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+#include <exception>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -11,25 +18,20 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <exception>
 #include <TCutG.h>
 #include <TLine.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 void GeometryCal(void){
 
   using namespace std;
-
-  TFile *f1 = new TFile("../../OrganizeRaw_root/run567_051116.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
   }
   ofstream outfile;
-  outfile.open("X3geometry_051116.dat");
+  outfile.open("saves/X3geometry.dat");
 
   TCanvas *can = new TCanvas("can","can",800,600);
   Int_t bad_det[288];
@@ -37,14 +39,15 @@ void GeometryCal(void){
   Int_t bad_back[288];
   Int_t count_bad = 0;
 
-  for (Int_t DetNum=8; DetNum<9; DetNum++){
+  for (Int_t DetNum=4; DetNum<28; DetNum++){
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++){
       for (Int_t BackChNum=0; BackChNum<4; BackChNum++){
 
 	TH1F *hist = NULL;
-	hist = (TH1F*)f1->Get(Form("ZPos%i_%i_%i",DetNum,FrontChNum,BackChNum));
+	TString hname=Form("SX3ZposCal_%i_%i_%i",DetNum,FrontChNum,BackChNum);
+	hist = (TH1F*)f1->Get(hname.Data());
 	if (hist==NULL){
-	  cout << "Histo does not exist\n";
+	  cout << hname << " histogram does not exist\n";
 	  bad_det[count_bad] = DetNum;
 	  bad_front[count_bad] = FrontChNum;
 	  bad_back[count_bad] = BackChNum;
@@ -107,9 +110,4 @@ void GeometryCal(void){
   for (int i=0; i<count_bad; i++){
     cout << bad_det[i] << "  " << bad_front[i] << "  " << bad_back[i] << endl;
   }
-
 }
-
-
-
-
