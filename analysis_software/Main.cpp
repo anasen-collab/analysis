@@ -132,56 +132,56 @@ int main(int argc, char* argv[]){
   
   //initialize 17F
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
-	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
-	     "Param/initialize/AlphaCalibration_09132016.dat",
-	     "Param/17F_cals/X3RelativeGains_Step3_170418.dat",
-	     "Param/17F_cals/QQQRelativeGains_Step2_cone_zero.dat");
+  	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
+  	     "Param/initialize/AlphaCalibration.dat",
+  	     "Param/17F_cals/X3RelativeGains_Step3_170418.dat",
+  	     "Param/17F_cals/QQQRelativeGains_Step2_cone_zero.dat");
   
   /*
   //intialize 24Mg
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
-	     "Param/24Mg_cals/alignchannels_24Mg_11082016_1262.dat",
-	     "Param/initialize/AlphaCalibration_09132016.dat",
+	     "Param/24Mg_cals/initialize/alignchannels_24Mg_11082016_1262.dat",
+	     "Param/initialize/AlphaCalibration.dat",
   	     "Param/24Mg_cals/initialize/X3RelativeGains_11022016_Slope1.dat",
 	     "Param/24Mg_cals/initialize/QQQRelativeGains11022016_Slope1.dat");
 
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	     "Param/24Mg_cals/initialize/alignchannels_24Mg_11082016_1262.dat",
-	     "Param/initialize/AlphaCalibration_09132016.dat",
-	     "Param/24Mg_cals/X3RelativeGains_11172016_mix.dat",
+	     "Param/initialize/AlphaCalibration.dat",
+	     "Param/24Mg_cals/X3_rel/X3RelativeGains_11172016_mix.dat",
 	     "Param/24Mg_cals/QQQ_rel/QQQRelativeGains11092016_Step2.dat");
 
   //initialize 18Ne
-  CMAP->Init("Param/initialize/ASICS_cmap_06292016",
-	     "Param/initialize/alignchannels_10242016.dat",
-	     "Param/initialize/AlphaCalibration_09132016.dat",
-  	     "Param/initialize/X3RelativeGains_09182016_Slope1.dat",
-	     "Param/initialize/QQQRelativeGains09122016_Slope1.dat");
+  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
+	     "Param/18Ne_cals/alignchannels_10242016.dat",
+	     "Param/initialize/AlphaCalibration.dat",
+  	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_09182016_Slope1.dat",
+	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
 
-  CMAP->Init("Param/newcals/ASICS_cmap_06292016",
-	     "Param/newcals/alignchannels_10242016.dat",
-	     "Param/AlphaCal_10312016.dat",
-  	     "Param/newcals/X3RelativeGains_mix_10262016.dat",
-	     "Param/newcals/QQQRelativeGains10252016_Step2_vol2.dat");
-
+  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
+	     "Param/18Ne_cals/alignchannels_10242016.dat",
+	     "Param/18Ne_cals/AlphaCal_10312016.dat",
+  	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_mix_10262016.dat",
+	     "Param/18Ne_cals/QQQRel/QQQRelativeGains10252016_Step2_vol2.dat");
+            
   //old cal files for 18Ne
-  CMAP->Init("Param/newcals/ASICS_cmap_06292016",
-	     "Param/alignchannels_09122016.dat",
-	     "Param/AlphaCal_09222016.dat",
-	     "Param/old_X3RelativeGains/X3RelativeGains_10052016_step3redo_16_23.dat",
-	     "Param/old_QQQRelativeGains/QQQRelativeGains09182016_Step2.dat");
-
-  CMAP->Init("Param/ASICS_cmap_06292016",
-	     "Param/alignchannels_09122016.dat",
-	     "Param/AlphaCal_09222016.dat",
-	     "Param/X3RelativeGains09222016_Step3.dat",
-	     "Param/QQQRelativeGains09182016_Step2.dat");
+  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
+	     "Param/18Ne_cals/alignchannels_09122016.dat",
+	     "Param/18Ne_cals/AlphaCal_09222016.dat",
+	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_10052016_step3redo_16_23.dat",
+	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09182016_Step2.dat");
+	     
+  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
+	     "Param/18Ne_cals/alignchannels_09122016.dat",
+	     "Param/18Ne_cals/AlphaCal_09222016.dat",
+	     "Param/18Ne_cals/SX3Rel/X3RelativeGains09222016_Step3.dat",
+	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09182016_Step2.dat");
   
-  CMAP->Init("Param/ASICS_cmap_06292016",
-	     "Param/alignchannels_09122016.dat",
-	     "Param/AlphaCalibration_09132016.dat",
-	     "Param/X3RelativeGains_10052016_step3redo_16_23.dat",
-	     "Param/QQQRelativeGains09122016_Slope1.dat");
+  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
+	     "Param/18Ne_cals/alignchannels_09122016.dat",
+	     "Param/initialize/AlphaCalibration.dat",
+	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_10052016_step3redo_16_23.dat",
+	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
   */
   
   CMAP->FinalInit("Param/initialize/FinalFix012516.dat","Param/SX3Geo/X3geometry_10052016.dat");
