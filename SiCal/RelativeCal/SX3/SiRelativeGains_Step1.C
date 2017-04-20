@@ -46,17 +46,15 @@ void SiRelativeGains_Step1(void)
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);           //unnormalized
       hist = (TH2F*)f1->Get(hname.Data());
-      Int_t deti=DetNum-4;
-      Int_t frti=FrontChNum+8;
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
 	bad.Add(DetNum,FrontChNum);
-	gains.Add(deti,frti,0,0);
+	gains.Add(DetNum-4,FrontChNum+8,0,0);
 	continue;
       }
       
       Double_t gain = gainmatch.Fit4(hist,can,-1);
-      gains.Add(deti,frti,gain,-gains.old[deti][frti]/gain);
+      gains.Add(DetNum-4,FrontChNum+8,gain,-gains.old[DetNum-4][FrontChNum+8]/gain);
     }
     for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum-4][i] << endl;
