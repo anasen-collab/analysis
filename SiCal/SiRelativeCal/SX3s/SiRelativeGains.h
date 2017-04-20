@@ -209,7 +209,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
-  can->Update();
+  //can->Update();
   
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   Double_t gain = fun2->GetParameter(1);
@@ -438,8 +438,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
     delete graph;
   }
     
-  Double_t gain = slope;
   delete fun2;
  
-  return gain;
+  return slope;
 }
