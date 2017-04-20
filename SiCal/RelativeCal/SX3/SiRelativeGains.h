@@ -37,6 +37,10 @@ class Gains {
   void Print();
   void Save(TString);
   void Add(Int_t,Int_t,Double_t,Double_t);
+  ~Gains() {
+    outfile.close();
+    outfile2.close();
+  };
 };
 
 class Time {
@@ -51,6 +55,9 @@ class BadDetectors {
   Int_t front[ndets*nchan];
   Int_t back[ndets*nchan];
   Int_t count;
+  BadDetectors() {
+    count=0;
+  };
   void Add(Int_t,Int_t,Int_t BackChNum=-1);
   void Print();
 };
@@ -350,14 +357,14 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
   else
     cout<<endl;
   
-  Int_t steps=2;
+  Int_t steps=2; // set number of iteration steps
 
-  TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
+  TF1 *fun2;
   for (int k=steps; k>-1; k--) {
     //Set cut shape here; assumes form y=mx+b
-    Double_t x1=10; 
-    Double_t x2=13000;
-    Double_t width=400;
+    Double_t x1=10;      //lower x-limit of cut
+    Double_t x2=13000;   //upper x-limit of cut
+    Double_t width=400;  //minimum width of cut
     width*=TMath::Power(2,k);
     printf(" Step %d: width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,width,slope,offset);
     //The corners of a parallelepiped cut window are then calculated
@@ -365,7 +372,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
     Double_t y2=slope*x2+offset;
     Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
     Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
-    const Int_t nv = 5;//set number of verticies
+    const Int_t nv = 5;
     Double_t xc[nv] = {x1+dx,x2+dx,x2-dx,x1-dx,x1+dx};
     Double_t yc[nv] = {y1-dy,y2-dy,y2+dy,y1+dy,y1-dy};
     TCutG *cut = new TCutG("cut",nv,xc,yc);
