@@ -52,7 +52,7 @@ void SiRelativeGains_Step3(void)
       }
 
       Double_t gain = gainmatch.Fit4(hist,can,1);
-      gains.Add(DetNum-4,BackChNum,gain,gains.old[DetNum-4][BackChNum]/gain);
+      gains.Add(DetNum-4,BackChNum,gain,1.0/gain);
     }
     for (Int_t i=0; i<12; i++){
       outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum-4][i] << endl;

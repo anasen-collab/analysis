@@ -116,8 +116,8 @@ void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t slope,Double_t new_gain) {
   outfile2 << DetNum +4 << "\t" << ChNum << "\t"
 	   << left << fixed << setw(wide) << old[DetNum][ChNum] << "\t"
 	   << left << fixed << setw(wide) << slope << "\t"
-	   << left << fixed << setw(wide) << new_gain << "\t" << endl;
-  old[DetNum][ChNum] = new_gain;
+	   << left << fixed << setw(wide) << old[DetNum][ChNum]*new_gain << "\t" << endl;
+  old[DetNum][ChNum]*=new_gain;
 }
 
 void Time::Get() {
