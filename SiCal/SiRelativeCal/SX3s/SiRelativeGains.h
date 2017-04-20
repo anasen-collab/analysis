@@ -13,12 +13,9 @@
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
-#include <TTree.h>
-#include <TH1F.h>
 #include <TH2F.h>
 #include <TGraph.h>
 #include <TF1.h>
-#include <TSpectrum.h>
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLegend.h>
@@ -29,6 +26,7 @@ const Int_t nchan=12;
 const Int_t range=4096*4;
 ofstream outfile;
 ofstream outfile2;
+Int_t counter;
 
 class Gains {
  public:
@@ -64,6 +62,9 @@ class BadDetectors {
 
 class GainMatch {
  public:
+  GainMatch() {
+    counter=0;
+  };
   Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
   Double_t Fit2(TH2F*,TCanvas*);
   Double_t Fit3(TH2F*,TCanvas*);
@@ -106,17 +107,22 @@ void Gains::Save(TString fname) {
   outfile << "DetNum\tFrontCh\tGain\n";
    
   outfile2.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
-  outfile2 << "DetNum\tFrontCh\tOld     \tSlope   \tNew\n";
+  outfile2 << "DetNum\tFrontCh\tOld     \tSlope   \tNew     \tCounter\n";
 }
 
 void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t slope,Double_t new_gain) {
   if(new_gain)
     printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",old[DetNum][ChNum],slope,new_gain);
   Int_t wide=8;
+  Int_t prec=wide-3;
+  if(new_gain==0)
+    prec=0;
   outfile2 << DetNum +4 << "\t" << ChNum << "\t"
-	   << left << fixed << setw(wide) << old[DetNum][ChNum] << "\t"
-	   << left << fixed << setw(wide) << slope << "\t"
-	   << left << fixed << setw(wide) << old[DetNum][ChNum]*new_gain << "\t" << endl;
+	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << slope << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
+	   << counter
+	   << endl;
   old[DetNum][ChNum]*=new_gain;
 }
 
@@ -170,12 +176,11 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   TCutG *cut = new TCutG("cut",nv,x1,y1);
   if(docut)cut->Draw("same");
 
-  Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if(docut) if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
-	continue;
-      }
+	  continue;
+	}
       counter+=(Int_t)hist->GetBinContent(i,j);
     }
   }
@@ -187,8 +192,8 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if(docut)if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
-	continue;
-      }
+	  continue;
+	}
       for (int k=0; k<hist->GetBinContent(i,j); k++){
   	x[counter] = hist->GetXaxis()->GetBinCenter(i);
   	y[counter] = hist->GetYaxis()->GetBinCenter(j);
@@ -233,14 +238,13 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can){//manual cut
   y1.resize(cut->GetN());
 
   printf("Verticies of cut are:\n");
-    for(int n=0;n<cut->GetN();n++){
-      cut->GetPoint(n,x1[n],y1[n]);
-      cout << "\t" << x1[n] << "\t" << y1[n] << endl;
+  for(int n=0;n<cut->GetN();n++){
+    cut->GetPoint(n,x1[n],y1[n]);
+    cout << "\t" << x1[n] << "\t" << y1[n] << endl;
   }
   cut->SetLineColor(6);
   cut->Draw("same");
   
-  Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
@@ -300,7 +304,8 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
 
   TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
-      
+  counter=cut->GetN();
+  
   for(int n=0;n<cut->GetN()-2;n++){
     cut->GetPoint(n,x[n],y[n]);
     cout << x[n] << "\t" << y[n] << endl;
@@ -310,16 +315,16 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can){//cut-as-line fit
   hist->Draw("colz");
   graph->Draw("*same");
 	
-  TF1 *fun = new TF1("fun","[0] + [1]*x",0,range);
-  graph->Fit("fun");
+  TF1 *fun2 = new TF1("fun2","[0] + [1]*x",0,range);
+  graph->Fit("fun2");
 	
   can->Update();
   can->WaitPrimitive();
 
-  Double_t gain = fun->GetParameter(1);
+  Double_t gain = fun2->GetParameter(1);
       
   delete graph;
-  delete fun;
+  delete fun2;
       
   return gain;
 }
@@ -379,7 +384,6 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
     cut->SetLineColor(6);
     cut->Draw("same");
   
-    Int_t counter = 0;
     for (int i=1; i<hist->GetNbinsX(); i++) {//determine number of counts inside window
       for (int j=1; j<hist->GetNbinsY(); j++) {
 	if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
@@ -410,7 +414,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
     TGraph *graph = new TGraph(counter,x,y);
     //graph->SetMarkerSize();
     graph->Draw("same*");
-    fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+    fun2 = new TF1("fun2","[0]+[1]*x",x1,x2);
     //fun2->SetLineWidth(1);
     fun2->SetLineColor(k+2);
     graph->Fit("fun2","qROB");
@@ -426,8 +430,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess){//auto c
   
     //can->Update();
     //if(k==0) can->WaitPrimitive();
-    slope=fun2->GetParameter(0);
-    offset=fun2->GetParameter(1);
+    slope=fun2->GetParameter(1);
+    offset=fun2->GetParameter(0);
   
     delete x;
     delete y;
