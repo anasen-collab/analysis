@@ -7,7 +7,7 @@
   for (Int_t DetNum=4; DetNum<16; DetNum++){
     counter++;
     TH1F *hist = NULL;
-    TH1F *hist = (TH1F*)f->Get(Form("ZPosCal%i",DetNum));
+    TH1F *hist = (TH1F*)f->Get(Form("SX3ZposCal%i",DetNum));
     if (hist==NULL){
       continue;
     }

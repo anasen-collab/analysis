@@ -27,8 +27,8 @@
 void GeometryCal(void) {
 
   using namespace std;
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");//in gas
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");//10MeV only
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3_geo_init.root");//in gas
   if ( !f1->IsOpen() ) {
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
