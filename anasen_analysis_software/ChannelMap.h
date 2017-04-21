@@ -192,6 +192,7 @@ int ChannelMap::LoadASICsChannelMapFile (const char* ASICsChannelMapFilename) {
   }
   else {
     cout << "*** ERROR: File " << ASICsChannelMapFilename << " could not be opened!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   channelmapfile.close();
@@ -217,9 +218,9 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
   }
   else {
     cout << "*** ERROR: File " << ASICsPulserFilename  << " could not be opened!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
-  
   return 1;
 }
 
@@ -291,6 +292,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
   }
   else {
     cout << "\t*** ERROR: File " << SiGainsFilename << " could not be opened!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   
@@ -326,12 +328,12 @@ int ChannelMap::LoadSX3RelativeSlopes(const char* SX3RelativeSlopeFilename) {
   }
   else {
     cout << "Cannot open SX3 slopes file " << SX3RelativeSlopeFilename << endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   
   SX3RelativeSlopeFile.close();
-  
   return 1;
 }
 
@@ -362,7 +364,8 @@ int ChannelMap::LoadQ3RelativeSlopes(const char* Q3RelativeSlopeFilename) {
   }
   else {
     cout << "Cannot open Q3 slopes file " << Q3RelativeSlopeFilename << endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   
@@ -385,7 +388,8 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   }
   else {
     cout << "LoadASICsChannelMapFile failed on " << ASICsChannelMapFilename << endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   
@@ -394,7 +398,8 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   }
   else {
     cout << "LoadASICsPulserAlignment failed on " << ASICsPulserFilename <<endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   
@@ -403,7 +408,8 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   }
   else {
     cout << "LoadSiGains failed on " << SiGainsFilename << endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
   }
   
   if(status == 1) {
@@ -411,12 +417,14 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   }
   else {
     cout << "LoadSX3RelativeSlopes failed on " << SX3RelativeSlopeFilename <<endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
   }
   
   if(status == 0) {
     cout << "LoadQ3RelativeSlopes failed on " << Q3RelativeSlopeFilename << endl;
-    cout << "Macro terminated abnormally !" << endl;
+    cout << "Macro terminated abnormally!" << endl;
+    exit(EXIT_FAILURE);
   }
   
   return status;
@@ -460,6 +468,7 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
   else {
     cout << "Cannot open final fix zero shifts file " << FinalFixFilename << endl;
     cout << "Macro terminated abnormally! " << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   //---------------------------------------------------------------  
@@ -479,8 +488,9 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
     //cout << "SX3 geometry adjustment using file " << SX3GeoFilename << " was performed." << endl;
   }
   else {
-    cout << "Cannot open SX3 geometry adjustmetn file " << SX3GeoFilename << endl;
+    cout << "Cannot open SX3 geometry adjustment file " << SX3GeoFilename << endl;
     cout << "Macro terminated abnormally! " << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
 
@@ -520,6 +530,7 @@ int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
   else {
     cout << "Cannot open Q3 final fix zero shifts file " << Q3FinalFixFilename << endl;
     cout << "Macro terminated abnormally! " << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
     
@@ -568,6 +579,7 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
   else {
     cout << "Cannot open file with world coordinates " << WorldCoordinatesFilename << endl;
     cout << "Macro terminated abnormally! " << endl;
+    exit(EXIT_FAILURE);
     return 0;
   }
   worldCfile.close();
@@ -602,6 +614,7 @@ int ChannelMap::InitPCADC(const char* PCMapFilename) {
     {
       cout << "Cannot open file with Proportional Counter Map " << PCMapFilename << endl;
       cout << "Macro terminated abnormally! " << endl;
+      exit(EXIT_FAILURE);
       return 0;
     }
   pcmap.close();
