@@ -184,7 +184,7 @@ int main(int argc, char* argv[]){
 	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
   */
   
-  CMAP->FinalInit("Param/initialize/FinalFix.dat","Param/SX3Geo/X3geometry_10052016.dat");
+  CMAP->FinalInit("Param/initialize/X3FinalFix.dat","Param/initialize/X3geometry_init.dat");
   CMAP->LoadQ3FinalFix("Param/initialize/QQQFinalFix.dat");
   CMAP->InitWorldCoordinates("Param/initialize/NewWorld_030316.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
@@ -544,7 +544,7 @@ int main(int argc, char* argv[]){
       //=========================================== 
 
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ){
+      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ) {
 
 	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
 	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
@@ -572,13 +572,13 @@ int main(int argc, char* argv[]){
 	//////////////////////////////////////////// Fill SX3 Histograms for Calibration////////////////////////////////////////////
 #ifdef Hist_for_Cal
 
-	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
+	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
-	  //Step 1 RelCal/U-D, all energies changed to E_Cal
+	  //Step 1 RelCal/U-D, all energies changed to E_Rel
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
-		 600,0,6000, Si.det_obj.EUp_Cal[0],600,0,6000,Si.det_obj.EDown_Cal[0]);
+		 600,0,6000, Si.det_obj.EUp_Rel[0],600,0,6000,Si.det_obj.EDown_Rel[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
-		 100,0,1,(Si.det_obj.EUp_Cal[0]/Si.det_obj.EBack_Cal[0]),100,0,1,(Si.det_obj.EDown_Cal[0]/Si.det_obj.EBack_Cal[0]));
+		 100,0,1,(Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0]),100,0,1,(Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]));
 
 	  //Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
@@ -588,7 +588,7 @@ int main(int argc, char* argv[]){
 	  
 	  //// just for checking histograms per detector
 	  MyFill(Form("back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
-	  MyFill(Form("down_vs_up%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Pulser[0],512,0,16384,Si.det_obj.EDown_Pulser[0]);
+	  MyFill(Form("down_vs_up%i",Si.det_obj.DetID),600,0,6000,Si.det_obj.EUp_Rel[0],600,0,6000,Si.det_obj.EDown_Rel[0]);
 
 	  //check offset
   	  MyFill(Form("sx3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
@@ -601,68 +601,74 @@ int main(int argc, char* argv[]){
 	}  
 #endif	 	  
 	//////////////////////////////////////////// Fill SX3 Histograms for Z-Position Calibration//////////////////////////////////
+#ifdef ZPosCal
 	///////////////////  ZPosCal from the raw data from the Detector  ///////////////////
-
 	/*
-#ifdef ZPosCal	
 	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal ---------------  You can Turn it ON or OFF.
-	  if(Si.det_obj.EUp_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])){
-	    //if(Si.det_obj.SX3_ZUp[0] >= Si.det_obj.SX3_ZDown[0]){	  
+	  if(Si.det_obj.EUp_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])) {
+	    //if(Si.det_obj.SX3_ZUp[0] >= Si.det_obj.SX3_ZDown[0]) {	  
 	    MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,Si.det_obj.SX3_ZUp[0]);
-	  }else if(Si.det_obj.EDown_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] < Si.det_obj.EDown_Cal[0])){
-	    //}else if(Si.det_obj.SX3_ZUp[0]< Si.det_obj.SX3_ZDown[0]){	  
+	  }else if(Si.det_obj.EDown_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] < Si.det_obj.EDown_Cal[0])) {
+	    //}else if(Si.det_obj.SX3_ZUp[0]< Si.det_obj.SX3_ZDown[0]) {	  
 	    MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.DownChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,Si.det_obj.SX3_ZDown[0]);
 	  }else{
 	    cout<<"1:  it shouldn't happen "<<endl;
 	    break;
 	  } 
 	}	
-#endif	 
 	*/
 
 	/////////////////// ZPosCal from the Processed data from the Hit  ///////////////////
-#ifdef ZPosCal
-	//if(Si.det_obj.HitType ==111){
-	  if(Si.hit_obj.ZUp_Dummy <= 1.0 && Si.hit_obj.ZUp_Dummy >= -1.0 ){
-	    MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp_Dummy);
-	  }if(Si.hit_obj.ZDown_Dummy <= 1.0 && Si.hit_obj.ZDown_Dummy >= -1.0 ){
-	    MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown_Dummy);
-	  }
-	  //}
+
+	//if(Si.det_obj.HitType ==111) {
+	if(Si.hit_obj.ZUp_Dummy <= 1.0 && Si.hit_obj.ZUp_Dummy >= -1.0 ) {
+	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp_Dummy);
+	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZUp_Dummy);
+	  //MyFill(Form("SX3ZposCal_%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp_Dummy);
+	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZUp_Dummy);
+	}
+	if(Si.hit_obj.ZDown_Dummy <= 1.0 && Si.hit_obj.ZDown_Dummy >= -1.0 ) {
+	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown_Dummy);
+	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZDown_Dummy);
+	  //MyFill(Form("SX3ZposCal_%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown_Dummy);//show all front for given back
+	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZDown_Dummy);
+	}
+	//}
 #endif 		
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
+	
+	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ) {
 	  MyFill("PCPhi_vs_SiPhi_SX3",500,0,8,Si.hit_obj.PhiW,500,0,8,PC.Hit[hits].PhiW);
 	}
 	//============================================================ 
 	
-      }else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
-#ifdef Pulser_ReRun
-	//if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
-	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
-	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
-	Si.det_obj.BackMult = Si.det_obj.EBack_Cal.size();
-
-	Si.det_obj.DetID = i+4;
-	Si.det_obj.HitType = Si.det_obj.BackMult*100 + Si.det_obj.UpMult*10 + Si.det_obj.DownMult;
-
-
-	Si.Detector.push_back(Si.det_obj);
-	Si.NSiHits++;
-#endif
-	//continue;
       }
+      else
+	if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ) {
+#ifdef Pulser_ReRun
+	  //if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
+	  Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
+	  Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
+	  Si.det_obj.BackMult = Si.det_obj.EBack_Cal.size();
+	  
+	  Si.det_obj.DetID = i+4;
+	  Si.det_obj.HitType = Si.det_obj.BackMult*100 + Si.det_obj.UpMult*10 + Si.det_obj.DownMult;
+
+	  Si.Detector.push_back(Si.det_obj);
+	  Si.NSiHits++;
+#endif
+	  //continue;
+	}
 
       //============================================================ 
     }//end of for(int i=0; i<NumSX3; i++){
     ////////////////////////////////////// Push back Q3 Detector-members ////////////////////////////////////////////////////
-    for (int i=0; i<NumQ3; i++){
+    for (int i=0; i<NumQ3; i++) {
 
       Si.ZeroSi_obj();
 
-      for (int j=0; j<MaxQ3Ch; j++){
+      for (int j=0; j<MaxQ3Ch; j++) {
 
-	if ( (Q3Energy_Cal[i][j] > 0)){
+	if ( (Q3Energy_Cal[i][j] > 0)) {
 
 	  if (j<16){//Back Channels of Q3
 
@@ -678,18 +684,19 @@ int main(int argc, char* argv[]){
 
 	  }
 
-	  else if(j>15){//Front Channels of Q3 ,
-
-	    Si.det_obj.FrontChNum.push_back(j-16); 
-
+	  else
+	    if(j>15) {//Front Channels of Q3 ,
+	      
+	      Si.det_obj.FrontChNum.push_back(j-16); 
+	      
 #ifdef FillTree_Esteps
-	    Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
-	    Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
-	    Si.det_obj.EFront_Rel.push_back(Q3Energy_Rel[i][j]);
+	      Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
+	      Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
+	      Si.det_obj.EFront_Rel.push_back(Q3Energy_Rel[i][j]);
 #endif
-	    Si.det_obj.EFront_Cal.push_back(Q3Energy_Cal[i][j]);
-	    Si.det_obj.TFront.push_back(Q3Time[i][j]);
-	  }
+	      Si.det_obj.EFront_Cal.push_back(Q3Energy_Cal[i][j]);
+	      Si.det_obj.TFront.push_back(Q3Time[i][j]);
+	    }
 	}
 	//===========================================
       }//end of for(int j=0; j<MaxQ3Ch; j++){
@@ -710,7 +717,7 @@ int main(int argc, char* argv[]){
 #ifdef Hist_after_Cal
 	if(Si.hit_obj.HitType ==11){
 	MyFill(Form("back_vs_front_Cal%i",Si.hit_obj.DetID),500,0,30,Si.hit_obj.EnergyFront,500,0,30,Si.hit_obj.EnergyBack);
-	MyFill(Form("q3offset_back_vs_front_Cal%i",Si.hit_obj.DetID),960,0,30,Si.hit_obj.EnergyBack,340,-10,10,(Si.hit_obj.EnergyBack-Si.hit_obj.EnergyFront));
+	MyFill(Form("Q3offset_back_vs_front_Cal%i",Si.hit_obj.DetID),960,0,30,Si.hit_obj.EnergyBack,340,-10,10,(Si.hit_obj.EnergyBack-Si.hit_obj.EnergyFront));
 	//MyFill(Form("back_vs_front_Cal%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
 	//MyFill(Form("back_vs_front_Cal%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
 	//MyFill(Form("back_vs_front_Cal%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
@@ -729,7 +736,7 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("Q3_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EFront_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
 
 	  //check offset
-  	  MyFill(Form("q3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EFront_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-Si.det_obj.EFront_Rel[0]));
+  	  MyFill(Form("Q3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EFront_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-Si.det_obj.EFront_Rel[0]));
 
 	}
 #endif
