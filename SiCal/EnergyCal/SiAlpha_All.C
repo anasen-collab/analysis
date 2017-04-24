@@ -35,7 +35,7 @@ void SiAlpha_All(void) {
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/253Si_Alpha_Cal.root");
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/Calibration/253-60_Si_Alpha_Cal.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61.root");
-  if ( !f1->IsOpen() ){
+  if ( !f1->IsOpen() ) {
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
@@ -56,12 +56,11 @@ void SiAlpha_All(void) {
   for (Int_t MBID=1; MBID<3; MBID++) {  
     for (Int_t CBID=1; CBID<15; CBID++) { 
       ////for the front of the detectors //run250 || 267
-      ////if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))) {
+      //if((CBID==1 || CBID==2 || CBID==5 || CBID==6 || CBID==9 ||CBID==10) ||(MBID==1 && (CBID==11 || CBID==12 || CBID==13 || CBID==14))) {
 
       ////for the back of the detectors //run251 || 268
-      if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))) {	 
-	//if(MBID==2 && (CBID==3 || CBID==4 || CBID==7 || CBID==8 || CBID==11 || CBID==12)) {	 
-	
+      //if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))) {	 
+      //if(MBID==2 && (CBID==3 || CBID==4 || CBID==7 || CBID==8 || CBID==11 || CBID==12)) {	 
 	
 	for (Int_t ChNum=0; ChNum<16; ChNum++) {
 	  //// Mask bad channels  //that can create problem in cruising calibration.
@@ -134,7 +133,7 @@ void SiAlpha_All(void) {
 	  //outfile << MBID << "\t" << zeroshift << "\t" << MeVperCh <<endl;
 	  //outfile << MBID << "\t" << CBID << "\t" << ChNum << "\t"<< zeroshift << "\t" << MeVperCh << "\t"<< q0 <<endl;
 	}
-      }
+	//}
     }
   }
   delete FitGraph;
