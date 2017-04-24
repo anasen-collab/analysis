@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// Relative calibration of Si gains
-////
-//// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
-//// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
-////
-//// Usage: root -l SiPulser_All.C++ (from the same directory).
-////
-//// Edited by : John Parker , 2016Jan22
+// Relative calibration of Si gains
+//
+// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
+// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
+//
+// Usage: root -l SiPulser_All.C++ (from the same directory).
+//
+// Edited by : John Parker , 2016Jan22
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //C++
 #include <fstream>
@@ -24,11 +24,10 @@
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLine.h>
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
 
-void AlphaCal(void){
+void AlphaCal(void) {
   //for gold at spacer zero, this is what the alpha energy should be
   //see lab book page 9
   Double_t energy[28];
@@ -57,11 +56,12 @@ void AlphaCal(void){
   }
   
   ifstream infile;
-  infile.open("/home2/parker/ANASEN/LSU/CalParamFiles/AlphaCalibration_022716.dat");
+  infile.open("saves/AlphaCalibration_init.dat");
   Int_t det=0,ch=0;
   Double_t dummy_slope = 0;
   Double_t slope[27];
   if (infile.is_open()) {
+    infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()) {
       infile >> det >> ch >> dummy_slope;
       slope[det] = dummy_slope;
@@ -74,22 +74,23 @@ void AlphaCal(void){
   infile.close();
 
   ofstream outfile;
-  outfile.open("AlphaCalibration_031516.dat");
+  outfile.open("saves/AlphaCalibration.dat");
+  outfile << "DetNum\tOffset\tSlope\n";
   
   TCanvas *can = new TCanvas("can","can",800,600);
-  TH1F *hist = new TH1F("hist","hist",300,11,15);
+  TH1F *hist = new TH1F("hist","hist",300,0,4*4096);
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
-    if ( DetNum==7 || DetNum==9 ) {
-      continue;
-    }
+    // if ( DetNum==7 || DetNum==9 ) {
+    //   continue;
+    // }
     Float_t *average_slope;
     tree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
     hist->SetTitle(Form("Det%i",DetNum));  
     
     TSpectrum *s = new TSpectrum(2);
-    Int_t nfound = s->Search(hist,0.5," ",0.8);//9 and 0.15
+    Int_t nfound = s->Search(hist,2," ",0.2);//9 and 0.15
     //hist->Fit("fun");
-    if (nfound != 1){
+    if (nfound != 1) {
       cout << DetNum << "  " << nfound << endl;
       cout << "No peaks found\n";
       //Double_t median = hist->GetMaximumBin()*0.00266666 + 0.8;
