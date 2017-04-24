@@ -20,8 +20,7 @@
 //Methods
 #include "SiRelativeGains.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SiRelativeGains_Step1(void)
-{
+void SiRelativeGains_Step1(void) {
   using namespace std;
 
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
