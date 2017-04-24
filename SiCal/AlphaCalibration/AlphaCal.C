@@ -8,6 +8,10 @@
 ////
 //// Edited by : John Parker , 2016Jan22
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+#include <exception>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -17,8 +21,6 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <exception>
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLine.h>
@@ -42,39 +44,42 @@ void AlphaCal(void){
     }
   }
 
-  TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
+  //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3_geo_init.root");
 
-  TCanvas *can = new TCanvas("can","can",800,600);
-
-  ofstream outfile;
-  outfile.open("AlphaCalibration_031516.dat");
-
-  ifstream infile;
-  infile.open("/home2/parker/ANASEN/LSU/CalParamFiles/AlphaCalibration_022716.dat");
-  Int_t det=0,ch=0;
-  Double_t dummy_slope = 0;
-  Double_t slope[27];
-  if (infile.is_open()){
-    while (!infile.eof()){
-      infile >> det >> ch >> dummy_slope;
-      slope[det] = dummy_slope;
-    }
-  }else{
-    cout << "Infile not opened\n";
-    exit(EXIT_FAILURE);
-  }
-  infile.close();
-  
   TTree *tree = NULL;
   tree = (TTree*)f1->Get("MainTree");
   if (tree==NULL){
     cout << "Tree does not exist\n";
     exit(EXIT_FAILURE);
   }
+  
+  ifstream infile;
+  infile.open("/home2/parker/ANASEN/LSU/CalParamFiles/AlphaCalibration_022716.dat");
+  Int_t det=0,ch=0;
+  Double_t dummy_slope = 0;
+  Double_t slope[27];
+  if (infile.is_open()) {
+    while (!infile.eof()) {
+      infile >> det >> ch >> dummy_slope;
+      slope[det] = dummy_slope;
+    }
+  }
+  else {
+    cout << "Infile not opened\n";
+    exit(EXIT_FAILURE);
+  }
+  infile.close();
+
+  ofstream outfile;
+  outfile.open("AlphaCalibration_031516.dat");
+  
+  TCanvas *can = new TCanvas("can","can",800,600);
   TH1F *hist = new TH1F("hist","hist",300,11,15);
-  for (Int_t DetNum=0; DetNum<28; DetNum++){
-    if ( DetNum==7 || DetNum==9 ){
+  for (Int_t DetNum=0; DetNum<28; DetNum++) {
+    if ( DetNum==7 || DetNum==9 ) {
       continue;
     }
     Float_t *average_slope;
