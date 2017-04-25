@@ -47,7 +47,11 @@ void AlphaCal(void) {
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3_geo_init.root");
-
+  if ( !f1->IsOpen() ) {
+    cout << "Error: Root file does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  
   TTree *tree = NULL;
   tree = (TTree*)f1->Get("MainTree");
   if (tree==NULL){
@@ -86,9 +90,20 @@ void AlphaCal(void) {
     Float_t *average_slope;
     tree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
     hist->SetTitle(Form("Det%i",DetNum));  
+
+    if(hist->GetEntries()==0) {
+      printf("Histogram %s has zero entries.\n",hist->GetTitle());
+      continue;
+    }
     
-    TSpectrum *s = new TSpectrum(2);
+    TSpectrum *s = new TSpectrum();
     Int_t nfound = s->Search(hist,2," ",0.2);//9 and 0.15
+
+    if(nfound <npeaks) {
+      printf("Less than %d peaks found. Aborting.\n",npeaks);
+      continue;
+    }
+    
     //hist->Fit("fun");
     if (nfound != 1) {
       cout << DetNum << "  " << nfound << endl;
