@@ -60,11 +60,11 @@ void SiAlpha_All(void) {
   TGraph *FitGraph = 0;
 
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
-    // if (DetNum==0 || DetNum==3) {
-    //   Energies[0] = 4;
-    //   Energies[1] = 6;
-    //   Energies[2] = 9;
-    // }
+    if (DetNum==0 || DetNum==3) {
+      Energies[0] = 4;
+      Energies[1] = 6;
+      Energies[2] = 9;
+    }
      	  can->cd(1);	    
 	  MainTree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
 	  hist->SetTitle(Form("Det%i",DetNum));  
@@ -90,7 +90,9 @@ void SiAlpha_All(void) {
 	  Float_t *xpeaks = s->GetPositionX();
 
 	  if(nfound <npeaks) {
+	    printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
 	    printf("Less than %d peaks found. Aborting.\n",npeaks);
+	    outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
 	    continue;
 	  }
 
@@ -120,8 +122,8 @@ void SiAlpha_All(void) {
 	  MeVperCh = fit->GetParameter(1);
 	  q0 = -zeroshift/MeVperCh;
 	  // cout << zeroshift << " " << MeVperCh << endl;;
-	  cout << DetNum << " q0 = "<<q0<<endl;
-	  can->Update();
+	  printf("DetNum %2d: peaks = %d, slope = %f /t offset = %f\n",DetNum,nfound,zeroshift,MeVperCh );
+	  //can->Update();
 	  outfile << DetNum << "\t"<< zeroshift << "\t" << MeVperCh <<endl;
     
   }
