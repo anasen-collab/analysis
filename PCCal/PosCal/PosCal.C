@@ -99,14 +99,35 @@ void PosCal(void){
 
   TCanvas *can = new TCanvas("can","can",800,600);
 
+  Double_t slope[24];
+  Double_t offset[24];
+  Double_t dummy_slope = 0;
+  Double_t dummy_offset = 0;
+  Int_t wire = 0;
+  ifstream infile;
+  string dummy;
+  infile.open("PCWireCal_022516.dat");
+  if (infile.is_open()){
+    infile >> dummy >> dummy >> dummy;
+    while (!infile.eof()){
+      infile >> wire >> dummy_slope >> dummy_offset;
+      slope[wire] = dummy_slope;
+      offset[wire] = dummy_offset;
+    }
+  }else{
+    cout << "Infile not opened\n";
+    exit(EXIT_FAILURE);
+  }
+  infile.close();
+
   ofstream outfile;
-  outfile.open("PCWireCal_030316.dat");
+  outfile.open("PCWireCal_022916.dat");
   outfile << "Wire\tSlope\tShift\n";
 
   TCutG *cut;
   for (Int_t DetNum=0; DetNum<24; DetNum++){
     TH2F *hist = NULL;
-    hist = (TH2F*)f1->Get(Form("PCZ_vs_Z_nocal%i",DetNum));
+    hist = (TH2F*)f1->Get(Form("PCZ_vs_Z%i",DetNum));
     if (hist==NULL){
       outfile << DetNum << "\t" << 1 << "\t" << 0 << endl;
       cout << "Warning: hist with wire number " << DetNum << " does not exist.\n";
@@ -129,7 +150,10 @@ void PosCal(void){
     can->Update();
     can->WaitPrimitive();
 
-    outfile << DetNum << "\t" << fun->GetParameter(1) << "\t" << fun->GetParameter(0) << endl;
+    slope[DetNum] = slope[DetNum]/fun->GetParameter(1);
+    offset[DetNum] = offset[DetNum] - fun->GetParameter(0);
+
+    outfile << DetNum << "\t" << slope[DetNum]*fun->GetParameter(1) << "\t" << offset[DetNum] << endl;
 
   }  
 
