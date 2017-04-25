@@ -28,7 +28,7 @@ void SiAlpha_All(void) {
   //Float_t Energies[npeaks] = {5.42315,5.68537,6.05,6.28808,6.77803,8.74886};
   //Float_t Energies[npeaks] = {5.42315,5.68537,6.28808,6.77803,8.74886};
   Float_t Energies[npeaks] = {5,7,10};
-  Float_t Energies1[npeaks] = {5,10};
+  Float_t Energies1[npeaks-1] = {5,10};
 
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/253Si_Alpha_Cal.root");
   //TFile *f1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/Calibration/253-60_Si_Alpha_Cal.root");
@@ -100,7 +100,6 @@ void SiAlpha_All(void) {
     MainTree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
     hist->SetTitle(Form("Det%i",DetNum));  
 	  
-    //can->WaitPrimitive();
     if(hist->GetEntries()==0) {
       printf("Histogram %s has zero entries.\n",hist->GetTitle());
       continue;
@@ -110,16 +109,14 @@ void SiAlpha_All(void) {
       delete s;
     }
 
-    TSpectrum *s = new TSpectrum();
-	  
     hist->GetXaxis()->SetRangeUser(1500,6000);
     can->Update();
+    TSpectrum *s = new TSpectrum();
 	  
     //Int_t nfound = s->Search(hist,15,"",0.25);
     //Int_t nfound = s->Search(hist,5," nobackground",0.10);
     Int_t nfound = s->Search(hist,10," ",0.05);
-    Float_t *xpeaks = s->GetPositionX();
-
+    
     if(nfound <(npeaks-1)) {
       printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
       printf("Less than %d peaks found. Aborting.\n",npeaks);
@@ -127,7 +124,15 @@ void SiAlpha_All(void) {
       continue;
     }
 
+    if(nfound >npeaks) {
+      printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
+      printf("greater than %d peaks found. Aborting.\n",npeaks);
+      outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
+      continue;
+    }
+    
     //sort peaks in order of channle number
+    Float_t *xpeaks = s->GetPositionX();
     Float_t Temp=0;    
     for(Int_t i=0;i<nfound;i++) {
       for(Int_t j=i;j<nfound;j++) {
@@ -151,16 +156,14 @@ void SiAlpha_All(void) {
     }
     can->cd(2);
     FitGraph->Draw("AP*");
-    FitGraph->Fit("fit","qROB=1");
-    ////FitGraph->Fit("fit","E");
+    FitGraph->Fit("fit","q");
     zeroshift = fit->GetParameter(0);
     MeVperCh = fit->GetParameter(1);
     q0 = -zeroshift/MeVperCh;
     // cout << zeroshift << " " << MeVperCh << endl;;
     printf("DetNum %2d: peaks = %d, slope = %f /t offset = %f\n",DetNum,nfound,zeroshift,MeVperCh );
-    //can->Update();
+    can->Update();
     outfile << DetNum << "\t"<< zeroshift << "\t" << MeVperCh <<endl;
-    
   }
   delete FitGraph;
   delete s;
