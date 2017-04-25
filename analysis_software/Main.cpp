@@ -457,14 +457,15 @@ int main(int argc, char* argv[]){
 
 	SX3Energy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];
 	SX3Energy_Pulser[DN-4][DetCh] = SX3Energy[DN-4][DetCh]+ZeroShift/VperCh;
-	//SX3Energy_Pulser[DN-4][DetCh] = SX3Energy[DN-4][DetCh]*VperCh+ZeroShift;
+	//SX3Energy_Pulser[DN-4][DetCh] = SX3Energy[DN-4][DetCh]*VperCh+ZeroShift;   //pulser CHECK
 
 	//in case of quadratic fit
 	//SX3Energy_Pulser[DN-4][DetCh] = p2_coeff*(pow(SX3Energy[DN-4][DetCh],2)) + p1_coeff*SX3Energy[DN-4][DetCh] + p0_coeff;
 	
 	SX3Energy_Rel[DN-4][DetCh] = SX3Energy_Pulser[DN-4][DetCh]*Gain_Rel;
+	SX3Energy_Rel[DN-4][DetCh] += FinalShift;
 	SX3Energy_Cal[DN-4][DetCh] = SX3Energy_Rel[DN-4][DetCh]*Gain_Alpha;
-	SX3Energy_Cal[DN-4][DetCh] += FinalShift;
+
 	SX3Time[DN-4][DetCh]   = (Double_t)Si_Old.Time[n];
 
       }else{ //For Q3's
@@ -480,12 +481,10 @@ int main(int argc, char* argv[]){
 	//Q3Energy_Pulser[DN][DetCh] = p2_coeff*(pow(Q3Energy[DN][DetCh],2)) + p1_coeff*Q3Energy[DN][DetCh] + p0_coeff;
 
 	Q3Energy_Rel[DN][DetCh] = Q3Energy_Pulser[DN][DetCh]*Gain_Rel;
+	Q3Energy_Rel[DN][DetCh] += FinalShift;
 	Q3Energy_Cal[DN][DetCh] = Q3Energy_Rel[DN][DetCh]*Gain_Alpha;
-	Q3Energy_Cal[DN][DetCh] += FinalShift;
 	Q3Time[DN][DetCh] = (Double_t)Si_Old.Time[n];
-
       }
-
     }// End loop over Si_Nhits-----------------------------------------------------------------------------------------------
     //////////////////////////////////////////// Push back SX3 Detector-members///////////////////////////////////////////////
 
@@ -544,7 +543,7 @@ int main(int argc, char* argv[]){
       //=========================================== 
 
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ) {
+      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ){
 
 	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
 	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
@@ -572,7 +571,7 @@ int main(int argc, char* argv[]){
 	//////////////////////////////////////////// Fill SX3 Histograms for Calibration////////////////////////////////////////////
 #ifdef Hist_for_Cal
 
-	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
+	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
 	  //Step 1 RelCal/U-D, all energies changed to E_Rel
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
@@ -635,15 +634,13 @@ int main(int argc, char* argv[]){
 	}
 	//}
 #endif 		
-	
-	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ) {
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_SX3",500,0,8,Si.hit_obj.PhiW,500,0,8,PC.Hit[hits].PhiW);
 	}
 	//============================================================ 
 	
-      }
-      else
-	if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ) {
+      }else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
 #ifdef Pulser_ReRun
 	  //if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
 	  Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
@@ -662,13 +659,13 @@ int main(int argc, char* argv[]){
       //============================================================ 
     }//end of for(int i=0; i<NumSX3; i++){
     ////////////////////////////////////// Push back Q3 Detector-members ////////////////////////////////////////////////////
-    for (int i=0; i<NumQ3; i++) {
+    for (int i=0; i<NumQ3; i++){
 
       Si.ZeroSi_obj();
 
-      for (int j=0; j<MaxQ3Ch; j++) {
+      for (int j=0; j<MaxQ3Ch; j++){
 
-	if ( (Q3Energy_Cal[i][j] > 0)) {
+	if ( (Q3Energy_Cal[i][j] > 0)){
 
 	  if (j<16){//Back Channels of Q3
 
@@ -684,11 +681,10 @@ int main(int argc, char* argv[]){
 
 	  }
 
-	  else
-	    if(j>15) {//Front Channels of Q3 ,
-	      
-	      Si.det_obj.FrontChNum.push_back(j-16); 
-	      
+	  else if(j>15){//Front Channels of Q3 ,
+
+	    Si.det_obj.FrontChNum.push_back(j-16); 
+
 #ifdef FillTree_Esteps
 	      Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
 	      Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
