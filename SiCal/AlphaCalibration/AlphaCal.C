@@ -35,13 +35,13 @@ void AlphaCal(void) {
   //see lab book page 9
   Double_t energy[28];
   for (Int_t i=0; i<28; i++) {
-    if (i==0 || i==3){
+    if (i==0 || i==3) {
       energy[i] = 12.03;
-    }else if (i==1 || i==2){
+    }else if (i==1 || i==2) {
       energy[i] = 12.07;
-    }else if (i>3 && i<16){
+    }else if (i>3 && i<16) {
       energy[i] = 12.3;
-    }else if (i>15){
+    }else if (i>15) {
       energy[i] = 12.84;
     }
   }
@@ -61,7 +61,7 @@ void AlphaCal(void) {
     
   TTree *MainTree = NULL;
   MainTree = (TTree*)f1->Get("MainTree");
-  if (MainTree==NULL){
+  if (MainTree==NULL) {
     cout << "Tree does not exist\n";
     exit(EXIT_FAILURE);
   }
@@ -163,8 +163,8 @@ void AlphaCal(void) {
       }
       average_slope = s->GetPositionX();
       slope[DetNum] *= (energy[DetNum]/average_slope[0]);
-      
-      cout << average_slope[0] << "  " << slope[DetNum] << endl;
+
+      cout << DetNum << " " << average_slope[0] << "  " << slope[DetNum] << endl;
       outfile << DetNum << "\t" << 0 << "\t" << slope[DetNum] << endl;
       can->Update();
     }
