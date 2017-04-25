@@ -99,6 +99,22 @@ void AlphaCal(void) {
   TGraph *FitGraph = 0;
 
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
+    if (DetNum==1 || DetNum==2) {
+      Energies[0] = 5;
+      Energies[1] = 7;
+      Energies[2] = 10;
+    }
+    else if (DetNum>3 && DetNum<16) {
+      Energies[0] = 5;
+      Energies[1] = 7;
+      Energies[2] = 10;    
+    }
+    else if (DetNum>15) {
+      Energies[0] = 5;
+      Energies[1] = 7;
+      Energies[2] = 10;    
+    }
+    
     // if ( DetNum==7 || DetNum==9 ) {
     //   continue;
     // }
