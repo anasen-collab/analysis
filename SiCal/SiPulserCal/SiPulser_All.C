@@ -232,10 +232,10 @@ void SiPulser_All (void)
 	  //Int_t nfound = s->Search(h1,9," ",0.15);//run 643?
 	  //Int_t nfound = s->Search(h1,10," ",0.15);//run 1034
 	  Int_t nfound = s->Search(h1,10," ",0.05);//run 1264
-
+	  
+	  //sort peaks in order of channle number
 	  Float_t *xpeaks = s->GetPositionX();
 	  Float_t Temp=0;
-	      
 	  for(Int_t i=0;i<nfound;i++) {
 	    for(Int_t j=i;j<nfound;j++) {
 	      if (xpeaks[j] < xpeaks[i]) {
