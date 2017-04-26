@@ -135,7 +135,7 @@ int main(int argc, char* argv[]){
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
   	     "Param/initialize/AlphaCalibration.dat",
   	     "Param/17F_cals/X3RelativeGains_Step3_170418.dat",
-  	     "Param/17F_cals/QQQRelativeGains_Step2_cone_zero.dat");
+  	     "Param/17F_cals/QQQRelativeGains_Step2_170426.fix.dat");
   
   /*
   //intialize 24Mg
@@ -185,12 +185,11 @@ int main(int argc, char* argv[]){
   */
   
   CMAP->FinalInit("Param/initialize/X3FinalFix.dat","Param/initialize/X3geometry_init.dat");
-  CMAP->LoadQ3FinalFix("Param/initialize/QQQFinalFix.dat");
+  CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170426.dat");
   CMAP->InitWorldCoordinates("Param/initialize/NewWorld_030316.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
   CMAP->InitPCWireCal("Param/PCWireCal/PCWireCal_09272016_cut.dat");   
-  //CMAP->Init_PCWire_RelGain("../Param/PCWire_RelGain_20160915.txt");
   cout<<" ============================================================================================"<<endl;
   //------------------------------------------------------------------------------------------
   TFile *inputFile = new TFile(filename_callist);//open root file and make sure it exists---------------------
