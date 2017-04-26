@@ -32,7 +32,10 @@ void SiRelativeGains_Step2(void) {
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
   gains.Load("saves/QQQRelativeGains_Step1.dat");
-  gains.Save("saves/QQQRelativeGains_Step2");  
+  gains.Save("saves/QQQRelativeGains_Step2");
+  Offsets offsets;
+  offsets.Load("saves/QQQFinalFix_Step1.dat");
+  offsets.Save("saves/QQQFinalFix_Step2");
   
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
@@ -41,7 +44,7 @@ void SiRelativeGains_Step2(void) {
   GainMatch gainmatch;
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
-    for (Int_t BackChNum=1; BackChNum<16; BackChNum++) {
+    for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
       Int_t FrontChNum = 0;
 
       TH2F *hist = NULL;
@@ -51,13 +54,16 @@ void SiRelativeGains_Step2(void) {
 	cout << hname << " histogram does not exist\n";
 	bad.Add(DetNum,FrontChNum,BackChNum);
 	gains.Add(DetNum,BackChNum,0,0);
+	offsets.Add(DetNum,BackChNum,0,0);
 	continue;
       }
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
       gains.Add(DetNum,BackChNum,gain,1./gain);
+      offsets.Add(DetNum,BackChNum,offset,offset);
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum][i] << endl;
+      outfile_offset << DetNum << "\t" << i << "\t" << offsets.old[DetNum][i] << endl;
     }
   }
   bad.Print();

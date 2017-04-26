@@ -30,9 +30,11 @@ const Int_t nchan=32;
 const Int_t range=4096*4;
 ofstream outfile;
 ofstream outfile_diag;
-ofstream outfile_scale;
 ofstream outfile_offset;
 Int_t counter;
+Double_t slope;
+Double_t offset;
+Bool_t doprint=kFALSE;
 
 class Gains {
  public:
@@ -44,7 +46,17 @@ class Gains {
   ~Gains() {
     outfile.close();
     outfile_diag.close();
-    outfile_scale.close();
+  };
+};
+
+class Offsets {
+ public:
+  Double_t old[ndets][nchan];
+  void Load(TString);
+  void Print();
+  void Save(TString);
+  void Add(Int_t,Int_t,Double_t,Double_t);
+  ~Offsets() {
     outfile_offset.close();
   };
 };
@@ -81,12 +93,14 @@ class GainMatch {
 
 void Gains::Load(TString fname) {
   ifstream infile;
-  printf("Loading file %s...",fname.Data());
+  if(doprint)
+    printf("Loading file %s...",fname.Data());
   infile.open(fname.Data());
   Int_t det=0,ch=0;
   Double_t dummy = 0;
   if (infile.is_open()) {
-    cout << "Read OK"<<endl;
+    if(doprint)
+      cout << "Read OK"<<endl;
     infile.ignore(100,'\n');//read in dummy line
     while (!infile.eof()){
       infile >> det >> ch >> dummy;
@@ -116,28 +130,67 @@ void Gains::Save(TString fname) {
   
   outfile_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
   outfile_diag << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
-
-  outfile_scale.open(Form("%s_%s_scale.dat",fname.Data(),time.stamp));
-  outfile << "DetNum\tFrontCh\tGain\n";
-
-  outfile_offset.open(Form("%s_%s_offset.dat",fname.Data(),time.stamp));
-  outfile << "DetNum\tFrontCh\tOffset\n";
 }
 
-void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t slope,Double_t new_gain) {
-  if(new_gain)
-    printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",old[DetNum][ChNum],slope,new_gain);
+void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
+  if(new_gain&&doprint)
+    printf(" Previous gain   = %f \t Slope  = %f \t New gain  = %f\n",old[DetNum][ChNum],new_slope,new_gain);
   Int_t wide=8;
   Int_t prec=wide-3;
   if(new_gain==0)
     prec=0;
   outfile_diag << DetNum +4 << "\t" << ChNum << "\t"
 	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
-	   << left << fixed << setw(wide) << setprecision(prec) << slope << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << new_slope << "\t"
 	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
 	   << counter
 	   << endl;
   old[DetNum][ChNum]*=new_gain;
+}
+
+void Offsets::Load(TString fname) {
+  ifstream infile;
+  if(doprint)
+    printf("Loading file %s...",fname.Data());
+  infile.open(fname.Data());
+  Int_t det=0,ch=0;
+  Double_t dummy = 0;
+  if (infile.is_open()) {
+    if(doprint)
+      cout << "Read OK"<<endl;
+    infile.ignore(100,'\n');//read in dummy line
+    while (!infile.eof()){
+      infile >> det >> ch >> dummy;
+      old[det][ch] = dummy;
+    }
+  }else{
+    cout << "Error: Dat file " << fname.Data() << " does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  infile.close();
+}
+
+void Offsets::Print() {
+  printf("DetNum\tFrontCh\tOffset\n");
+  for (Int_t i=0; i<ndets; i++){
+    for (Int_t j=0; j<nchan; j++){
+      printf("%d\t%d\t%f\n",i,j,old[i][j]);
+    }
+  }
+}
+
+void Offsets::Save(TString fname) {
+  Time time;
+  time.Get();
+
+  outfile_offset.open(Form("%s_%s.dat",fname.Data(),time.stamp));
+  outfile_offset << "DetNum\tFrontCh\tOffset\n";
+}
+
+void Offsets::Add(Int_t DetNum,Int_t ChNum,Double_t offset,Double_t new_offset) {
+  if(new_offset&&doprint)
+    printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,new_offset);
+  old[DetNum][ChNum]+=new_offset;
 }
 
 void Time::Get() {
@@ -148,8 +201,10 @@ void Time::Get() {
   strftime (stamp,80,"%y%m%d.%H%M%S",timeinfo);
   char date[80];
   strftime (date,80,"%a %b %d %Y at %H:%M:%S. ",timeinfo);
-  printf("The date is %s",date);
-  printf("Time stamp is %s\n",stamp);
+  if(doprint) {
+    printf("The date is %s",date);
+    printf("Time stamp is %s\n",stamp);
+  }
 }
 
 void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
@@ -321,8 +376,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
   fun3->SetLineStyle(2);
   fun3->SetLineWidth(2);
   xprof->Fit("fun3","q");
-  Double_t slope = fun3->GetParameter(0);
-  Double_t offset = fun3->GetParameter(1);
+  slope = fun3->GetParameter(0);
+  offset = fun3->GetParameter(1);
 
   printf(" for %s ",hist->GetName());
   Int_t steps=3;
@@ -334,7 +389,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
     Double_t x2=13000;
     Double_t width=400;
     width*=TMath::Power(2,k);
-    printf(" Step: %d width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,width,slope,offset);
+    if(doprint)
+      printf(" Step: %d width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,width,slope,offset);
     //The corners of a parallelepiped cut window are then calculated
     Double_t y1=slope*x1+offset;
     Double_t y2=slope*x2+offset;
@@ -356,8 +412,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
 	counter+=(Int_t)hist->GetBinContent(i,j);
       }
     }
-
-    printf(" counts = %d in window\n",counter);
+    if(doprint)
+      printf(" counts = %d in window\n",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
@@ -378,7 +434,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
     TGraph *graph = new TGraph(counter,x,y);
     //graph->SetMarkerSize();
     //graph->Draw("same*");
-    fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+    fun2 = new TF1("fun2","[0]+[1]*x",x1,x2);
     //fun2->SetLineWidth(1);
     fun2->SetLineColor(k+2);
     graph->Fit("fun2","qROB");
@@ -396,8 +452,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
   
     can->Update();
     //if(k==0) can->WaitPrimitive();
-    slope=fun2->GetParameter(0);
-    offset=fun2->GetParameter(1);
+    slope=fun2->GetParameter(1);
+    offset=fun2->GetParameter(0);
   
     delete x;
     delete y;
@@ -430,8 +486,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
   fun3->SetLineWidth(2);
   fun3->FixParameter(0,1); //default slope
   fun3->FixParameter(1,0); //default offset
-  Double_t slope = fun3->GetParameter(0);
-  Double_t offset = fun3->GetParameter(1);
+  slope = fun3->GetParameter(0);
+  offset = fun3->GetParameter(1);
 
   Int_t highb=0;
   for(Int_t i=0; i<xproj->GetXaxis()->GetNbins();i++) {
@@ -441,11 +497,13 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
 	highb=i;
   }
   Double_t high=xproj->GetBinCenter(highb);
-  printf("For %s: ",hist->GetName());
-  printf("high bin is %d %.0f\n",highb,high);
+  if(doprint) {
+    printf("For %s: ",hist->GetName());
+    printf("high bin is %d %.0f\n",highb,high);
+  }
 					
   Int_t steps=4;
-  TF1 *fun2;// = new TF1("fun2","[0]*x +[1]",x1,x2);
+  TF1 *fun2;
   for (int k=steps; k>-1; k--) {
     //Set cut shape here; assumes form y=mx+b
     //Set variable low-x position
@@ -466,7 +524,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     Double_t dy0=(width0/2.0)*1/sqrt(1+slope*slope);
     
     width*=TMath::Power(2,k);
-    printf(" Step %d: low=%4.0f width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,x1,width,slope,offset);
+    if(doprint)
+      printf(" Step %d: low=%4.0f width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,x1,width,slope,offset);
     Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
     Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
     const Int_t nv = 5;
@@ -485,7 +544,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
       }
     }
 
-    printf(" counts = %d in window\n",counter);
+    if(doprint)
+      printf(" counts = %d in window\n",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
@@ -506,11 +566,14 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     TGraph *graph = new TGraph(counter,x,y);
     //graph->SetMarkerSize();
     //graph->Draw("same*");
+
     fun2 = new TF1("fun2","[0]+[1]*x",x1,x2);
     //fun2->SetLineWidth(1);
     fun2->SetLineColor(k+2);
     graph->Fit("fun2","qROB");
-  
+    slope=fun2->GetParameter(1);
+    offset=fun2->GetParameter(0);
+    
     fun2->Draw("same");
     fun3->Draw("same");
   
@@ -522,10 +585,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
     leg->Draw();
   
-    can->Update();
+    //can->Update();
     //if(k==0) can->WaitPrimitive();
-    slope=fun2->GetParameter(1);
-    offset=fun2->GetParameter(0);
   
     delete x;
     delete y;
