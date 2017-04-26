@@ -9,8 +9,6 @@
 //C++
 #include <fstream>
 #include <exception>
-#include <time.h>
-#include <iomanip>  
 //ROOT
 #include <TMath.h>
 #include <TCanvas.h>
@@ -31,10 +29,10 @@ void SiRelativeGains_Step2(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/QQQRelativeGains_Step1.dat");
+  gains.Load("saves/QQQRelativeGains_Step2_170426.fix.dat");
   gains.Save("saves/QQQRelativeGains_Step2");
   Offsets offsets;
-  offsets.Load("saves/QQQFinalFix_Step1.dat");
+  offsets.Load("saves/QQQFinalFix_Step2_170426.dat");
   offsets.Save("saves/QQQFinalFix_Step2");
   
   TCanvas *can = new TCanvas("can","can",1362,656);
@@ -46,7 +44,6 @@ void SiRelativeGains_Step2(void) {
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
     for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
       Int_t FrontChNum = 0;
-
       TH2F *hist = NULL;
       TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
       hist = (TH2F*)f1->Get(hname.Data());
