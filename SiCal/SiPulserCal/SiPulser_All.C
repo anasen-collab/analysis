@@ -52,8 +52,8 @@ void SiPulser_All (void)
       TFile *f2 = new TFile("/data1/lighthall/root/run1262.root");
     }
     if(run==1035) {
-       TFile *f1 = new TFile("/data1/lighthall/root/run1035.root");
-       TFile *f2 = new TFile("/data1/lighthall/root/run1264.root");
+      TFile *f1 = new TFile("/data1/lighthall/root/run1035.root");
+      TFile *f2 = new TFile("/data1/lighthall/root/run1264.root");
     }
   }
   
@@ -99,21 +99,30 @@ void SiPulser_All (void)
     Volts4[npeaks-4-i-1]=Volts[npeaks-i-1];
     //printf("Volts4[%d]=%f\n",npeaks-4-i-1,Volts4[npeaks-4-i-1]);
   }
-  
+
+  Int_t cwide=1362;
   TCanvas *c1 = new TCanvas();
   c1->SetWindowPosition(0,63);
-  c1->SetWindowSize(1362,656);
+  c1->SetWindowSize(cwide,656);
   c1->Divide(1,2);
 
-  Bool_t dowait=kTRUE; //wait betweeen fits
+  Bool_t dowait=kFALSE; //wait betweeen fits
   Bool_t docentroid=kFALSE; //use centroid fit
-  Bool_t docomp=kTRUE; //compare two files
+  Bool_t docomp=kFALSE; //compare two files
+  Bool_t dotest=kTRUE; //test results
   
   if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",270,100);
     c2->cd();
     TButton *but2 = new TButton("quit ROOT",".q",.05,.1,.45,.45);
     but2->Draw();
+  }
+
+  if(dotest) {
+    TCanvas *c3 = new TCanvas("c3","test fit");
+    c3->SetWindowPosition(c1->GetWindowTopX()+c1->GetWindowWidth(),c1->GetWindowTopY()-22);      
+    c3->SetWindowSize(cwide,656);
+    c3->Divide(1,2);
   }
 
   Int_t  size = 4096*4;
@@ -124,6 +133,9 @@ void SiPulser_All (void)
     h2->SetLineColor(kRed+3);
     h2->SetFillColor(kYellow-9);
     TTree *DataTree2 = (TTree*)f2->Get("DataTree");
+  }
+  if(dotest) {
+    TH1I *h3 = new TH1I("h3","h3",size,0,size);
   }
   
   TF1 *fit = new TF1("fit","pol1",0,size/2);
@@ -146,19 +158,22 @@ void SiPulser_All (void)
   ofstream outfile4;//offsets, centroid ROB
   ofstream outfile5;//peaks, centroid
   
-  outfile.open("Sipulser_offsets.dat");
-  outfile2.open("Sipulser_peaklocations.dat");
-  outfile3.open("Sipulser_offsets_full.dat");
+  outfile.open("saves/Sipulser_offsets.dat");
+  outfile2.open("saves/Sipulser_peaklocations.dat");
+  outfile3.open("saves/Sipulser_offsets_full.dat");
   
   if(docentroid) {
     TF1 *fit4 = new TF1("fit4","pol1",0,size/2);
     fit4->SetLineColor(7);
     fit4->SetLineStyle(2);
     TGraph *FitGraph2 = 0;
-    outfile4.open("Sipulser_offsets_centroid.dat");
-    outfile5.open("Sipulser_peaklocations_centroid.dat");
+    outfile4.open("saves/Sipulser_offsets_centroid.dat");
+    outfile5.open("saves/Sipulser_peaklocations_centroid.dat");
     TPolyMarker *pm; //centroid peak locations  
   }
+
+  if(dotest)
+    TGraph *FitGraph3 = 0;
     
   TPolyMarker *pm2; //calculated intercepts
   
@@ -200,7 +215,7 @@ void SiPulser_All (void)
 	  if(run==1264) {
 	    if(MBID==1 && CBID==1 && ChNum==4)continue;
 	    //if(MBID==1 && CBID==8 && ChNum==2)continue;
-	  //if(MBID==2 && CBID==8 && ChNum==2)continue;
+	    //if(MBID==2 && CBID==8 && ChNum==2)continue;
 	  }
 	      
 	  c1->cd(1);	    
@@ -231,7 +246,9 @@ void SiPulser_All (void)
 	  //s->SetResolution(3);
 	  //Int_t nfound = s->Search(h1,9," ",0.15);//run 643?
 	  //Int_t nfound = s->Search(h1,10," ",0.15);//run 1034
-	  Int_t nfound = s->Search(h1,10," ",0.05);//run 1264
+	  Float_t ssigma=10;
+	  Float_t sthresh=0.05;
+	  Int_t nfound = s->Search(h1,ssigma," ",sthresh);//run 1264
 	  
 	  //sort peaks in order of channle number
 	  Float_t *xpeaks = s->GetPositionX();
@@ -428,6 +445,55 @@ void SiPulser_All (void)
 	  pm2->Draw("same");
 
 	  c1->Update();
+	  
+	  if(dotest) {
+	    c3->cd(1);	    
+	    if(docentroid)
+	      DataTree->Draw(Form("Si.Energy+%f >> h3",zeroshiftc/vperchc),Form("Si.Energy>1 && Si.MBID==%d && Si.CBID==%d && Si.ChNum==%d",MBID,CBID,ChNum));
+	    else
+	      DataTree->Draw(Form("Si.Energy+%f >> h3",zeroshift/vperch),Form("Si.Energy>1 && Si.MBID==%d && Si.CBID==%d && Si.ChNum==%d",MBID,CBID,ChNum));
+	    h3->SetTitle(Form("MBID %d CBID %d ChNum %d test",MBID,CBID,ChNum));
+	    
+	    nfound = s->Search(h3,ssigma," ",sthresh);//run 1264
+	    c3->Update();      
+	    //sort peaks in order of channle number
+	    xpeaks = s->GetPositionX();
+	    Temp=0;
+	    for(Int_t i=0;i<nfound;i++) {
+	      for(Int_t j=i;j<nfound;j++) {
+		if (xpeaks[j] < xpeaks[i]) {
+		  Temp = xpeaks[i];
+		  xpeaks[i] = xpeaks[j];
+		  xpeaks[j] = Temp;  
+		}
+	      }
+	    }
+	    if(nfound==npeaks) 
+	      FitGraph3 = new TGraph(nfound,xpeaks, &(Volts[0]));
+	    else if(nfound==(npeaks-1)) 
+	      FitGraph3 = new TGraph(nfound,xpeaks, &(Volts1[0]));
+	    else if(nfound==(npeaks-2)) 
+	      FitGraph3 = new TGraph(nfound,xpeaks, &(Volts2[0]));
+	    else if(nfound==(npeaks-3)) 
+	      FitGraph3 = new TGraph(nfound,xpeaks, &(Volts3[0]));
+	    else if(nfound==(npeaks-4)) 
+	      FitGraph3 = new TGraph(nfound,xpeaks, &(Volts4[0]));
+	    else {
+	      printf("number of peaks found = %d of %d\n", nfound, npeaks);
+	      continue;
+	    }
+	    c3->cd(2);
+	    FitGraph3->SetTitle(Form("Fit MBID %d CBID %d ChNum %d",MBID,CBID,ChNum));
+	    FitGraph3->GetHistogram()->GetXaxis()->SetTitle("Peak positions (channel)");
+	    FitGraph3->GetHistogram()->GetYaxis()->SetTitle("Pulser setting (voltage)");
+	    FitGraph3->Draw("AP*");
+	    FitGraph3->Fit("fit","qROB=0.95");
+	    zeroshift = fit->GetParameter(0);
+	    vperch = fit->GetParameter(1);
+	    q0 = -zeroshift/vperch;
+	    printf("         test fit intercept = %9.4f, offset = %f\n",q0,zeroshift);
+	    c3->Update();      
+	  }
 	  if(dowait) {
 	    c2->Update();      
 	    c2->WaitPrimitive();
