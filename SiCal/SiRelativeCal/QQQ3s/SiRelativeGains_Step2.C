@@ -21,26 +21,23 @@
 //Methods
 #include "SiRelativeGains.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SiRelativeGains_Step2(void)
-{
+void SiRelativeGains_Step2(void) {
   using namespace std;
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2z.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
   }
-
+  
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
   gains.Load("saves/QQQRelativeGains_Step1.dat");
-    
-  gains.Open("saves/QQQRelativeGains_Step2");  
+  gains.Save("saves/QQQRelativeGains_Step2");  
   
   TCanvas *can = new TCanvas("can","can",1362,656);
   can->SetWindowPosition(0,63);
   
   BadDetectors bad;
-  bad.count=0;
   GainMatch gainmatch;
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
@@ -53,27 +50,15 @@ void SiRelativeGains_Step2(void)
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
 	bad.Add(DetNum,FrontChNum,BackChNum);
-	outfile2 << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t"
-		 << left << fixed << setw(8) << gains.old[DetNum][BackChNum] << "\t"
-		 << left << fixed << setw(8) << "N/A\t\t"
-		 << left << fixed << setw(8) << 0 << endl;
-	gains.old[DetNum][BackChNum] = 0;
+	gains.Add(DetNum,BackChNum,0,0);
 	continue;
       }
-
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
-      printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",gains.old[DetNum][BackChNum],gain, gains.old[DetNum][BackChNum]/gain);
-      outfile2 << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t"
-      	       << left << fixed << setw(8) << gains.old[DetNum][BackChNum] << "\t"
-      	       << left << fixed << setw(8) << gain << "\t"
-      	       << left << fixed << setw(8) << gains.old[DetNum][BackChNum]/gain << endl;
-      gains.old[DetNum][BackChNum] = gains.old[DetNum][BackChNum]/gain;
+      gains.Add(DetNum,BackChNum,gain,1./gain);
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum][i] << endl;
     }
   }
-  outfile.close();
-  outfile2.close();
   bad.Print();
 }
