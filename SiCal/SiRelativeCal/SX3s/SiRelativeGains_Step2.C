@@ -8,6 +8,7 @@
 // Developed by : Jon Lighthall, 2017.04
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //C++
+#include <fstream>
 #include <exception>
 //ROOT
 #include <TMath.h>
@@ -16,15 +17,12 @@
 #include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
-#include <TF1.h>
 //Methods
 #include "SiRelativeGains.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SiRelativeGains_Step2(void)
-{
+void SiRelativeGains_Step2(void) {
   using namespace std;
-
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -32,9 +30,12 @@ void SiRelativeGains_Step2(void)
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step2_170418.dat");
-  gains.Save("saves/X3RelativeGains_Step2");  
- 
+  gains.Load("saves/X3RelativeGains_Step3_170418.dat");
+  gains.Save("saves/X3RelativeGains_Step2");
+  Offsets offsets;
+  offsets.Load("saves/X3FinalFix.dat");
+  offsets.Save("saves/X3FinalFix_Step2");
+  
   TCanvas *can = new TCanvas("can","can",800,600);
 
   BadDetectors bad;
@@ -54,15 +55,20 @@ void SiRelativeGains_Step2(void)
 	bad.Add(DetNum,FrontChNum,BackChNum);
 	gains.Add(DetNum-4,FrontChNum+4,0,0);
 	gains.Add(DetNum-4,FrontChNum+8,0,0);
+	offsets.Add(DetNum-4,FrontChNum+4,0,0);
+	offsets.Add(DetNum-4,FrontChNum+8,0,0);
 	continue;
       }
       
       Double_t gain = gainmatch.Fit4(hist,can,1);
       gains.Add(DetNum-4,FrontChNum+4,gain,gain);
       gains.Add(DetNum-4,FrontChNum+8,gain,gain);
+      offsets.Add(DetNum-4,FrontChNum+4,offset,offset);
+      offsets.Add(DetNum-4,FrontChNum+8,offset,offset);
     }
     for (Int_t i=0; i<12; i++){
-      outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum-4][i] << endl;
+      outfile        << DetNum << "\t" << i << "\t" <<   gains.old[DetNum-4][i] << endl;
+      outfile_offset << DetNum << "\t" << i << "\t" << offsets.old[DetNum-4][i] << endl;
     }
   }
   bad.Print();
