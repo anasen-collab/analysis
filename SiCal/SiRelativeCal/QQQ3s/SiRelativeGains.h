@@ -34,7 +34,7 @@ ofstream outfile_offset;
 Int_t counter;
 Double_t slope;
 Double_t offset;
-Bool_t doprint=kFALSE;
+Bool_t doprint=1;
 
 class Gains {
  public:
@@ -129,17 +129,17 @@ void Gains::Save(TString fname) {
   outfile << "DetNum\tFrontCh\tGain\n";
   
   outfile_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
-  outfile_diag << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+  outfile_diag << "DetNum\tFrontCh\tOld     \tSlope   \tNew     \tCounter\n";
 }
 
 void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
   if(new_gain&&doprint)
-    printf(" Previous gain   = %f \t Slope  = %f \t New gain  = %f\n",old[DetNum][ChNum],new_slope,new_gain);
+    printf(" Previous gain   = %f \t Slope  = %f \t New gain   = %f\n",old[DetNum][ChNum],new_slope,new_gain);
   Int_t wide=8;
   Int_t prec=wide-3;
   if(new_gain==0)
     prec=0;
-  outfile_diag << DetNum +4 << "\t" << ChNum << "\t"
+  outfile_diag << DetNum  << "\t" << ChNum << "\t"
 	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
 	   << left << fixed << setw(wide) << setprecision(prec) << new_slope << "\t"
 	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
@@ -189,7 +189,7 @@ void Offsets::Save(TString fname) {
 
 void Offsets::Add(Int_t DetNum,Int_t ChNum,Double_t offset,Double_t new_offset) {
   if(new_offset&&doprint)
-    printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,new_offset);
+    printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,old[DetNum][ChNum]+new_offset);
   old[DetNum][ChNum]+=new_offset;
 }
 
@@ -212,6 +212,7 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
   front[count] = FrontChNum;
   back[count] = BackChNum;
   count++;
+  counter=0;
 }
 
 void BadDetectors::Print() {
@@ -593,9 +594,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     delete graph;
   }
     
-  Double_t gain = slope;
   delete fun2;
   delete fun3;
 
-  return gain;
+  return slope;
 }
