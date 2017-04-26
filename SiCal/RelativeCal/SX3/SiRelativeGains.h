@@ -30,7 +30,7 @@ ofstream outfile_offset;
 Int_t counter;
 Double_t slope;
 Double_t offset;
-Bool_t doprint=kFALSE;
+Bool_t doprint=kTRUE;
 
 class Gains {
  public:
@@ -155,9 +155,9 @@ void Offsets::Load(TString fname) {
     if(doprint)
       cout << "Read OK"<<endl;
     infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()){
+    while (!infile.eof()) {
       infile >> det >> ch >> dummy;
-      old[det][ch] = dummy;
+      old[det-4][ch] = dummy;
     }
   }else{
     cout << "Error: Dat file " << fname.Data() << " does not exist\n";
