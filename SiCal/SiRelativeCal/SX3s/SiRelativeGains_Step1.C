@@ -8,6 +8,7 @@
 // Developed by : Jon Lighthall, 2017.02
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //C++
+#include <fstream>
 #include <exception>
 //ROOT
 #include <TMath.h>
@@ -16,14 +17,13 @@
 #include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
-#include <TF1.h>
 //Methods
 #include "SiRelativeGains.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step1(void) {
   using namespace std;
 
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S1.root");//10MeV only
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2_fix.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -39,7 +39,7 @@ void SiRelativeGains_Step1(void) {
   BadDetectors bad;
   GainMatch gainmatch;
 
-  for (Int_t DetNum=4; DetNum<28; DetNum++) {
+  for (Int_t DetNum=4; DetNum<ndets; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
