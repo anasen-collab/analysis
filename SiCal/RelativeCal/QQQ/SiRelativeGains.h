@@ -8,12 +8,11 @@
 #include <fstream>
 #include <exception>
 #include <time.h>
-#include <iomanip>  //file formatting; std::setfill, std::setw
+#include <iomanip>
 //ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
-#include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TGraph.h>
@@ -30,14 +29,24 @@ const Int_t ndets=4;
 const Int_t nchan=32;
 const Int_t range=4096*4;
 ofstream outfile;
-ofstream outfile2;
+ofstream outfile_diag;
+ofstream outfile_scale;
+ofstream outfile_offset;
+Int_t counter;
 
 class Gains {
  public:
   Double_t old[ndets][nchan];
   void Load(TString);
   void Print();
-  void Open(TString);
+  void Save(TString);
+  void Add(Int_t,Int_t,Double_t,Double_t);
+  ~Gains() {
+    outfile.close();
+    outfile_diag.close();
+    outfile_scale.close();
+    outfile_offset.close();
+  };
 };
 
 class Time {
@@ -52,12 +61,18 @@ class BadDetectors {
   Int_t front[ndets*nchan];
   Int_t back[ndets*nchan];
   Int_t count;
+  BadDetectors() {
+    count=0;
+  };
   void Add(Int_t,Int_t,Int_t BackChNum=-1);
   void Print();
 };
 
 class GainMatch {
  public:
+  GainMatch() {
+    counter=0;
+  };
   Double_t Fit1(TH2F*,TCanvas*);
   Double_t Fit2(TH2F*,TCanvas*);
   Double_t Fit4(TH2F*,TCanvas*);
@@ -93,14 +108,36 @@ void Gains::Print() {
   }
 }
 
-void Gains::Open(TString fname) {
+void Gains::Save(TString fname) {
   Time time;
   time.Get();
   outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
   outfile << "DetNum\tFrontCh\tGain\n";
   
-  outfile2.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
-  outfile2 << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+  outfile_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
+  outfile_diag << "DetNum\tFrontCh\tBackCh\tOld\t\tSlope\t\tNew\n";
+
+  outfile_scale.open(Form("%s_%s_scale.dat",fname.Data(),time.stamp));
+  outfile << "DetNum\tFrontCh\tGain\n";
+
+  outfile_offset.open(Form("%s_%s_offset.dat",fname.Data(),time.stamp));
+  outfile << "DetNum\tFrontCh\tOffset\n";
+}
+
+void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t slope,Double_t new_gain) {
+  if(new_gain)
+    printf(" Previous gain = %f \t Slope = %f \t New gain = %f\n",old[DetNum][ChNum],slope,new_gain);
+  Int_t wide=8;
+  Int_t prec=wide-3;
+  if(new_gain==0)
+    prec=0;
+  outfile_diag << DetNum +4 << "\t" << ChNum << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << slope << "\t"
+	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
+	   << counter
+	   << endl;
+  old[DetNum][ChNum]*=new_gain;
 }
 
 void Time::Get() {
@@ -150,7 +187,6 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   cut->SetLineColor(6);
   cut->Draw("same");
   
-  Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
@@ -180,7 +216,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,range);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2","qROB");
 
   TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
@@ -191,7 +227,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   
   can->Update();
  
-  Double_t gain = fun2->GetParameter(0);
+  Double_t gain = fun2->GetParameter(1);
   delete x;
   delete y;
   delete graph;
@@ -215,14 +251,13 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
   y1.resize(cut->GetN());
 
   printf("Verticies of cut are:\n");
-    for(int n=0;n<cut->GetN();n++){
-      cut->GetPoint(n,x1[n],y1[n]);
-      cout << "\t" << x1[n] << "\t" << y1[n] << endl;
+  for(int n=0;n<cut->GetN();n++){
+    cut->GetPoint(n,x1[n],y1[n]);
+    cout << "\t" << x1[n] << "\t" << y1[n] << endl;
   }
   cut->SetLineColor(6);
   cut->Draw("same");
   
-  Int_t counter = 0;
   for (int i=1; i<hist->GetNbinsX(); i++){
     for (int j=1; j<hist->GetNbinsY(); j++){
       if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
@@ -252,12 +287,12 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
   TGraph *graph = new TGraph(counter,x,y);
   graph->Draw("*same");
 
-  TF1 *fun2 = new TF1("fun2","[0]*x +[1]",0,range);
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2","qROB");
   can->Update();
   //can->WaitPrimitive();
 
-  Double_t gain = fun2->GetParameter(0);
+  Double_t gain = fun2->GetParameter(1);
   delete x;
   delete y;
   delete graph;
@@ -434,14 +469,13 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     printf(" Step %d: low=%4.0f width=%5.0f slope=%9.5f offset=%7.2f",steps-k+1,x1,width,slope,offset);
     Double_t dx=(width/2.0)*slope/sqrt(1+slope*slope);
     Double_t dy=(width/2.0)*1/sqrt(1+slope*slope);
-    const Int_t nv = 5;//set number of verticies
+    const Int_t nv = 5;
     Double_t xc[nv] = {x1+dx0,x2+dx,x2-dx,x1-dx0,x1+dx0};
     Double_t yc[nv] = {y1-dy0,y2-dy,y2+dy,y1+dy0,y1-dy0};
     TCutG *cut = new TCutG("cut",nv,xc,yc);
     cut->SetLineColor(6);
     cut->Draw("same");
   
-    Int_t counter = 0;
     for (int i=1; i<hist->GetNbinsX(); i++) {//determine number of counts inside window
       for (int j=1; j<hist->GetNbinsY(); j++) {
 	if ( !cut->IsInside(hist->GetXaxis()->GetBinCenter(i),hist->GetYaxis()->GetBinCenter(j))) {
@@ -472,7 +506,7 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     TGraph *graph = new TGraph(counter,x,y);
     //graph->SetMarkerSize();
     //graph->Draw("same*");
-    fun2 = new TF1("fun2","[0]*x +[1]",x1,x2);
+    fun2 = new TF1("fun2","[0]+[1]*x",x1,x2);
     //fun2->SetLineWidth(1);
     fun2->SetLineColor(k+2);
     graph->Fit("fun2","qROB");
@@ -490,8 +524,8 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
   
     can->Update();
     //if(k==0) can->WaitPrimitive();
-    slope=fun2->GetParameter(0);
-    offset=fun2->GetParameter(1);
+    slope=fun2->GetParameter(1);
+    offset=fun2->GetParameter(0);
   
     delete x;
     delete y;
