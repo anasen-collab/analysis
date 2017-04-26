@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step2(void) {
   using namespace std;
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -59,7 +59,7 @@ void SiRelativeGains_Step2(void) {
       }
       Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
       gains.Add(DetNum,BackChNum,gain,1./gain);
-      offsets.Add(DetNum,BackChNum,offset,offset);
+      offsets.Add(DetNum,BackChNum,offset,-offset);
     }
     for (Int_t i=0; i<32; i++){
       outfile << DetNum << "\t" << i << "\t" << gains.old[DetNum][i] << endl;
