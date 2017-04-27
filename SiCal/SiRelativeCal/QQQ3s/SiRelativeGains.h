@@ -134,7 +134,7 @@ void Gains::Save(TString fname) {
 
 void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
   if(new_gain&&doprint)
-    printf(" Previous gain   = %f \t Slope  = %f \t New gain   = %f\n",old[DetNum][ChNum],new_slope,new_gain);
+    printf(" Previous gain   = %f \t Slope  = %f \t New gain   = %f\n",old[DetNum][ChNum],new_slope,old[DetNum][ChNum]*new_gain);
   Int_t wide=8;
   Int_t prec=wide-3;
   if(new_gain==0)
