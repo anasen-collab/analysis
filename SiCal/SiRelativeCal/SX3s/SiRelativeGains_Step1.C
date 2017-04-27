@@ -31,7 +31,7 @@ void SiRelativeGains_Step1(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step3_170418.dat");
+  gains.Load("saves/X3RelativeGains_Step3_170427.dat");
   gains.Save("saves/X3RelativeGains_Step1");
   
   TCanvas *can = new TCanvas("can","can",800,600);
@@ -39,7 +39,8 @@ void SiRelativeGains_Step1(void) {
   BadDetectors bad;
   GainMatch gainmatch;
 
-  for (Int_t DetNum=4; DetNum<ndets; DetNum++) {
+  for (Int_t DetNum=4; DetNum<ndets+4; DetNum++) {
+    //if(DetNum!=12) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
@@ -52,7 +53,7 @@ void SiRelativeGains_Step1(void) {
 	continue;
       }
       
-      Double_t gain = gainmatch.Fit4(hist,can,-1);
+      Double_t gain = gainmatch.Fit4(hist,can,-gains.old[DetNum-4][FrontChNum+8]);
       gains.Add(DetNum-4,FrontChNum+8,gain,-1.0/gain);
     }
     for (Int_t i=0; i<12; i++){
