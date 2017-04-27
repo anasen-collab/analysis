@@ -31,6 +31,7 @@ Int_t counter;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
+Bool_t doup=kFALSE;
 
 class Gains {
  public:
@@ -82,8 +83,8 @@ class GainMatch {
     counter=0;
   };
   Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
-  Double_t Fit2(TH2F*,TCanvas*);
-  Double_t Fit3(TH2F*,TCanvas*);
+  Double_t Fit2(TH2F*,TCanvas*,Float_t dummy=0);
+  Double_t Fit3(TH2F*,TCanvas*,Float_t dummy=0);
   Double_t Fit4(TH2F*,TCanvas*,Double_t);
 };
 
@@ -111,7 +112,7 @@ void Gains::Load(TString fname) {
 
 void Gains::Print() {
   printf("DetNum\tFrontCh\tGain\n");
-  for (Int_t i=0; i<ndets; i++){
+  for (Int_t i=0; i<ndets-4; i++){
     for (Int_t j=0; j<nchan; j++){
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
     }
@@ -130,7 +131,7 @@ void Gains::Save(TString fname) {
 
 void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
   if(new_gain&&doprint)
-    printf(" Previous gain   = %f \t Slope  = %f \t New gain  = %f\n",old[DetNum][ChNum],new_slope,new_gain);
+    printf(" Previous gain   = %f \t Slope  = %f \t New gain  = %f\n",old[DetNum][ChNum],new_slope,old[DetNum][ChNum]*new_gain);
   Int_t wide=8;
   Int_t prec=wide-3;
   if(new_gain==0)
@@ -185,7 +186,7 @@ void Offsets::Save(TString fname) {
 
 void Offsets::Add(Int_t DetNum,Int_t ChNum,Double_t offset,Double_t new_offset) {
   if(new_offset&&doprint)
-    printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,new_offset);
+    printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,old[DetNum][ChNum]+new_offset);
   old[DetNum][ChNum]+=new_offset;
 }
 
@@ -275,7 +276,8 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
-  //can->Update();
+  slope=fun2->GetParameter(1);
+  if(doup) can->Update();
   
   //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
   delete x;
@@ -283,11 +285,11 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
   delete graph;
   delete fun2;
   
-  return fun2->GetParameter(1);
+  return slope;
 }
 
-Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can) {//manual cut
-  if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
+Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can, Float_t dummy) {//manual cut
+  if(!(can->GetShowEventStatus()))can->ToggleEventStatus(); cout<<dummy;
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
   Int_t up=6000;
@@ -343,20 +345,26 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can) {//manual cut
   fun2->SetParameter(0,10);
   fun2->SetParameter(1,-1);
   graph->Fit("fun2","qROB");
-  can->Update();
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  if(doup) can->Update();
   //can->WaitPrimitive();
-
-  //cout << fun2->GetChisquare() << "  " << fun2->GetChisquare()/counter;
+  if(doprint) {
+    printf(" slope=%9.5f offset=%7.2f",slope,offset);
+    printf(" counts = %d in window",counter);
+    printf(", Chi^2/DOF = %f\n",fun2->GetChisquare()/counter);
+    cout << "Chi square = "<<fun2->GetChisquare() << "  per DOF = " << fun2->GetChisquare()/counter <<endl;
+  }
   delete x;
   delete y;
   delete graph;
   delete fun2;
 
-  return fun2->GetParameter(1);
+  return slope;
 }
 
-Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can) {//cut-as-line fit
-  if(!(can->GetShowEventStatus()))can->ToggleEventStatus();
+Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line fit
+  if(!(can->GetShowEventStatus()))can->ToggleEventStatus(); cout<<dummy;
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
   Int_t up=6000;
@@ -381,14 +389,15 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can) {//cut-as-line fit
 	
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2");
-	
-  can->Update();
+  slope=fun2->GetParameter(1);
+  
+  if(doup) can->Update();
   can->WaitPrimitive();
 
   delete graph;
   delete fun2;
       
-  return fun2->GetParameter(1);
+  return slope;
 }
 
 Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto calc cut
@@ -427,7 +436,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
     cout<<endl;
   
   Int_t steps=2; // set number of iteration steps
-
+  TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
   TF1 *fun2;
   for (int k=steps; k>-1; k--) {
     //Set cut shape here; assumes form y=mx+b
@@ -459,7 +468,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
     }
 
     if(doprint)
-      printf(" counts = %d in window\n",counter);
+      printf(" counts = %d in window",counter);
     Double_t *x = new Double_t[counter];
     Double_t *y = new Double_t[counter];
 
@@ -486,17 +495,20 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
     graph->Fit("fun2","qROB");
     slope=fun2->GetParameter(1);
     offset=fun2->GetParameter(0);
-    
+    Double_t chiDOF=fun2->GetChisquare()/counter;
+    if(doprint)
+      printf(", Chi^2/DOF = %f\n",chiDOF);
     fun2->Draw("same");
-  
-    TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
-   
+    if(chiDOF<1) {
+      slope=0;
+      k=-1;
+    }
     leg->AddEntry(cut,Form("cut %.0f wide",width),"l");
     //leg->AddEntry(graph,"graph","p");
     leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
     leg->Draw();
   
-    //can->Update();
+    if(doup) can->Update();
     //if(k==0) can->WaitPrimitive();
   
     delete x;
