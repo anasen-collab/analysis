@@ -134,8 +134,8 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
   	     "Param/initialize/AlphaCalibration.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step3_170418.dat",
-  	     "Param/17F_cals/QQQRelativeGains_Step2_170426.fix.dat");
+  	     "Param/17F_cals/X3RelativeGains_Step3_170427.dat",
+  	     "Param/17F_cals/QQQRelativeGains_Step2_170427.dat");
   
   /*
   //intialize 24Mg
@@ -184,8 +184,8 @@ int main(int argc, char* argv[]){
 	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
   */
   
-  CMAP->FinalInit("Param/initialize/X3FinalFix.dat","Param/initialize/X3geometry_init.dat");
-  CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170426.dat");
+  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170427.dat","Param/initialize/X3geometry_init.dat");
+  CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170427.dat");
   CMAP->InitWorldCoordinates("Param/initialize/NewWorld_030316.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
@@ -569,32 +569,34 @@ int main(int argc, char* argv[]){
 #endif
 	//////////////////////////////////////////// Fill SX3 Histograms for Calibration////////////////////////////////////////////
 #ifdef Hist_for_Cal
-
+	Int_t udmax=4*4096/3;
+	Int_t fbmax=4*4096/3;
+	Int_t bins=512;
 	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
 	  //Step 1 RelCal/U-D, all energies changed to E_Rel
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
-		 600,0,6000, Si.det_obj.EUp_Rel[0],600,0,6000,Si.det_obj.EDown_Rel[0]);
+		 bins,0,udmax, Si.det_obj.EUp_Rel[0],bins,0,udmax,Si.det_obj.EDown_Rel[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
 		 100,0,1,(Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0]),100,0,1,(Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]));
 
 	  //Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
-	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 
 	  //Step 3 RelCal//F-B //RelGain Cal from Step 2 is applied
-	  MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 	  
 	  //// just for checking histograms per detector
-	  MyFill(Form("back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("back_vs_front%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 	  MyFill(Form("down_vs_up%i",Si.det_obj.DetID),600,0,6000,Si.det_obj.EUp_Rel[0],600,0,6000,Si.det_obj.EDown_Rel[0]);
 
 	  //check offset
-  	  MyFill(Form("sx3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
+  	  MyFill(Form("sx3offset_back_vs_front%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
 	  
-	  MyFill(Form("sx3offset_back_vs_front_normback%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],300,-0.2,0.2,((Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0]))/Si.det_obj.EBack_Rel[0]));
+	  MyFill(Form("sx3offset_back_vs_front_normback%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EBack_Rel[0],300,-0.2,0.2,((Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0]))/Si.det_obj.EBack_Rel[0]));
 
-	  MyFill(Form("offset_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/Si.det_obj.EBack_Rel[0]));
-	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
+	  MyFill(Form("offset_check%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/Si.det_obj.EBack_Rel[0]));
+	  MyFill(Form("offset2_check%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EBack_Rel[0],100,-1,1,((Si.det_obj.EDown_Rel[0]-Si.det_obj.EUp_Rel[0])/(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0])));
 	  
 	}  
 #endif	 	  
@@ -720,18 +722,19 @@ int main(int argc, char* argv[]){
 #endif
 	////////////////////////////////////////  Fill Q3 Histograms for Calibration  ///////////////////////////////////////////
 #ifdef Hist_for_Cal
-	
+	Int_t fbmax=4*4096/3;
+	Int_t bins=512;
 	if(Si.det_obj.HitType ==11){//Just to make it simple.
 	  //Step 1 RelCal//F-B	 //No need to give it a name Q3_ as we have DetID but since we are Calibration Differently for Q3 && SX3. 
-	  MyFill(Form("Q3_back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.FrontChNum[0],Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EFront_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("Q3_back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.FrontChNum[0],Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EFront_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 	  
 	  //Step 2 RelCal//F-B //RelGain Cal from Step 1 is applied
-	  MyFill(Form("Q3_back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),512,0,16384,Si.det_obj.EFront_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("Q3_back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EFront_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 	  //Just for check
-	  MyFill(Form("Q3_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EFront_Rel[0],512,0,16384,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("Q3_back_vs_front%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EFront_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 
 	  //check offset
-  	  MyFill(Form("Q3offset_back_vs_front%i",Si.det_obj.DetID),512,0,16384,Si.det_obj.EFront_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-Si.det_obj.EFront_Rel[0]));
+  	  MyFill(Form("Q3offset_back_vs_front%i",Si.det_obj.DetID),bins,0,fbmax,Si.det_obj.EFront_Rel[0],200,-400,400,(Si.det_obj.EBack_Rel[0]-Si.det_obj.EFront_Rel[0]));
 
 	}
 #endif
