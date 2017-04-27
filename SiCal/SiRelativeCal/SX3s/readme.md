@@ -18,7 +18,11 @@ Relative calibration of Si gains
 The output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
 Detector number, Front channel number, Slope.
 The first line of dat files is a header line.
-The SX3 detectors correspond to detectors number 4-27. Each detector has 12 front channels (0-11).
+The SX3 detectors correspond to detectors number 4-27. Each detector has 12 channels (0-11). The channels are enumerated as follows
+* 0- 3 back  channel                 (total energy)
+* 4- 7 front channel, up? position   (partial energy)
+* 8-11 front channel, down? position (partial energy)
+
 Note, that if you loop over a subset of detectors, only the paramaters for those detectors will be written into the new `.dat` file.
 
 The `.dat` files  included in the repository are an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
