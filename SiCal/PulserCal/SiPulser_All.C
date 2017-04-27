@@ -9,6 +9,9 @@
 //// Edited by : Nabin Rijal , 2015Dec13
 ////             Jon Lighthall Nov 2016
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -17,12 +20,9 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SiPulser_All (void)
-{
-  //MBID CID ASICs_Chn ZeroShift VperCh
+void SiPulser_All (void) {
   const Int_t run = 1262;
 
   if(run==250||run==251) {
@@ -72,6 +72,10 @@ void SiPulser_All (void)
       TFile *f1 = new TFile("/data0/lighthall/root/run1264.root");
       TFile *f2 = new TFile("/data0/lighthall/root/run1035.root");
     }
+  }
+  if ( !f1->IsOpen() ) {
+    cout << "Error: Root file does not exist\n";
+    exit(EXIT_FAILURE);
   }
 
   const int npar=npeaks*3;
@@ -416,7 +420,6 @@ void SiPulser_All (void)
 	  }
 	  leg->Draw();
 		
-	  ////FitGraph->Fit("fit","E");
 	  zeroshift = fit->GetParameter(0);
 	  vperch = fit->GetParameter(1);
 	  q0 = -zeroshift/vperch;
