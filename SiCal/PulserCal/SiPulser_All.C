@@ -157,6 +157,7 @@ void SiPulser_All (void) {
   TGraph *FitGraph = 0;
   
   ofstream outfile; //offsets, ROB
+  outfile << "MBID\tCBID\tChan\tOffset	 \tolts/Chan"<<endl;
   ofstream outfile2;//peaks
   ofstream outfile3;//offsets, full fit
   ofstream outfile4;//offsets, centroid ROB
