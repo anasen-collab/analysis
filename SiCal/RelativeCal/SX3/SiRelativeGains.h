@@ -21,6 +21,7 @@
 #include <TLegend.h>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
+TFile *f1;
 const Int_t ndets=24;
 const Int_t nchan=12;
 const Int_t range=4096*4;
@@ -31,7 +32,7 @@ Int_t counter;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
-Bool_t doup=kFALSE;
+Bool_t doup=1;
 
 class Gains {
  public:
@@ -86,6 +87,8 @@ class GainMatch {
   Double_t Fit2(TH2F*,TCanvas*,Float_t dummy=0);
   Double_t Fit3(TH2F*,TCanvas*,Float_t dummy=0);
   Double_t Fit4(TH2F*,TCanvas*,Double_t);
+  Double_t Fit7(Int_t, Int_t, Int_t);
+  Double_t Fit8(Int_t, Int_t);
 };
 
 void Gains::Load(TString fname) {
@@ -209,6 +212,7 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
   front[count] = FrontChNum;
   back[count] = BackChNum;
   count++;
+  counter=0;
 }
 
 void BadDetectors::Print() {
@@ -495,6 +499,8 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
     graph->Fit("fun2","qROB");
     slope=fun2->GetParameter(1);
     offset=fun2->GetParameter(0);
+    if(doprint)
+      printf("\n                     slope=%9.5f offset=%7.2f",slope,offset);
     Double_t chiDOF=fun2->GetChisquare()/counter;
     if(doprint)
       printf(", Chi^2/DOF = %f\n",chiDOF);
@@ -518,5 +524,53 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
     
   delete fun2;
  
+  return slope;
+}
+
+Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
+  if(doprint) 
+    printf("For back_vs_front%i_%i_%i: \n",DetNum,FrontChNum,BackChNum);
+    
+  TTree *MainTree = NULL;
+  MainTree = (TTree*)f1->Get("MainTree");
+  if (MainTree==NULL) {
+    cout << "Tree does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  MainTree->Draw("EBack_Rel[0]:(EUp_Rel[0]+EDown_Rel[0])",Form("DetID==%d && FrontChannel==%d && BackChannel==%d && HitType==111",DetNum,FrontChNum,BackChNum),"goff");
+  TGraph *graph = new TGraph(MainTree->GetSelectedRows(),MainTree->GetV2(),MainTree->GetV1());
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  
+  delete graph;
+  delete fun2;
+    
+  return slope;
+}
+
+Double_t GainMatch::Fit8(Int_t DetNum, Int_t BackChNum) {
+  if(doprint) 
+    printf("For back_vs_front%i_b%i: \n",DetNum,BackChNum);
+ 
+  TTree *MainTree = NULL;
+  MainTree = (TTree*)f1->Get("MainTree");
+  if (MainTree==NULL) {
+    cout << "Tree does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  MainTree->Draw("EBack_Rel[0]:(EUp_Rel[0]+EDown_Rel[0])",Form("DetID==%d && BackChannel==%d && HitType==111",DetNum,BackChNum),"goff");
+  counter=MainTree->GetSelectedRows();
+  TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  
+  delete graph;
+  delete fun2;
+  
   return slope;
 }
