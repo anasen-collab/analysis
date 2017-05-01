@@ -592,7 +592,8 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
 		 bins,0,udmax, Si.det_obj.EUp_Rel[0],bins,0,udmax,Si.det_obj.EDown_Rel[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
-		 100,0,1,(Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0]),100,0,1,(Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]));
+		 bins,0,1.3,(Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0]),
+		 bins,0,1.3,(Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]));
 
 	  // Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
