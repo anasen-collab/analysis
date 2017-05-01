@@ -131,10 +131,10 @@ int main(int argc, char* argv[]){
   //before any cal where all slopes are one and offsets zero
   
   //initialize 17F
-  if(0) {//load calibration files
+  if(1) {//load calibration files
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
-  	     "Param/initialize/AlphaCalibration.dat",
+  	     "Param/initialize/AlphaCalibration_init.dat",
   	     "Param/17F_cals/X3RelativeGains_Step3_170428.dat",
   	     "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
   CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170428.dat","Param/initialize/X3geometry_init.dat");
@@ -586,7 +586,7 @@ int main(int argc, char* argv[]){
 	Int_t udmax=4*4096/3;
 	Int_t fbmax=4*4096/3;
 	Int_t bins=512;
-	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
+	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
 	  // Step 1 RelCal/U-D, all energies changed to E_Rel
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
