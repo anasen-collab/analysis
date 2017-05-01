@@ -21,8 +21,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step3(void) {
   using namespace std;
-   TFile *f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
-   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
+  //f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
+   //f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
+   f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -30,10 +31,10 @@ void SiRelativeGains_Step3(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step3_170427.dat");
+  gains.Load("saves/X3RelativeGains_Step2_170428.dat");
   gains.Save("saves/X3RelativeGains_Step3");
   Offsets offsets;
-  offsets.Load("saves/X3FinalFix_Step3_170427.dat");
+  offsets.Load("saves/X3FinalFix_Step2_170428.dat");
   offsets.Save("saves/X3FinalFix_Step3");
   
   TCanvas *can = new TCanvas("can","can",800,600);
@@ -42,7 +43,7 @@ void SiRelativeGains_Step3(void) {
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<ndets+4; DetNum++) {
-    for (Int_t BackChNum=0; BackChNum<4; BackChNum++) {
+    for (Int_t BackChNum=1; BackChNum<4; BackChNum++) {
       TH2F *hist = NULL;
       TString hname=Form("back_vs_front%i_b%i",DetNum,BackChNum);
       hist = (TH2F*)f1->Get(hname.Data());
@@ -54,7 +55,8 @@ void SiRelativeGains_Step3(void) {
 	continue;
       }
       
-      Double_t gain = gainmatch.Fit4(hist,can,1);
+      //Double_t gain = gainmatch.Fit4(hist,can,1);
+      Double_t gain = gainmatch.Fit8(DetNum,BackChNum);
       gains.Add(DetNum-4,BackChNum,gain,1.0/gain);
       offsets.Add(DetNum-4,BackChNum,offset,-offset);
     }
