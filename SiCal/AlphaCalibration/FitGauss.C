@@ -35,7 +35,4 @@
   cout << "Area 1: " << area << endl;
   //cout << "fwhm 1 (ns): " << fwhm_ns << "     " << "fwhm 2 (ns): " << fwhm2_ns << endl;
   //cout << "Resolution: " << resolution << endl;
-
-
-
 }
