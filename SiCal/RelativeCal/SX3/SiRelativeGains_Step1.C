@@ -43,7 +43,7 @@ void SiRelativeGains_Step1(void) {
     //if(DetNum!=12) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
-      //TString hname=Form("down_vs_updivideBack%i_f%i",DetNum,FrontChNum); //normalized
+      //TString hname=Form("down_vs_up_divideBack%i_f%i",DetNum,FrontChNum); //normalized
       TString hname=Form("down_vs_up%i_f%i",DetNum,FrontChNum);           //unnormalized
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
