@@ -169,6 +169,13 @@ class ChannelMap {
   void IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &chip_id,Int_t &asic_ch);
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+int ChannelMap::LoadFail(const char* filename) {
+  cout << "Cannot open file " << filename <<endl;
+  cout << "Macro terminated abnormally!" << endl;
+  exit(EXIT_FAILURE);
+  return 0;
+}
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::LoadASICsChannelMapFile (const char* ASICsChannelMapFilename) {
   ifstream channelmapfile;
@@ -192,11 +199,7 @@ int ChannelMap::LoadASICsChannelMapFile (const char* ASICsChannelMapFilename) {
     }
     TotalNumberOfChannels = i-1;
   }
-  else {
-    cout << "*** ERROR: File " << ASICsChannelMapFilename << " could not be opened!" << endl;
-    exit(EXIT_FAILURE);
-    return 0;
-  }
+  else LoadFail(ASICsChannelMapFilename);
   channelmapfile.close();
   return 1;
 }
@@ -218,15 +221,9 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
     }
     TotalAlignedASICsChannels = j-1;
   }
-  else {
-    cout << "*** ERROR: File " << ASICsPulserFilename  << " could not be opened!" << endl;
-    exit(EXIT_FAILURE);
-    return 0;
-  }
+  else LoadFail(ASICsPulserFilename);
   return 1;
 }
-
-//------------------------------------------------------------------------------------------------//
 
 //------------------------------------------------------------------------------------------------//
 /*int ChannelMap::LoadASICsPulserAlignment_Quadratic (const char* ASICsPulserFilename) {
@@ -245,16 +242,12 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
   }
   TotalAlignedASICsChannels = j-1;
   }
-  else {
-  cout << "*** ERROR: File " << TotalAlignedASICsChannels << " could not be opened!" << endl;
-  return 0;
-  }
+  else LoadFail(TotalAlignedASICsChannels);
   
   return 1;
   }*/
 
 //------------------------------------------------------------------------------------------------//
-
 int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
   ///////////////////////////////////////////////////////////
   // Read the energyslopes file and store data in the array
@@ -292,11 +285,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     NumberOfQ3AlphaCalibrated = j;
     NumberOfAlphaCalibrated = NumberOfSX3AlphaCalibrated + NumberOfQ3AlphaCalibrated;
   }
-  else {
-    cout << "\t*** ERROR: File " << SiGainsFilename << " could not be opened!" << endl;
-    exit(EXIT_FAILURE);
-    return 0;
-  }
+  else LoadFail(SiGainsFilename);
   
   SiGainsFile.close();
   
@@ -328,12 +317,7 @@ int ChannelMap::LoadSX3RelativeSlopes(const char* SX3RelativeSlopeFilename) {
     NumberOfSX3RelativeSlopes = m-1;
     
   }
-  else {
-    cout << "Cannot open SX3 slopes file " << SX3RelativeSlopeFilename << endl;
-    cout << "Macro terminated abnormally!" << endl;
-    exit(EXIT_FAILURE);
-    return 0;
-  }
+  else LoadFail(SX3RelativeSlopeFilename);
   
   SX3RelativeSlopeFile.close();
   return 1;
@@ -364,26 +348,15 @@ int ChannelMap::LoadQ3RelativeSlopes(const char* Q3RelativeSlopeFilename) {
     NumberOfQ3RelativeSlopes = m-1;
     
   }
-  else {
-    cout << "Cannot open Q3 slopes file " << Q3RelativeSlopeFilename << endl;
-    cout << "Macro terminated abnormally!" << endl;
-    exit(EXIT_FAILURE);
-    return 0;
-  }
+  else LoadFail(Q3RelativeSlopeFilename);
   
   Q3RelativeSlopeFile.close();
   
   return 1;
   
 }
-//------------------------------------------------------------------------------------------------//
-int ChannelMap::LoadFail(const char* filename) {
-  cout << "Cannot open file " << filename <<endl;
-  cout << "Macro terminated abnormally!" << endl;
-  exit(EXIT_FAILURE);
-  return 0;
-}
 
+//------------------------------------------------------------------------------------------------//
 int ChannelMap::Init(const char* ASICsChannelMapFilename, 
 		     const char* ASICsPulserFilename,
                      const char* SiGainsFilename, 
@@ -416,6 +389,7 @@ int ChannelMap::Init(const char* ASICsChannelMapFilename,
   
   return status;
 }
+
 //------------------------------------------------------------------------------------------------//
 // Description: Fine tuning parameters for better energy calibration
 // The file contains detector number, channel number and zero shift in MeV
@@ -475,6 +449,7 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
   x3geo.close();
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
   ifstream Q3finalfix;
@@ -507,6 +482,7 @@ int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
     
   return 1;  
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
   ifstream worldCfile;
@@ -527,7 +503,6 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
     YAt0[i]     = 0;
     YAt4[i]     = 0;
   }
-  
   
   if (worldCfile.is_open()) {
     cout << "File with world coordinates " << WorldCoordinatesFilename;
@@ -551,6 +526,7 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
   worldCfile.close();
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::InitPCADC(const char* PCMapFilename) {
   ifstream pcmap;
@@ -580,6 +556,7 @@ int ChannelMap::InitPCADC(const char* PCMapFilename) {
   pcmap.close();
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   ifstream pccal;
@@ -614,6 +591,7 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
   ifstream pcwirecal;
@@ -644,6 +622,7 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
   
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
 
@@ -675,6 +654,7 @@ int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
   
   return 1;
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::IdentifyADC(Int_t ADCid, Int_t CHid, Int_t& DetType) {
   DetType = 0;
@@ -682,6 +662,7 @@ void ChannelMap::IdentifyADC(Int_t ADCid, Int_t CHid, Int_t& DetType) {
     if (ADCid == ADC[i] && CHid == Channel[i])  DetType=DetTypeID[i];
   }  
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::IdentifyWire(Int_t ADCid, Int_t CHid, Int_t& WireID, Int_t& Side) {
   for (Int_t i=0; i<NumberOfADCChannels; i++) {
@@ -691,6 +672,7 @@ void ChannelMap::IdentifyWire(Int_t ADCid, Int_t CHid, Int_t& WireID, Int_t& Sid
     }
   }  
 }
+
 //------------------------------------------------------------------------------------------------//
 Int_t ChannelMap::ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double_t& Vcal) {  
   Vcal = 0;
@@ -700,12 +682,14 @@ Int_t ChannelMap::ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double
   }
   return 1;
 }
+
 //-------------------------------------------------------------------------------------------------//
 void ChannelMap::Get_PCWire_RelGain(Int_t WireID,Double_t& PCRelGain) {
 
   PCRelGain = PCWire_RelGain[WireID];
 
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::GetPCWorldCoordinates(Int_t wireid, Double_t zpos, Double_t& xw, Double_t& yw, Double_t& zw, Double_t& rw, Double_t& phiw) {
   Randomm->SetSeed();
@@ -747,6 +731,7 @@ void ChannelMap::IdentifyDetChan(Int_t mb_id, Int_t chip_id, Int_t asic_ch, Int_
     }
   }
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::AlignASICsChannels(Int_t mb_id, Int_t chip_id, Int_t asic_ch, Double_t& zero, Double_t& gain) {
   for (Int_t i = 0; i<TotalAlignedASICsChannels; i++) {
@@ -756,7 +741,6 @@ void ChannelMap::AlignASICsChannels(Int_t mb_id, Int_t chip_id, Int_t asic_ch, D
     }    
   }
 }
-//------------------------------------------------------------------------------------------------//
 
 //------------------------------------------------------------------------------------------------//
 /*void ChannelMap::AlignASICsChannels_Quadratic(Int_t mb_id, Int_t chip_id, Int_t asic_ch, Double_t& alpha, Double_t& beta, Double_t& gamma, Double_t& X_shift) {
@@ -771,25 +755,27 @@ void ChannelMap::AlignASICsChannels(Int_t mb_id, Int_t chip_id, Int_t asic_ch, D
   }    
   }
   }*/
-//------------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------------//
 void ChannelMap::GetSX3MeVPerChannel1(Int_t DN, Int_t DetCh, Double_t& slope) {
   slope = SX3RelativeSlope[DN-4][DetCh];
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::GetSX3MeVPerChannel2(Int_t DN, Int_t DetCh, Double_t& slope) {
   slope = SiGains[DN];
 }
-//------------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------------//
 void ChannelMap::GetSX3FinalEnergyOffsetInMeV(Int_t DNum, Int_t ChNum, Double_t& zshift) {
   zshift = SX3FinalFix[DNum-4][ChNum];
 }
-//------------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------------//
 void ChannelMap::GetQ3MeVPerChannel1(Int_t DN, Int_t DetCh, Double_t& slope) {
   slope = Q3RelativeSlope[DN][DetCh];
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::GetQ3MeVPerChannel2(Int_t DN, Int_t DetCh, Double_t& slope) {
   slope = SiGains[DN];
@@ -799,6 +785,7 @@ void ChannelMap::GetQ3MeVPerChannel2(Int_t DN, Int_t DetCh, Double_t& slope) {
 void ChannelMap::GetQ3FinalEnergyOffsetInMeV(Int_t DNum, Int_t ChNum, Double_t& zshift) {
   zshift = Q3FinalFix[DNum][ChNum];
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::GetQ3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiY, Double_t& WSiX, Double_t& WSiY, Double_t& WSiR, Double_t& WSiPhi) {
   //Double_t Theta = TMath::Pi()*(DID+1)/2; //Rotate detectors CCW by an angle Theta
@@ -835,6 +822,7 @@ void ChannelMap::GetQ3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiY, Do
   }
   //cout << WSiX << "  " << WSiY << "  " << WSiPhi << "  " << endl;
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, Double_t& WSiX,
 					Double_t& WSiY, Double_t& WSiZ, Double_t& WSiR, Double_t& WSiPhi) {
@@ -863,14 +851,14 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
     WSiZ = 0;
   }
 }
+
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t FinalZPos, Double_t& FinalZPosCal) {
   
   Double_t EdgeDCal=-100.0;
   Double_t EdgeUCal=100.00;
   
-  switch(BChNum)
-    {
+  switch(BChNum) {
     case 0:
       EdgeDCal = 7.5;
       EdgeUCal = 5.625;
@@ -902,6 +890,7 @@ void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t Final
   //if (FinalZPosCal<-0.1 || FinalZPosCal>7.6) {FinalZPosCal =-10;}
  
 }
+
 //------------------------------------------------------------------------------------------------//
 //Description: This function gets the zero-shift from the alignment file by providing the
 //             detector and channel number. The coefficients saved in the alignment file
@@ -921,8 +910,8 @@ void ChannelMap::GetZeroShift (Int_t det, Int_t det_ch, Double_t& zero, Double_t
     }
   }
 }
-//------------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------------//
 //Description: From the channel map provided in the Init method this function get returns the
 //             motherboard ID, chip number, and chip channel for a detector number and detector
 //             channel number.
@@ -937,9 +926,4 @@ void ChannelMap::IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &
     }
   }
 }
-
-//------------------------------------------------------------------------------------------------//
-
-
-
 #endif
