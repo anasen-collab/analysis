@@ -28,7 +28,7 @@ void GeometryCal(void) {
 
   using namespace std;
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");//10MeV only
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3_geo_init.root");//in gas
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");//in gas
   if ( !f1->IsOpen() ) {
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
@@ -90,9 +90,11 @@ void GeometryCal(void) {
 	//TGraph *graph = new TGraph(2,x,y);
 	//graph->Draw("*same");
 	TLine *line = new TLine(x[0],0,x[0],half_max*3);
+	line->SetLineColor(2);
 	line->Draw("same");
 
 	TLine *line2 = new TLine(x[1],0,x[1],half_max*3);
+	line2->SetLineColor(2);
 	line2->Draw("same");
 
 	Int_t wide=6;
