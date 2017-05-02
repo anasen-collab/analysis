@@ -46,13 +46,13 @@ void AlphaCal(void) {
     }
   }
 
-  Float_t Energies[npeaks] = {5,7,10};
-  Float_t Energies1[npeaks-1] = {5,10};
+  Float_t Energies[npeaks] = {4.841,6.852,9.854};
+  Float_t Energies1[npeaks-1];
 
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3_geo_init.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3.root");
   
   if ( !f1->IsOpen() ) {
     cout << "Error: Root file does not exist\n";
@@ -85,12 +85,12 @@ void AlphaCal(void) {
   infile.close();
 
   ofstream outfile;
-  outfile.open("saves/AlphaCalibration.dat");
+  outfile.open("saves/AlphaCalibration_170502.dat");
   outfile << "DetNum\tOffset\tSlope\n";
   
   TCanvas *can = new TCanvas("can","can",800,600);
   can->Divide(1,2);
-  TH1F *hist = new TH1F("hist","hist",300,0,range);
+  TH1F *hist = new TH1F("hist","hist",1024,0,range);
   TF1 *fit = new TF1("fit","pol1",0,range);
   Double_t zeroshift = 0;
   Double_t MeVperCh = 0;
@@ -100,24 +100,23 @@ void AlphaCal(void) {
 
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
     if (DetNum==1 || DetNum==2) {
-      Energies[0] = 5;
-      Energies[1] = 7;
-      Energies[2] = 10;
+      Energies[0] = 4.841;
+      Energies[1] = 6.852;
+      Energies[2] = 9.852;
     }
     else if (DetNum>3 && DetNum<16) {
-      Energies[0] = 5;
-      Energies[1] = 7;
-      Energies[2] = 10;    
+      Energies[0] = 4.837;
+      Energies[1] = 6.849;
+      Energies[2] = 9.846; 
     }
     else if (DetNum>15) {
-      Energies[0] = 5;
-      Energies[1] = 7;
-      Energies[2] = 10;    
+      Energies[0] = 4.819;
+      Energies[1] = 6.826;
+      Energies[2] = 9.817; 
     }
-    
-    // if ( DetNum==7 || DetNum==9 ) {
-    //   continue;
-    // }
+    Energies1[0] = Energies[0];
+    Energies1[1] = Energies[2];
+
     Float_t *average_slope;
     can->cd(1);	 
     MainTree->Draw("EnergyBack>>hist",Form("DetID==%i && (HitType==111 || HitType==11)",DetNum),"");
@@ -135,7 +134,7 @@ void AlphaCal(void) {
     hist->GetXaxis()->SetRangeUser(1500,6000);
     can->Update();
     TSpectrum *s = new TSpectrum();
-    Int_t nfound = s->Search(hist,2," ",0.2);//9 and 0.15
+    Int_t nfound = s->Search(hist,2," ",0.05);//9 and 0.15
    
     if(nfound <(npeaks-1)) {
       printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
@@ -202,7 +201,7 @@ void AlphaCal(void) {
     MeVperCh = fit->GetParameter(1);
     q0 = -zeroshift/MeVperCh;
     // cout << zeroshift << " " << MeVperCh << endl;;
-    printf("DetNum %2d: peaks = %d, slope = %f /t offset = %f\n",DetNum,nfound,zeroshift,MeVperCh );
+    printf("DetNum %2d: peaks = %d, slope = %f \t offset = %f\n",DetNum,nfound,zeroshift,MeVperCh );
     can->Update();
     outfile << DetNum << "\t"<< zeroshift << "\t" << MeVperCh <<endl;
   }
