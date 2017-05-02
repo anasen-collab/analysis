@@ -21,8 +21,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step2(void) {
   using namespace std;
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
+  f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
+  //f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -30,10 +30,10 @@ void SiRelativeGains_Step2(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/QQQRelativeGains_Step2_170427.dat");
+  gains.Load("saves/QQQRelativeGains_Step2_170428.dat");
   gains.Save("saves/QQQRelativeGains_Step2");
   Offsets offsets;
-  offsets.Load("saves/QQQFinalFix_Step2_170427.dat");
+  offsets.Load("saves/QQQFinalFix_Step2_170428.dat");
   offsets.Save("saves/QQQFinalFix_Step2");
   
   TCanvas *can = new TCanvas("can","can",1362,656);
@@ -44,18 +44,18 @@ void SiRelativeGains_Step2(void) {
   
   for (Int_t DetNum=0; DetNum<ndets; DetNum++) {
     for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {
-      Int_t FrontChNum = 0;
       TH2F *hist = NULL;
-      TString hname=Form("Q3_back_vs_front%i_%i_%i",DetNum,FrontChNum,BackChNum);
+      TString hname=Form("Q3_back_vs_front%i_b%i",DetNum,BackChNum);
       hist = (TH2F*)f1->Get(hname.Data());
       if (hist==NULL) {
 	cout << hname << " histogram does not exist\n";
-	bad.Add(DetNum,FrontChNum,BackChNum);
+	bad.Add(DetNum,-1,BackChNum);
 	gains.Add(DetNum,BackChNum,0,0);
 	offsets.Add(DetNum,BackChNum,0,0);
 	continue;
       }
-      Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
+      //Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
+      Double_t gain = gainmatch.Fit8(DetNum,BackChNum);
       gains.Add(DetNum,BackChNum,gain,1./gain);
       offsets.Add(DetNum,BackChNum,offset,-offset);
     }

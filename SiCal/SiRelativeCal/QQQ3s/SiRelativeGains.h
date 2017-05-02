@@ -17,7 +17,6 @@
 #include <TH2F.h>
 #include <TGraph.h>
 #include <TF1.h>
-#include <TSpectrum.h>
 #include <TCutG.h>
 #include <TVector.h>
 #include <TProfile.h>
@@ -25,6 +24,7 @@
 #include <TLegend.h>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
+TFile *f1;
 const Int_t ndets=4;
 const Int_t nchan=32;
 const Int_t range=4096*4;
@@ -89,6 +89,8 @@ class GainMatch {
   Double_t Fit2(TH2F*,TCanvas*);
   Double_t Fit4(TH2F*,TCanvas*);
   Double_t Fit6(TH2F*,TCanvas*);
+  Double_t Fit7(Int_t, Int_t, Int_t);
+  Double_t Fit8(Int_t, Int_t);
 };
 
 void Gains::Load(TString fname) {
@@ -140,11 +142,11 @@ void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
   if(new_gain==0)
     prec=0;
   outfile_diag << DetNum  << "\t" << ChNum << "\t"
-	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
-	   << left << fixed << setw(wide) << setprecision(prec) << new_slope << "\t"
-	   << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
-	   << counter
-	   << endl;
+	       << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
+	       << left << fixed << setw(wide) << setprecision(prec) << new_slope << "\t"
+	       << left << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]*new_gain << "\t"
+	       << counter
+	       << endl;
   old[DetNum][ChNum]*=new_gain;
 }
 
@@ -159,7 +161,7 @@ void Offsets::Load(TString fname) {
     if(doprint)
       cout << "Read OK"<<endl;
     infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()){
+    while (!infile.eof()) {
       infile >> det >> ch >> dummy;
       old[det][ch] = dummy;
     }
@@ -216,10 +218,14 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
 }
 
 void BadDetectors::Print() {
-  cout << "List of bad detectors:\n";
+  printf("List of bad detectors:\n");
   printf(" DetNum\tFrontCh\tBackCh\n");
   for (Int_t i=0; i<count; i++){
     cout << " " << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
+  }
+  for(int i=0;i<3;i++) {//print beeps at end of program
+    printf(" beep!\a\n");
+    sleep(1);
   }
 }
 
@@ -274,7 +280,8 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
 
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2","qROB");
-
+  slope = fun2->GetParameter(1);
+  
   TLegend *leg = new TLegend(0.1,0.75,0.2,0.9);
   leg->AddEntry(cut,"cut","l");
   leg->AddEntry(graph,"graph","p");
@@ -283,13 +290,12 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   
   can->Update();
  
-  Double_t gain = fun2->GetParameter(1);
   delete x;
   delete y;
   delete graph;
   delete fun2;
   
-  return gain;
+  return slope;
 }
 
 Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
@@ -345,16 +351,16 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
 
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
   can->Update();
   //can->WaitPrimitive();
 
-  Double_t gain = fun2->GetParameter(1);
   delete x;
   delete y;
   delete graph;
   delete fun2;
 
-  return gain;
+  return slope;
 }
 
 Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
@@ -461,12 +467,11 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
     delete graph;
   }
 
-  Double_t gain = slope;
   delete xprof;
   delete fun2;
   delete fun3;
 
-  return gain;
+  return slope;
 }
 
 Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixed initial slope
@@ -597,5 +602,55 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
   delete fun2;
   delete fun3;
 
+  return slope;
+}
+
+Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
+  if(doprint) 
+    printf("For Q3_back_vs_front%i_%i_%i: \n",DetNum,FrontChNum,BackChNum);
+    
+  TTree *MainTree = NULL;
+  MainTree = (TTree*)f1->Get("MainTree");
+  if (MainTree==NULL) {
+    cout << "Tree does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  MainTree->Draw("EBack_Rel[0]:EFront_Rel[0]",Form("DetID==%d && FrontChannel==%d && BackChannel==%d && HitType==11",DetNum,FrontChNum,BackChNum),"goff");
+  counter=MainTree->GetSelectedRows();
+  TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  
+  delete graph;
+  delete fun2;
+  
+  return slope;
+}
+
+Double_t GainMatch::Fit8(Int_t DetNum, Int_t BackChNum) {
+  if(doprint) 
+    printf("For Q3_back_vs_front%i_b%i: \n",DetNum,BackChNum);
+ 
+  TTree *MainTree = NULL;
+  MainTree = (TTree*)f1->Get("MainTree");
+  if (MainTree==NULL) {
+    cout << "Tree does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  MainTree->Draw("EBack_Rel[0]:EFront_Rel[0]",Form("DetID==%d && BackChannel==%d && HitType==11",DetNum,BackChNum),"goff");
+  counter=MainTree->GetSelectedRows();
+  TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  
+  delete graph;
+  delete fun2;
+  
   return slope;
 }
