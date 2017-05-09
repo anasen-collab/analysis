@@ -31,10 +31,10 @@ void SiRelativeGains_Step3(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step2_170428.dat");
+  gains.Load("saves/X3RelativeGains_Step2_170501.dat");
   gains.Save("saves/X3RelativeGains_Step3");
   Offsets offsets;
-  offsets.Load("saves/X3FinalFix_Step2_170428.dat");
+  offsets.Load("saves/X3FinalFix_Step2_170501.dat");
   offsets.Save("saves/X3FinalFix_Step3");
   
   TCanvas *can = new TCanvas("can","can",800,600);
