@@ -194,7 +194,6 @@ int ChannelMap::LoadASICsChannelMapFile (const char* ASICsChannelMapFilename) {
     while (!channelmapfile.eof()) {
       channelmapfile >> MBID[i] >> CID[i] >> ASICs_Ch[i] >> Detector[i] >> Det_Ch[i] >> Comment[i];
       //cout << MBID[i] << "   " << CID[i] << "   " << dummy_det << endl;
-    
       i++;
     }
     TotalNumberOfChannels = i-1;
@@ -284,6 +283,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     NumberOfSX3AlphaCalibrated = i-1; // The Minus one accounts for the end of line character
     NumberOfQ3AlphaCalibrated = j;
     NumberOfAlphaCalibrated = NumberOfSX3AlphaCalibrated + NumberOfQ3AlphaCalibrated;
+    printf("%d + %d = %d calibrated",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
   }
   else LoadFail(SiGainsFilename);
   
