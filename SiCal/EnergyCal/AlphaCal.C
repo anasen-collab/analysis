@@ -24,13 +24,15 @@
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLine.h>
+#include <TLegend.h>
+//Methods
+#include "SiAlphaCal.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
 
 void AlphaCal(void) {
   const Int_t npeaks = 3;
-  const Int_t range=4096*4;
-  
+   
   //for gold at spacer zero, this is what the alpha energy should be
   //see lab book page 9
   Double_t energy[28];
@@ -65,39 +67,22 @@ void AlphaCal(void) {
     cout << "Tree does not exist\n";
     exit(EXIT_FAILURE);
   }
-  
-  ifstream infile;
-  infile.open("saves/AlphaCalibration_init.dat");
-  Int_t det=0,ch=0;
-  Double_t dummy_slope = 0;
-  Double_t slope[27];
-  if (infile.is_open()) {
-    infile.ignore(100,'\n');//read in dummy line
-    while (!infile.eof()) {
-      infile >> det >> ch >> dummy_slope;
-      slope[det] = dummy_slope;
-    }
-  }
-  else {
-    cout << "Infile not opened\n";
-    exit(EXIT_FAILURE);
-  }
-  infile.close();
-
-  ofstream outfile;
-  outfile.open("saves/AlphaCalibration_170502.dat");
-  outfile << "DetNum\tOffset\tSlope\n";
-  
+  Gains gains;
+  gains.Load("saves/AlphaCalibration_init.dat");
+  gains.Save("saves/AlphaCalibration");
+    
   TCanvas *can = new TCanvas("can","can",800,600);
   can->Divide(1,2);
-  TH1F *hist = new TH1F("hist","hist",1024,0,range);
+  TH1F *hist = new TH1F("hist","hist",1024*2,0,range);
   TF1 *fit = new TF1("fit","pol1",0,range);
+  TF1 *fit2 = new TF1("fit2","[0]*x",0,range);
   Double_t zeroshift = 0;
   Double_t MeVperCh = 0;
-  Double_t q0 = 0;
+  Double_t gain = 0;
   TSpectrum *s = 0;
   TGraph *FitGraph = 0;
-
+  TLegend *leg;
+  
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
     if (DetNum==1 || DetNum==2) {
       Energies[0] = 4.841;
@@ -123,7 +108,7 @@ void AlphaCal(void) {
     hist->SetTitle(Form("Det%i",DetNum));  
 
     if(hist->GetEntries()==0) {
-      printf("Histogram %s has zero entries.\n",hist->GetTitle());
+      printf("DetNum %2d: Histogram %s has zero entries.\n", DetNum,hist->GetTitle());
       continue;
     }
 	      
@@ -139,14 +124,14 @@ void AlphaCal(void) {
     if(nfound <(npeaks-1)) {
       printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
       printf("Less than %d peaks found. Aborting.\n",npeaks);
-      outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
+      //outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
       continue;
     }
 
     if(nfound >npeaks) {
       printf("DetNum %2d: peaks = %d, ",DetNum,nfound);
       printf("greater than %d peaks found. Aborting.\n",npeaks);
-      outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
+      //outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
       continue;
     }
     
@@ -165,22 +150,19 @@ void AlphaCal(void) {
     
     if (npeaks==1) {
       if (nfound != 1) {
-	cout << DetNum << "  " << nfound << endl;
+	printf("DetNum %2d: peaks = %d",nfound);
 	cout << "No peaks found\n";
 	//Double_t median = hist->GetMaximumBin()*0.00266666 + 0.8;
 	Double_t median = hist->GetMaximumBin()*0.0012 + 0.8;
-	cout << median << endl;
-	slope[DetNum] *= (energy[DetNum]/median);
+	gains.Add(DetNum,median,energy[DetNum]/median);
 	TLine *line = new TLine(median,0,median,1000);
 	line->Draw("same");
 	can->Update();
 	continue;
       }
       average_slope = s->GetPositionX();
-      slope[DetNum] *= (energy[DetNum]/average_slope[0]);
-
-      cout << DetNum << " " << average_slope[0] << "  " << slope[DetNum] << endl;
-      outfile << DetNum << "\t" << 0 << "\t" << slope[DetNum] << endl;
+      gains.Add(DetNum,average_slope[0],energy[DetNum]/average_slope[0]);
+      outfile << DetNum << "\t" << 0 << "\t" << gains.old[DetNum] << endl;
       can->Update();
     }
 
@@ -199,11 +181,25 @@ void AlphaCal(void) {
     FitGraph->Fit("fit","q");
     zeroshift = fit->GetParameter(0);
     MeVperCh = fit->GetParameter(1);
-    q0 = -zeroshift/MeVperCh;
+
     // cout << zeroshift << " " << MeVperCh << endl;;
-    printf("DetNum %2d: peaks = %d, slope = %f \t offset = %f\n",DetNum,nfound,zeroshift,MeVperCh );
+    FitGraph->Fit("fit2","q");
+    gain = fit2->GetParameter(0);
+    fit2->SetLineColor(3);
+    fit2->SetLineStyle(3);
+    
+    printf("DetNum %2d: peaks = %d, offset = %f\tslope = %f\tgain = %f (%5.2f%% diff)\n",
+	   DetNum,nfound,zeroshift,MeVperCh,gain,((MeVperCh-gain)/gain)*100);
+    leg = new TLegend(0.1,0.75,0.2,0.9);
+    leg->AddEntry(FitGraph,"peaks","p");
+    leg->AddEntry(fit,"linear fit","l");
+    leg->AddEntry(fit2,"scale fit","l");   
+    leg->Draw();
+    fit->Draw("same");
+    fit2->Draw("same");
+
     can->Update();
-    outfile << DetNum << "\t"<< zeroshift << "\t" << MeVperCh <<endl;
+    outfile << DetNum << "\t"<< 0 << "\t" << gain <<endl;
   }
   delete FitGraph;
   delete s;
