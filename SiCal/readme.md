@@ -4,12 +4,17 @@ The following chanages have been made using the following commands. `git filter-
 ````bash
 REWRITE_FROM='SiCal/SiPulserCal'
 REWRITE_TO='SiCal/PulserCal'
-
-REWRITE_FROM='SiCal/AlphaCalibration'
-REWRITE_TO='SiCal/EnergyCal'
 git filter-branch -f --index-filter "
 git read-tree --prefix='$REWRITE_TO'/ \$GIT_COMMIT:'$REWRITE_FROM'
 git rm -r --cached '$REWRITE_FROM'
 "
+````
 
+The following changes have been made
+````bash
+REWRITE_FROM='SiCal/SiPulserCal'
+REWRITE_TO='SiCal/PulserCal'
+
+REWRITE_FROM='SiCal/AlphaCalibration'
+REWRITE_TO='SiCal/EnergyCal'
 ````
