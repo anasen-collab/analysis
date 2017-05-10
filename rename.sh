@@ -1,5 +1,5 @@
-REWRITE_FROM='SiCal/SiRelativeCal'
-REWRITE_TO='SiCal/RelativeCal'
+REWRITE_FROM='SiCal/X3RelativeCalibration'
+REWRITE_TO='SiCal/PositionCal'
 echo $REWRITE_FROM
 echo $REWRITE_TO
 
