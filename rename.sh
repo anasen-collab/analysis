@@ -1,5 +1,5 @@
-REWRITE_FROM='SiCal/RelativeCal/SX3s'
-REWRITE_TO='SiCal/RelativeCal/SX3'
+REWRITE_FROM='anasen_analysis_software'
+REWRITE_TO='analysis_software'
 echo $REWRITE_FROM
 echo $REWRITE_TO
 
