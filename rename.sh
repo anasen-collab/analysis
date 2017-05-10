@@ -1,5 +1,5 @@
-REWRITE_FROM='SiCal/X3GeometryCal'
-REWRITE_TO='SiCal/PositionCal'
+REWRITE_FROM='PCCal/PosCal'
+REWRITE_TO='PCCal/PositionCal'
 echo $REWRITE_FROM
 echo $REWRITE_TO
 

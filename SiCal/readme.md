@@ -24,6 +24,9 @@ REWRITE_TO='SiCal/EnergyCal'
 REWRITE_FROM='SiCal/X3GeometryCal'
 REWRITE_TO='SiCal/PositionCal'
 
+REWRITE_FROM='PCCal/PosCal'
+REWRITE_TO='PCCal/PositionCal'
+
 REWRITE_FROM='SiCal/SiRelativeCal'
 REWRITE_TO='SiCal/RelativeCal'
 ````
