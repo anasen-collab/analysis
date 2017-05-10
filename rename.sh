@@ -1,5 +1,5 @@
-REWRITE_FROM='SiCal/AlphaCalibration'
-REWRITE_TO='SiCal/EnergyCal'
+REWRITE_FROM='SiCal/SiRelativeCal'
+REWRITE_TO='SiCal/RelativeCal'
 echo $REWRITE_FROM
 echo $REWRITE_TO
 
