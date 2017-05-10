@@ -44,4 +44,9 @@ After each instance of git filter-branch called, the following commands must be 
 
 To undo the actions of `git filter-branch` use the command `git reset --hard refs/original/refs/heads/master`.
 
-On the remote clones of the repository, the following command must be used to bring the clone up to date without duplicating every commit. `git reset --hard origin/master`
+On the remote clones of the repository, the following command must be used to bring the clone up to date without duplicating every commit. 
+check the difference with 
+`git diff origin` or `git diff origin --diff-filter=r`
+ensure that the only changes are renames then 
+
+`git reset --hard origin/master`
