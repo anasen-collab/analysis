@@ -32,6 +32,9 @@ REWRITE_TO='SiCal/RelativeCal'
 
 REWRITE_FROM='SiCal/RelativeCal/QQQ3s'
 REWRITE_TO='SiCal/RelativeCal/QQQ'
+
+REWRITE_FROM='SiCal/RelativeCal/SX3s'
+REWRITE_TO='SiCal/RelativeCal/SX3'
 ````
 After each instance of git filter-branch called, the following commands must be used to push the changes to the repository and to pull them to remote clones.
 `git push -f` (fork) and `git push -f upstream` (original). Please note that his technique only works if there is no one else developing the repsoitory in parrallel.

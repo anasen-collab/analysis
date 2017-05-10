@@ -1,5 +1,5 @@
-REWRITE_FROM='SiCal/RelativeCal/QQQ3s'
-REWRITE_TO='SiCal/RelativeCal/QQQ'
+REWRITE_FROM='SiCal/RelativeCal/SX3s'
+REWRITE_TO='SiCal/RelativeCal/SX3'
 echo $REWRITE_FROM
 echo $REWRITE_TO
 
