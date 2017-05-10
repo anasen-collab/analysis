@@ -1,4 +1,4 @@
-REWRITE_FROM='SiCal/X3RelativeCalibration'
+REWRITE_FROM='SiCal/X3GeometryCal'
 REWRITE_TO='SiCal/PositionCal'
 echo $REWRITE_FROM
 echo $REWRITE_TO

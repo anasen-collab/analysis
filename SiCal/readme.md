@@ -21,7 +21,7 @@ REWRITE_TO='SiCal/PulserCal'
 REWRITE_FROM='SiCal/AlphaCalibration'
 REWRITE_TO='SiCal/EnergyCal'
 
-REWRITE_FROM='SiCal/X3RelativeCalibration'
+REWRITE_FROM='SiCal/X3GeometryCal'
 REWRITE_TO='SiCal/PositionCal'
 
 REWRITE_FROM='SiCal/SiRelativeCal'
