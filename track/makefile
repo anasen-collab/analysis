@@ -1,11 +1,11 @@
-B: tr_dict.cxx Main_ dict.cxx Main.cpp
+Analyzer: tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp
 	@echo compiling Analyzer code...
-	g++ -o B tr_dict.cxx LookUp.cpp Analyzer.cpp `root-config --cflags --glibs`
+	g++ -o Analyzer tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 
 tr_dict.cxx: tree_structure.h LinkDef.h
 	@echo generating tracking dictionary...
 	rootcint -f tr_dict.cxx -c tree_structure.h LinkDef.h
 
 clean:
-	@echo removing B files...
-	rm B tr_dict.cxx
+	@echo removing Analyzer files...
+	rm Analyzer tr_dict.cxx tr_dict.h
