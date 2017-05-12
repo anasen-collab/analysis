@@ -7,6 +7,4 @@
  
 #pragma link C++ defined_in "tree_structure.h";
 
-#pragma link C++ defined_in "tree_structure_Track.h";
-
 #endif
