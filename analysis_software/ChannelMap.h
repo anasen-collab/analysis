@@ -158,7 +158,6 @@ class ChannelMap {
   void GetQ3MeVPerChannel2(Int_t DN, Int_t DetCh, Double_t& slope);  
   void GetQ3FinalEnergyOffsetInMeV(Int_t DNum, Int_t ChNum, Double_t& zshift);
 
-  
   void GetQ3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiY, Double_t& WSiX, Double_t& WSiY, Double_t& WSiR, Double_t& WSiPhi );
   void GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, Double_t& WSiX, Double_t& WSiY, Double_t& WSiZ, Double_t& WSiR, Double_t& WSiPhi);
   void PosCal(Int_t DNum, Int_t StripNum, Int_t ChNum, Double_t FinalZPos, Double_t& FinalZPosCal);
@@ -615,7 +614,7 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
     while (!pcwirecal.eof()) {
       pcwirecal >> WireNumber >> pcslopedum >> pcshiftdum;
       PCSlope[WireNumber] = pcslopedum;
-      PCShift[WireNumber]	= pcshiftdum;
+      PCShift[WireNumber] = pcshiftdum;
     }
   }
   else LoadFail(PCWireCalFilename);
