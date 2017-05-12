@@ -6,7 +6,7 @@
 // //To create a dictionary:
 //  rootcint -f tr_dict.cxx -c ../Include/tree_structure.h LinkDef.h
 //
-// Usage: g++ -o B tr_dict.cxx LookUp.cpp Analyzer.cpp `root-config --cflags --glibs`
+// Usage: g++ -o B tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 //
 // ./B DataListCal.txt 282_3_4Cal5Analyzer20161102.root cut/He4.root //
 //
@@ -39,27 +39,23 @@
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
-
-#define M_P 938.27206671856      
-#define M_alpha 3727.37929745092
+//NIST values
+#define M_P 938.2720813
+#define M_N 939.5654133
+#define M_D2 1875.612928
+#define M_3He 2808.391586
+#define M_alpha 3727.379378
 
 #define M_Be8 7454.85043438849
 #define M_Li5 4667.6163636366931 //correct
 //#define M_Li5 4665.7163636366931 //correction of -1.90 MeV applied
 
-#define M_3He 2808.3915032078
 #define M_Li6 5601.518452737
 
-#define M_Be7 6534.1836677282 
-#define M_D2 1875.61291385342
+#define M_Be7 6534.1836677282
 
 #define M_Li7 6533.83277448969
-#define M_N 939.565413351413   
 #define M_He5 4667.67970996292
-
-#define QValue 
-//#define gold_pos 28.9
-
 
 #define Alpha282 //Spacer-0
 //#define Alpha285 //Spacer-1
@@ -68,7 +64,6 @@
 //#define Alpha292 //Spacer-5
 //#define Alpha296 //Spacer-6
 //#define Alpha299 //Spacer-7
-
 
 #ifdef Alpha282
 #define gold_pos 27.7495 //all the way in
@@ -97,6 +92,9 @@
 #ifdef Alpha299
 #define gold_pos -2.8505   //Spacer-7 //30.6cm
 #endif
+
+#define QValue 
+//#define gold_pos 28.9
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -326,13 +324,14 @@ int main(int argc, char* argv[]){
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
-      for (Int_t j=0; j<Si.ReadHit->size(); j++){//loop over all silicon
+      for (Int_t j=0; j<Si.ReadHit->size(); j++) {//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(j);	//if we have a good hit type set the parameters in your new tree
 
-	if ( Si.hit_obj.Energy <= 0 ){
+	if ( Si.hit_obj.Energy <= 0 ) {
 	  continue;
-	}else{
+	}
+	else {
 
 	  GoodPC = FindMaxPC(Si.hit_obj.PhiW, PC);
 
@@ -578,36 +577,35 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
   return (fmodf((fabs(phi1-phi2) + 2*TMath::Pi()), 2*TMath::Pi()));
 }
 /////////////////////////////////////////////////////////////////////////////////////
-/* 
- // Finds a maximum PC within a given phi range
- // Nabin Rijal, June 2016
+/*
+// Finds a maximum PC within a given phi range
+// Nabin Rijal, June 2016
 
-  Int_t FindMaxPC(Double_t phi, PCHit& PC){
+Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t GoodPC = -1;
   Double_t MaxPC = -10;
   //Double_t MinPhi = 0.2619;
   Double_t MinPhi = 0.5238;
 
   for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
-  //if the PC falls in a range of phi then it is possible correlated
-  //we find the maximum energy on the pc
-  PC.pc_obj = PC.ReadHit->at(k);
+    //if the PC falls in a range of phi then it is possible correlated
+    //we find the maximum energy on the pc
+    PC.pc_obj = PC.ReadHit->at(k);
 
-  //if (PC.pc_obj.TrackType == 1){
-  //continue;
-  //}
+    //if (PC.pc_obj.TrackType == 1){
+    //continue;
+    //}
 
-  if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
-  if ( PC.pc_obj.Energy >= MaxPC ){
-  MaxPC = PC.pc_obj.Energy;
-  GoodPC = k;
-  }
-  }
+    if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
+      if ( PC.pc_obj.Energy >= MaxPC ){
+	MaxPC = PC.pc_obj.Energy;
+	GoodPC = k;
+      }
+    }
   }
   return GoodPC;
-  }
+}
 */
-
 ///////////////////////////////////////////////////////////////////////////////////
 // If there are more than one silicon firing within the range of given phi, 
 // picks the one with closer phi and assigns the another pc hit to the next silicon.
