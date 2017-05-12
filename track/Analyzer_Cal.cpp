@@ -6,9 +6,9 @@
 // //To create a dictionary:
 //  rootcint -f tr_dict.cxx -c ../Include/tree_structure.h LinkDef.h
 //
-// Usage: g++ -o B tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
+// Usage: g++ -o Analyzer_Cal tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 //
-// ./B DataListCal.txt 282_3_4Cal5Analyzer20161102.root cut/He4.root //
+// ./Analyzer_Cal DataListCal.txt 282_3_4Cal5Analyzer20161102.root cut/He4.root //
 //
 // Uses Lookup tables instead of doing integration multiple times for Energyloss, 
 // Final Energy, Initial Energy & Distance calculation.
@@ -21,7 +21,7 @@
 #define CheckBasic
 
 #define DiffIP 2 //cm
-#define ConvAngle 57.27272727 //when multiplied, Converts to Degree from Radian 
+#define ConvAngle 180./TMath::Pi(); //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 #define Be8
@@ -35,7 +35,8 @@
 
 #define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
 #define pcr 3.846284509;//3.75+0.096284509; //correction for the centroid Kx applied
-#define La 53.65   //Length of ANASEN gas volume..
+//#define La 53.65   //Length of ANASEN gas volume..
+#define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
@@ -94,7 +95,10 @@
 #endif
 
 #define QValue 
-//#define gold_pos 28.9
+//#define gold_pos 28.9 // old measurement
+//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017
+//#define gold_pos 16.9495 //spacer 2 = all in - 10.8 cm
+//#define gold_pos -2.8505 //spacer 7 = all in - 30.6 cm
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -133,7 +137,6 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////////
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
 
-
 void MyFill(string name,int binsX, double lowX, double highX, double valueX);
 
 void MyFill(string name,int binsX, double lowX, double highX, double valueX,
@@ -154,18 +157,18 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
   return 0;
 };
 ////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]){ 
+int main(int argc, char* argv[]) { 
 
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=4){
+  if (argc!=4) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
 
-  char* file_raw  = new char [100]; // for input .root file
-  char* file_cal = new char [100]; // for output .root file
+  char* file_raw  = new char [200]; // for input .root file
+  char* file_cal = new char [200]; // for output .root file
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
@@ -481,7 +484,6 @@ int main(int argc, char* argv[]){
 	  //Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
 	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	
-
 	  //if(Tr.TrEvent[p].Theta>0){
 	  //cout<<" Tr.TrEvent[p].Theta2 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength2 = "<<Tr.TrEvent[p].PathLength<<endl;
 	  //}
@@ -581,7 +583,7 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
 // Finds a maximum PC within a given phi range
 // Nabin Rijal, June 2016
 
-Int_t FindMaxPC(Double_t phi, PCHit& PC){
+  Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t GoodPC = -1;
   Double_t MaxPC = -10;
   //Double_t MinPhi = 0.2619;
