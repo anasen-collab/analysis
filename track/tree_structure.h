@@ -15,8 +15,6 @@ class SiHit {  // This class is for Silicon hits
   SiHit(){};
 
   Int_t NSiHits;
-
-
 //-------------------------------------------------------------
   struct SortByDetector {
     Int_t DetID;
@@ -405,7 +403,6 @@ class Track { //This Class is for Tracking
   //-------------------------------------------------------------
   static bool Tr_Sisort_method(struct TrackEvent a,struct TrackEvent b);
   static bool Tr_PCsort_method(struct TrackEvent a,struct TrackEvent b);
-
   //-------------------------------------------------------------
 };
 //////////////////////////////////////////////////////////////////////////////////////////
