@@ -17,7 +17,7 @@
 #include <TCutG.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t MyFit(TH2F* hist, TCanvas* can){
+Double_t MyFit(TH2F* hist, TCanvas* can) {
   hist->Draw("colz");
 
   vector<double> x1;
@@ -28,30 +28,28 @@ Double_t MyFit(TH2F* hist, TCanvas* can){
   x1.resize(cut->GetN());
   y1.resize(cut->GetN());
   
-
   Int_t counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++){
-    for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1667,(Double_t)j*0.1667) ){
+  for (int i=1; i<hist->GetNbinsX(); i++) {
+    for (int j=1; j<hist->GetNbinsY(); j++) {
+      if ( !cut->IsInside((Double_t)i*0.1667,(Double_t)j*0.1667) ) {
 	continue;
       }
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
+      for (int k=0; k<hist->GetBinContent(i,j); k++) {
 	counter++;
       }
     }
   }
-
+  
   Double_t *x = new Double_t[counter];
   Double_t *y = new Double_t[counter];
 
-
   counter = 0;
-  for (int i=1; i<hist->GetNbinsX(); i++){
-    for (int j=1; j<hist->GetNbinsY(); j++){
-      if ( !cut->IsInside((Double_t)i*0.1667,(Double_t)j*0.1667) ){
+  for (int i=1; i<hist->GetNbinsX(); i++) {
+    for (int j=1; j<hist->GetNbinsY(); j++) {
+      if ( !cut->IsInside((Double_t)i*0.1667,(Double_t)j*0.1667) ) {
 	continue;
       }
-      for (int k=0; k<hist->GetBinContent(i,j); k++){
+      for (int k=0; k<hist->GetBinContent(i,j); k++) {
 	x[counter] = (Double_t)i*0.1667;
 	y[counter] = (Double_t)j*0.1667;
 	counter++;
@@ -106,7 +104,7 @@ void PosCal(void){
   Int_t wire = 0;
   ifstream infile;
   string dummy;
-  infile.open("PCWireCal_022516.dat");
+  infile.open("saves/PCWireCal_09272016_cut.dat");
   if (infile.is_open()){
     infile >> dummy >> dummy >> dummy;
     while (!infile.eof()){
