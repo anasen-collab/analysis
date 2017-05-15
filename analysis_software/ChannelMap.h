@@ -72,8 +72,12 @@ class ChannelMap {
   Double_t PCPulser_YOffset[MaxADC][MaxADCCh];
   Double_t PCPulser_Slope[MaxADC][MaxADCCh];
 
-  TRandom3 *Randomm;
+  //------------------------PC Relative Gains---------------------added 05/05/2017------------------//
+  Double_t PC_UD_Slope[WireNum];
+  Double_t PC_UD_Offset[WireNum];
 
+  TRandom3 *Randomm;
+  
  public:
   
   Double_t EdgeUp[NumSX3][4][MaxSX3Ch], EdgeDown[NumSX3][4][MaxSX3Ch];
@@ -164,6 +168,10 @@ class ChannelMap {
   void GetZeroShift(Int_t det, Int_t det_ch, Double_t& zero, Double_t& slope);
   Double_t GetRelLinCoeff(Int_t det, Int_t det_ch) { return SX3RelativeSlope[det-4][det_ch]; };  
   void IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &chip_id,Int_t &asic_ch);
+
+  //------------------------PC Relative Gains---------------------added 05/05/2017------------------//
+  int Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename);
+  void Get_PC_UD_RelCal(Int_t WireID, Double_t& SlopeUD, Double_t& OffsetUD);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -909,5 +917,42 @@ void ChannelMap::IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &
       return;
     }
   }
+}
+
+//------------------------PC Relative Gains---------------------added 05/05/2017------------------//
+int ChannelMap::Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename) {
+  ifstream pc_ud_rel;
+  string line11;
+  Double_t ud_slope_dummy, ud_offset_dummy;
+  Int_t WireID=0;
+  
+  pc_ud_rel.open(PC_UD_RelCal_Filename);
+  
+  for (Int_t i=0; i<WireNum; i++) {   
+    PC_UD_Slope[i]=0.0;
+    PC_UD_Offset[i]=0.0;
+  }
+  
+  if (pc_ud_rel.is_open()) {
+    cout << "Relative Calibration for PC Up_Down ";
+    cout << PC_UD_RelCal_Filename << " opened successfully. " << endl;
+
+    getline (pc_ud_rel,line11);//Skips the first line in PC_UD_RelCal_Filename.
+    cout<<"line = "<<line11<<endl;
+
+    while (!pc_ud_rel.eof()) {
+      pc_ud_rel >> WireID >> ud_slope_dummy>> ud_offset_dummy;
+      PC_UD_Slope[WireID] = ud_slope_dummy;
+      PC_UD_Offset[WireID] = ud_offset_dummy;
+    }
+  }
+  else LoadFail(PCWire_RelGain_Filename);  
+  return 1;
+}
+
+//------------------------PC Relative Gains---------------------added 05/05/2017------------------//
+void ChannelMap::Get_PC_UD_RelCal(Int_t WireID,Double_t& SlopeUD,Double_t& OffsetUD) {
+  SlopeUD = PC_UD_Slope[WireID];
+  OffsetUD = PC_UD_Offset[WireID];
 }
 #endif
