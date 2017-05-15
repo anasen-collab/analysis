@@ -74,9 +74,8 @@ class ChannelMap {
 
   TRandom3 *Randomm;
 
-  
  public:
- 
+  
   Double_t EdgeUp[NumSX3][4][MaxSX3Ch], EdgeDown[NumSX3][4][MaxSX3Ch];
 
   //////////////////// Constructor /////////////////////////////////////
@@ -91,7 +90,6 @@ class ChannelMap {
     NumberOfADCChannels=0;
 
     Randomm = new TRandom3();
-   
   };
   //////////////// Destructor //////////////////////////////////////////
   ~ChannelMap() {
@@ -167,7 +165,8 @@ class ChannelMap {
   Double_t GetRelLinCoeff(Int_t det, Int_t det_ch) { return SX3RelativeSlope[det-4][det_ch]; };  
   void IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &chip_id,Int_t &asic_ch);
 };
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 int ChannelMap::LoadFail(const char* filename) {
   cout << "Cannot open file " << filename <<endl;
   cout << "Macro terminated abnormally!" << endl;
@@ -230,20 +229,19 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
 
   alignchan.open(ASICsPulserFilename);
   if (alignchan.is_open()) {
-  cout << "The channel allignment file " << ASICsPulserFilename << " opened successfully." << endl;
-  //getline (alignchan,line);//Skips the first line in ASICsPulserFilename.
-  //cout<<"line = "<<line<<endl;
-  /*    Int_t j=0;
-  while (!alignchan.eof()) {
-  alignchan >>  MBID_Align[j] >> CID_Align[j] >> ASICs_Ch_Align[j] >> a[j] >> b[j] >> c[j] >> q0[j];
-  j++;
-  }
-  TotalAlignedASICsChannels = j-1;
-  }
-  else LoadFail(TotalAlignedASICsChannels);
-  
-  return 1;
-  }*/
+    cout << "The channel allignment file " << ASICsPulserFilename << " opened successfully." << endl;
+    //getline (alignchan,line);//Skips the first line in ASICsPulserFilename.
+    //cout<<"line = "<<line<<endl;
+    /*    Int_t j=0;
+	  while (!alignchan.eof()) {
+	  alignchan >>  MBID_Align[j] >> CID_Align[j] >> ASICs_Ch_Align[j] >> a[j] >> b[j] >> c[j] >> q0[j];
+	  j++;
+	  }
+	  TotalAlignedASICsChannels = j-1;
+	  }
+	  else LoadFail(TotalAlignedASICsChannels);
+  	  return 1;
+	  }*/
 
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
@@ -268,13 +266,16 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     i=0;
     j=0;
     Int_t Dnum = 0;
-    Int_t ChNum = 0;
+    Double_t ChNum = 0.0;
     Double_t dummy = 0.0;
     
     while (!SiGainsFile.eof()) {
       if(Dnum>=4 && Dnum<=27) {i++;}
-      else if (Dnum<=3) {j++;}
-      else {continue;}
+      else if(Dnum<=3) {j++;}
+      else {
+      	cout << Dnum << "not read" <<endl;
+	continue;
+	}
       SiGainsFile >>  Dnum >> ChNum >> dummy;
       SiGains[Dnum] = dummy;
     }
@@ -285,9 +286,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     printf("%d + %d = %d calibrated",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
   }
   else LoadFail(SiGainsFilename);
-  
   SiGainsFile.close();
-  
   return 1;
 }
 
@@ -317,7 +316,6 @@ int ChannelMap::LoadSX3RelativeSlopes(const char* SX3RelativeSlopeFilename) {
     
   }
   else LoadFail(SX3RelativeSlopeFilename);
-  
   SX3RelativeSlopeFile.close();
   return 1;
 }
@@ -348,11 +346,8 @@ int ChannelMap::LoadQ3RelativeSlopes(const char* Q3RelativeSlopeFilename) {
     
   }
   else LoadFail(Q3RelativeSlopeFilename);
-  
   Q3RelativeSlopeFile.close();
-  
   return 1;
-  
 }
 
 //------------------------------------------------------------------------------------------------//
@@ -452,9 +447,7 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
   ifstream Q3finalfix;
-
   string line;
-
   Q3finalfix.open(Q3FinalFixFilename);
   Double_t Zero = 0;
   Int_t DNum,ChNum;
@@ -478,7 +471,6 @@ int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
     }
   }
   else LoadFail(Q3FinalFixFilename);
-    
   return 1;  
 }
 
@@ -574,7 +566,6 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   }
   
   if (pccal.is_open()) {
-    
     cout << "Pulser Calibration for proportional counter " << PCCalibrationFilename << " opened successfully. " << endl;
     getline (pccal,line);//Skips the first line in PCCalibrationFilename
     //cout<<"line = "<<line<<endl;
@@ -587,7 +578,6 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
     }
   }
   else LoadFail(PCCalibrationFilename);
-  
   return 1;
 }
 
@@ -618,13 +608,11 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
     }
   }
   else LoadFail(PCWireCalFilename);
-  
   return 1;
 }
 
 //------------------------------------------------------------------------------------------------//
 int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
-
   ifstream pcwire_rel;
   string line1;
   Double_t rel_dummy;
@@ -650,7 +638,6 @@ int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
     }
   }
   else LoadFail(PCWire_RelGain_Filename);
-  
   return 1;
 }
 
@@ -853,7 +840,6 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
 
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t FinalZPos, Double_t& FinalZPosCal) {
-  
   Double_t EdgeDCal=-100.0;
   Double_t EdgeUCal=100.00;
   
@@ -914,7 +900,6 @@ void ChannelMap::GetZeroShift (Int_t det, Int_t det_ch, Double_t& zero, Double_t
 //Description: From the channel map provided in the Init method this function get returns the
 //             motherboard ID, chip number, and chip channel for a detector number and detector
 //             channel number.
-
 void ChannelMap::IdentifyMbChipChan(Int_t det, Int_t det_ch,Int_t &mb_id,Int_t &chip_id,Int_t &asic_ch) {
   for (Int_t i = 0; i<TotalNumberOfChannels; i++) {
     if(Detector[i] == det && Det_Ch[i] == det_ch) {
