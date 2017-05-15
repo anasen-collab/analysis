@@ -291,7 +291,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     NumberOfSX3AlphaCalibrated = i-1; // The Minus one accounts for the end of line character
     NumberOfQ3AlphaCalibrated = j;
     NumberOfAlphaCalibrated = NumberOfSX3AlphaCalibrated + NumberOfQ3AlphaCalibrated;
-    printf("%d + %d = %d calibrated",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
+    printf(" %d + %d = %d calibrated\n",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
   }
   else LoadFail(SiGainsFilename);
   SiGainsFile.close();
@@ -946,7 +946,7 @@ int ChannelMap::Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename) {
       PC_UD_Offset[WireID] = ud_offset_dummy;
     }
   }
-  else LoadFail(PCWire_RelGain_Filename);  
+  else LoadFail(PC_UD_RelCal_Filename);
   return 1;
 }
 

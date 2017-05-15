@@ -134,13 +134,14 @@ int main(int argc, char* argv[]){
   if(1) {//load calibration files
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
-  	     "Param/initialize/AlphaCalibration_init.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step3_170428.dat",
+  	     "Param/17F_cals/AlphaCal_170515.edit.dat",
+  	     "Param/17F_cals/X3RelativeGains_Step3_170501.dat",
   	     "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170428.dat","Param/initialize/X3geometry_init.dat");
+  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170501.dat","Param/17F_cals/X3geometry_170502.dat");
   CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
-
+  CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
+  CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
   }
   else {//load trivial calibration
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -151,9 +152,10 @@ int main(int argc, char* argv[]){
     CMAP->FinalInit("Param/initialize/X3FinalFix_init.dat","Param/initialize/X3geometry_init.dat");
     CMAP->LoadQ3FinalFix("Param/initialize/QQQFinalFix_init.dat");
     CMAP->InitPCCalibration("Param/initialize/PCpulser_init.dat");
+    CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
+    CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
   }
-  
-  
+    
   /*
   //intialize 24Mg
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -165,8 +167,8 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	     "Param/24Mg_cals/initialize/alignchannels_24Mg_11082016_1262.dat",
 	     "Param/initialize/AlphaCalibration_init.dat",
-	     "Param/24Mg_cals/X3_rel/X3RelativeGains_11172016_mix.dat",
-	     "Param/24Mg_cals/QQQ_rel/QQQRelativeGains11092016_Step2.dat");
+	     "Param/24Mg_cals/SX3Rel/X3RelativeGains_11172016_mix.dat",
+	     "Param/24Mg_cals/QQQRel/QQQRelativeGains11092016_Step2.dat");
 
   //initialize 18Ne
   CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
@@ -203,7 +205,6 @@ int main(int argc, char* argv[]){
   
   CMAP->InitWorldCoordinates("Param/17F_cals/WorldCoord_170223.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
-  CMAP->InitPCWireCal("Param/PCWireCal/PCWireCal_09272016_cut.dat");   
   cout<<" ============================================================================================"<<endl;
   //------------------------------------------------------------------------------------------
   TFile *inputFile = new TFile(filename_callist);//open root file and make sure it exists---------------------
@@ -302,7 +303,7 @@ int main(int argc, char* argv[]){
     // 2 - CsI(Tl) scintillator   
     //*************************************************************************************************
     // Initialize variables named above.
-    for (Int_t i=0; i<NPCWires; i++){
+    for (Int_t i=0; i<NPCWires; i++) {
       PCDown[i]  = 0;
       PCUp[i]    = 0;
       PCDownVoltage[i] = 0.0;
@@ -311,10 +312,10 @@ int main(int argc, char* argv[]){
     // Make sure your ADC.Nhits is within bounds.
     if (ADC.Nhits>MaxADCHits) ADC.Nhits=MaxADCHits;
 
-    for (Int_t n=0; n<ADC.Nhits; n++){
+    for (Int_t n=0; n<ADC.Nhits; n++) {
       // Identify which detector type we have a hit in.
       CMAP->IdentifyADC(ADC.ID[n],ADC.ChNum[n],Identifier);
-      switch (Identifier){
+      switch (Identifier) {
       case 0:
 	break;
       case 1:
@@ -340,11 +341,10 @@ int main(int argc, char* argv[]){
       default:
 	break;
       }// End switch
-
     }// End loop over ADC.Nhits
   
     //=================================
-    Double_t XWPC,YWPC,ZWPC,RWPC,PhiWPC,PCRelGain;
+    Double_t XWPC,YWPC,ZWPC,RWPC,PhiWPC,PCRelGain, SlopeUD, OffsetUD;
    
     for ( Int_t i=0; i<NPCWires; i++ ){
 
@@ -357,6 +357,22 @@ int main(int argc, char* argv[]){
 	PC.pc_obj.Up = PCUp[i];
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
+
+	Int_t bins=512;
+	Float_t vmin=-0.1;
+	Float_t vmax=1;
+	
+	MyFill(Form("PC_Down_vs_Up_BeforeCal_Wire%i",i),
+	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
+	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
+	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
+	       1000,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
+
+	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
+	PC.pc_obj.DownVoltage = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;
+	
+	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
+	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 
 	if (PCDownVoltage[i]>0 && PCUpVoltage[i]>0){
 	  PC.pc_obj.Energy = PC.pc_obj.DownVoltage + PC.pc_obj.UpVoltage;
@@ -377,7 +393,7 @@ int main(int argc, char* argv[]){
 	PC.Hit.push_back(PC.pc_obj);
 	PC.NPCHits++;
       }
-    }//   
+    }
     ////=============================== MCP && RF =====================================================
     if (TDC.Nhits>MaxTDCHits){
       TDC.Nhits=MaxTDCHits;
@@ -727,13 +743,13 @@ int main(int argc, char* argv[]){
 	    Si.det_obj.FrontChNum.push_back(j-16); 
 
 #ifdef FillTree_Esteps
-	      Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
-	      Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
-	      Si.det_obj.EFront_Rel.push_back(Q3Energy_Rel[i][j]);
+	    Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
+	    Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
+	    Si.det_obj.EFront_Rel.push_back(Q3Energy_Rel[i][j]);
 #endif
-	      Si.det_obj.EFront_Cal.push_back(Q3Energy_Cal[i][j]);
-	      Si.det_obj.TFront.push_back(Q3Time[i][j]);
-	    }
+	    Si.det_obj.EFront_Cal.push_back(Q3Energy_Cal[i][j]);
+	    Si.det_obj.TFront.push_back(Q3Time[i][j]);
+	  }
 	}
 	//===========================================
       }//end of for(int j=0; j<MaxQ3Ch; j++){

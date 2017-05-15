@@ -14,8 +14,7 @@
 #include <exception>
 #include <TCutG.h>
 ///////////////////////////////////////////////////////////////////////////
-void PC_UD_RelCal(void){
-
+void PC_UD_RelCal(void) {
   using namespace std;
 
   Double_t x[10];
@@ -23,7 +22,7 @@ void PC_UD_RelCal(void){
 
   string rootfile = "355Pulser_20170501.root";
   TFile *f1 = new TFile(rootfile.c_str());
-  if (!f1->IsOpen()){
+  if (!f1->IsOpen()) {
     cout << "Root file: " << rootfile << " could not be opened.\n";
     exit(EXIT_FAILURE);
   } 
@@ -62,7 +61,7 @@ void PC_UD_RelCal(void){
 
     pad->Update();
     pad->WaitPrimitive();          
-    outfile << WireNum << "\t" << f2->GetParameter(1) << "\t" << f2->GetParameter(0) << endl;    
+    outfile << WireNum << "\t" << Slope << "\t" << Shift << endl;    
   } 
 }
 //////////////////////////////////////////////////////////////////////////////////
