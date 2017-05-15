@@ -1,0 +1,69 @@
+//////////////////////////////////////////////////////////////////////////
+// Author : Nabin Rijal, 20170428
+//////////////////////////////////////////////////////////////////////////
+#include <TMath.h>
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1F.h>
+#include <TH2F.h>
+#include <TGraph.h>
+#include <TF1.h>
+#include <TSpectrum.h>
+#include <fstream>
+#include <exception>
+#include <TCutG.h>
+///////////////////////////////////////////////////////////////////////////
+void PC_UD_RelCal(void){
+
+  using namespace std;
+
+  Double_t x[10];
+  Double_t y[10];  
+
+  string rootfile = "355Pulser_20170501.root";
+  TFile *f1 = new TFile(rootfile.c_str());
+  if (!f1->IsOpen()){
+    cout << "Root file: " << rootfile << " could not be opened.\n";
+    exit(EXIT_FAILURE);
+  } 
+  ofstream outfile;  
+  outfile.open("PC_UD_RelCal_20170501.txt");
+  outfile << "Wire\tSlope\tShift\n";
+
+  TCanvas *pad = new TCanvas("pad","pad",800,600);
+  TCutG *cut;
+  for (Int_t WireNum=0; WireNum<24; WireNum++){
+    TH2F *hist = NULL;  
+    hist = (TH2F*)f1->Get(Form("PC_Up_vs_Down_Wire%i",WireNum));
+    if (hist==NULL){
+      outfile << WireNum << "\t" << 1 << "\t" << 0 << endl;
+      cout << "Warning: hist with wire number " << WireNum << " does not exist.\n";
+	continue;
+    } 
+    hist->Draw("colz");	
+    cut = (TCutG*)pad->WaitPrimitive("CUTG");
+	
+    for(int n=0;n<cut->GetN()-2;n++){
+      cut->GetPoint(n,x[n],y[n]);
+      //cout << x[n] << "\t" << y[n] << endl;
+    }	
+    TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+    hist->Draw("colz");
+    graph->Draw("*same");
+    
+    TF1 *f2 = new TF1("f2","[0] + [1]*x",0,1);
+    graph->Fit("f2");
+
+    Float_t Slope = f2->GetParameter(1);
+    Float_t Shift = f2->GetParameter(0);
+
+    cout<< "Slope = "<<Slope<<"   Shift = "<<Shift<<endl;
+
+    pad->Update();
+    pad->WaitPrimitive();          
+    outfile << WireNum << "\t" << f2->GetParameter(1) << "\t" << f2->GetParameter(0) << endl;    
+  } 
+}
+//////////////////////////////////////////////////////////////////////////////////
+
