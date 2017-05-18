@@ -32,7 +32,7 @@ Int_t counter;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
-Bool_t doup=1;
+Bool_t doup=0;
 
 class Gains {
  public:
@@ -89,6 +89,7 @@ class GainMatch {
   Double_t Fit4(TH2F*,TCanvas*,Double_t);
   Double_t Fit7(Int_t, Int_t, Int_t);
   Double_t Fit8(Int_t, Int_t);
+  Double_t Fit9(Int_t, Int_t);
 };
 
 void Gains::Load(TString fname) {
@@ -227,7 +228,7 @@ void BadDetectors::Print() {
   }
 }
 
-Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {
+Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {//pre-defined cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -367,7 +368,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can, Float_t dummy) {//manual cut
   return slope;
 }
 
-Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line fit
+Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus(); cout<<dummy;
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -404,7 +405,7 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
   return slope;
 }
 
-Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto calc cut
+Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//calculated cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -527,7 +528,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//auto 
   return slope;
 }
 
-Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
+Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {//Step2 TTree to TGraph
   if(doprint) 
     printf("For back_vs_front%i_%i_%i: \n",DetNum,FrontChNum,BackChNum);
     
@@ -550,7 +551,7 @@ Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
   return slope;
 }
 
-Double_t GainMatch::Fit8(Int_t DetNum, Int_t BackChNum) {
+Double_t GainMatch::Fit8(Int_t DetNum, Int_t BackChNum) {//Step3 TTree to TGraph
   if(doprint) 
     printf("For back_vs_front%i_b%i: \n",DetNum,BackChNum);
  
@@ -562,6 +563,30 @@ Double_t GainMatch::Fit8(Int_t DetNum, Int_t BackChNum) {
   }
   
   MainTree->Draw("EBack_Rel[0]:(EUp_Rel[0]+EDown_Rel[0])",Form("DetID==%d && BackChannel==%d && HitType==111",DetNum,BackChNum),"goff");
+  counter=MainTree->GetSelectedRows();
+  TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
+  TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  graph->Fit("fun2","qROB");
+  slope=fun2->GetParameter(1);
+  offset=fun2->GetParameter(0);
+  
+  delete graph;
+  delete fun2;
+  
+  return slope;
+}
+
+Double_t GainMatch::Fit9(Int_t DetNum, Int_t UpChNum) {//Step1 TTree to TGRaph, for down_vs_up
+  if(doprint) 
+    printf("For down_vs_up%i_f%i: \n",DetNum,UpChNum);
+ 
+  TTree *MainTree = NULL;
+  MainTree = (TTree*)f1->Get("MainTree");
+  if (MainTree==NULL) {
+    cout << "Tree does not exist\n";
+    exit(EXIT_FAILURE);
+  }
+  MainTree->Draw("EDown_Rel[0]:EUp_Rel[0]",Form("DetID==%d && UpChNum==%d && HitType==111",DetNum,UpChNum),"");
   counter=MainTree->GetSelectedRows();
   TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
