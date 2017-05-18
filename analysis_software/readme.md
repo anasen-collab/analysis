@@ -23,3 +23,10 @@ excuded by `.gitignore`. The force a save of updated files use the command `git 
 To select the component of the beam, mostly for Radio-active beams, disable while you work with Calibration data & enable while you do data analysis
 
 `#define MCP_RF_Cut`
+
+## ROOT
+After compiling, the output `.root` files may be viewed in root. Doing so will yield class warnings unless the folling line is added to your `rootlogon.C` file.
+
+````
+gROOT->ProcessLine(".L /home/<user>/anasen/analysis_software/tree_structure.h");
+````
