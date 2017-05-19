@@ -69,12 +69,9 @@ double LookUp::GetEnergyLoss(double energy /*MeV*/, double distance /*cm*/)
   } 
   // If after this two loop i is still -1 it means the energy was out of range.
   
-  if(i==-1){
-    
-    cout << "*** EnergyLoss Error: energy not within range: " << energy << endl;
-    
+  if(i==-1) {
+    //cout << "*** EnergyLoss Error: energy not within range: " << energy << endl;
     Energy_in_range = 0;
-    
     return 0;
   } 
   
@@ -283,7 +280,7 @@ Double_t LookUp::LoadRange(Float_t energy1)
       }
     }
  
-    if(i==-1){
+    if(i==-1) {
       cout << "*** EnergyLoss Error: energy not within range: " << energy1 << endl;
       Energy_in_range = 0;
       return 0;

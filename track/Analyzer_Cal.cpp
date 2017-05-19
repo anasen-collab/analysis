@@ -4,7 +4,7 @@
 // & for the other (d,p),(d,alpha)..etc..ANASEN experiments with Gas volume target
 //
 // //To create a dictionary:
-//  rootcint -f tr_dict.cxx -c ../Include/tree_structure.h LinkDef.h
+//  rootcint -f tr_dict.cxx -c tree_structure.h LinkDef.h
 //
 // Usage: g++ -o Analyzer_Cal tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 //
@@ -58,8 +58,8 @@
 #define M_Li7 6533.83277448969
 #define M_He5 4667.67970996292
 
-#define Alpha282 //Spacer-0
-//#define Alpha285 //Spacer-1
+//#define Alpha282 //Spacer-0
+#define Alpha285 //Spacer-1
 //#define Alpha288 //Spacer-2
 //#define Alpha290 //Spacer-4
 //#define Alpha292 //Spacer-5
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=4) {
+  if (argc!=3) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
-  //
+  /*
   //////////////// CUTS ////////////////////
   //
   char* file_cut1 = new char[100]; //for allcut
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
   if (cut1 == NULL){
     cout << "Cut1 does not exist\n";
     exit(EXIT_FAILURE);
-  } 
+    } */
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   TObjArray *RootObjects = new TObjArray();
   SiHit Si;
