@@ -174,9 +174,10 @@ The fitting methods have been collected in the file `SiRelativeGains.h` and are 
    Developed from 'FrontFirst' directory.
 3. `Fit3`
    Use a `TCutG` to draw a line over the data. in canvas: View->Toolbar->GraphicalCut (pair of scissors on right).
-   The verticies of the cut will be used to generate a linear fit. More than two points must be used or code should be changed.
-   All of the segments for a detector should have the same slope; the plot should look like a straight line. click along the straight line. when you are done, double click in canvas and a best fit line will appear. The best fit line should follow the data very well, if not you are doing something wrong.
-   If the back gains are not set properly (or when doing back-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
+   The verticies of the cut will be used to generate a linear fit. The last point, the point which is double-cliked to close the cut, is not included.
+   All of the segments for a detector should have the same slope; the plot should look like a straight line. 
+   Click along the straight line. When you are done, double click in canvas and a best fit line will appear. The best fit line should follow the data very well, if not you are doing something wrong.
+   If the back gains are not set properly (or when doing front-first calibration), the line may appear segmented. If so, choose your favorite segment and get a best fit line for that. Do not click in each segment as that will throw your best fit line off. 
 After the best fit line appears, double click to move onto the next channel.
    Used by 'SX3s/Clickable' and 'Old/Clickable_Step2,3' 
 3. `Fit4`

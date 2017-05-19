@@ -23,7 +23,7 @@
 void SiRelativeGains_Step1(void) {
   using namespace std;
 
-  f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3.root");//10MeV only
+  f1 = new TFile("/home/lighthall/anasen/root/main/run1255-7mQ2S1.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -31,11 +31,9 @@ void SiRelativeGains_Step1(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step3_170428.dat");
+  gains.Load("saves/X3RelativeGains_Step2_170518.dat");
   gains.Save("saves/X3RelativeGains_Step1");
   
-  TCanvas *can = new TCanvas("can","can",800,600);
-
   BadDetectors bad;
   GainMatch gainmatch;
 
@@ -52,8 +50,8 @@ void SiRelativeGains_Step1(void) {
 	gains.Add(DetNum-4,FrontChNum+8,0,0);
 	continue;
       }
-      
-      Double_t gain = gainmatch.Fit4(hist,can,-gains.old[DetNum-4][FrontChNum+8]);
+      Double_t gain = gainmatch.Fit4(hist,-gains.old[DetNum-4][FrontChNum+8]);
+      //gain = gainmatch.Fit9(DetNum,FrontChNum);//may only work if using cut from Fit4
       gains.Add(DetNum-4,FrontChNum+8,gain,-1.0/gain);
     }
     for (Int_t i=0; i<12; i++){

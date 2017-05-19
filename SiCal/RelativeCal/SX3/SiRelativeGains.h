@@ -19,6 +19,7 @@
 #include <TCutG.h>
 #include <TVector.h>
 #include <TLegend.h>
+#include <TROOT.h>
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 using namespace std;
 TFile *f1;
@@ -29,10 +30,12 @@ ofstream outfile;
 ofstream outfile_diag;
 ofstream outfile_offset;
 Int_t counter;
+TCanvas *can;
+TCutG *cut;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
-Bool_t doup=0;
+Bool_t doup=1;
 
 class Gains {
  public:
@@ -81,12 +84,14 @@ class BadDetectors {
 class GainMatch {
  public:
   GainMatch() {
+    if(!((TCanvas *) gROOT->FindObject("can")))
+      can = new TCanvas("can","can",800,600);
     counter=0;
   };
-  Double_t Fit1(TH2F*,TCanvas*,Bool_t docut=kTRUE);
-  Double_t Fit2(TH2F*,TCanvas*,Float_t dummy=0);
-  Double_t Fit3(TH2F*,TCanvas*,Float_t dummy=0);
-  Double_t Fit4(TH2F*,TCanvas*,Double_t);
+  Double_t Fit1(TH2F*,Bool_t docut=kTRUE);
+  Double_t Fit2(TH2F*,Float_t dummy=0);
+  Double_t Fit3(TH2F*,Float_t dummy=0);
+  Double_t Fit4(TH2F*,Double_t);
   Double_t Fit7(Int_t, Int_t, Int_t);
   Double_t Fit8(Int_t, Int_t);
   Double_t Fit9(Int_t, Int_t);
@@ -228,7 +233,7 @@ void BadDetectors::Print() {
   }
 }
 
-Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {//pre-defined cut
+Double_t GainMatch::Fit1(TH2F* hist, Bool_t docut) {//pre-defined cut or no cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -245,7 +250,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {//pre-defined c
   //Double_t x1[nv] = { 2, 12, 9, 0.4, 2 };
   //Double_t y1[nv] = { 0.8, 9.8, 11, 1.1, 0.8 };
     
-  TCutG *cut = new TCutG("cut",nv,x1,y1);
+  cut = new TCutG("cut",nv,x1,y1);
   if(docut)cut->Draw("same");
 
   for (int i=1; i<hist->GetNbinsX(); i++){
@@ -293,7 +298,7 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas* can,Bool_t docut) {//pre-defined c
   return slope;
 }
 
-Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can, Float_t dummy) {//manual cut
+Double_t GainMatch::Fit2(TH2F* hist, Float_t dummy) {//manual cut
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus(); cout<<dummy;
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -304,7 +309,6 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can, Float_t dummy) {//manual cut
   vector<double> x1;
   vector<double> y1;
   
-  TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   x1.resize(cut->GetN());
   y1.resize(cut->GetN());
@@ -368,7 +372,7 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas* can, Float_t dummy) {//manual cut
   return slope;
 }
 
-Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
+Double_t GainMatch::Fit3(TH2F* hist, Float_t dummy) {//cut-as-line
   if(!(can->GetShowEventStatus()))can->ToggleEventStatus(); cout<<dummy;
   if(!(can->GetShowToolBar()))can->ToggleToolBar();
   hist->Draw("colz");
@@ -379,16 +383,17 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
   Double_t x[10];
   Double_t y[10];
 
-  TCutG *cut;
   cut = (TCutG*)can->WaitPrimitive("CUTG");
   counter=cut->GetN();
+
+  Int_t ex=2;//points to exclude
   
-  for(int n=0;n<cut->GetN()-2;n++){
+  for(int n=0;n<cut->GetN()-ex;n++){
     cut->GetPoint(n,x[n],y[n]);
     cout << x[n] << "\t" << y[n] << endl;
   }
 	
-  TGraph *graph = new TGraph(cut->GetN()-2,x,y);
+  TGraph *graph = new TGraph(cut->GetN()-ex,x,y);
   hist->Draw("colz");
   graph->Draw("*same");
 	
@@ -397,7 +402,7 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
   slope=fun2->GetParameter(1);
   
   if(doup) can->Update();
-  can->WaitPrimitive();
+  //can->WaitPrimitive();
 
   delete graph;
   delete fun2;
@@ -405,7 +410,7 @@ Double_t GainMatch::Fit3(TH2F* hist, TCanvas *can, Float_t dummy) {//cut-as-line
   return slope;
 }
 
-Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//calculated cut
+Double_t GainMatch::Fit4(TH2F* hist, Double_t slope_guess) {//calculated cut
   can->Clear();
   hist->Draw("colz");
   Int_t up=6000;
@@ -459,7 +464,7 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//calcu
     const Int_t nv = 5;
     Double_t xc[nv] = {x1+dx,x2+dx,x2-dx,x1-dx,x1+dx};
     Double_t yc[nv] = {y1-dy,y2-dy,y2+dy,y1+dy,y1-dy};
-    TCutG *cut = new TCutG("cut",nv,xc,yc);
+    cut = new TCutG("cut",nv,xc,yc);
     cut->SetLineColor(6);
     cut->Draw("same");
   
@@ -531,7 +536,6 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas* can,Double_t slope_guess) {//calcu
 Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {//Step2 TTree to TGraph
   if(doprint) 
     printf("For back_vs_front%i_%i_%i: \n",DetNum,FrontChNum,BackChNum);
-    
   TTree *MainTree = NULL;
   MainTree = (TTree*)f1->Get("MainTree");
   if (MainTree==NULL) {
@@ -539,11 +543,17 @@ Double_t GainMatch::Fit7(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {//Ste
     exit(EXIT_FAILURE);
   }
   MainTree->Draw("EBack_Rel[0]:(EUp_Rel[0]+EDown_Rel[0])",Form("DetID==%d && FrontChannel==%d && BackChannel==%d && HitType==111",DetNum,FrontChNum,BackChNum),"goff");
-  TGraph *graph = new TGraph(MainTree->GetSelectedRows(),MainTree->GetV2(),MainTree->GetV1());
+  counter=MainTree->GetSelectedRows();
+  TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
+  printf("counter = %d\n",counter);
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
   graph->Fit("fun2","qROB");
   slope=fun2->GetParameter(1);
   offset=fun2->GetParameter(0);
+  if(doup) {
+    graph->Draw("ap");
+    can->Update();
+  }
   
   delete graph;
   delete fun2;
@@ -587,10 +597,22 @@ Double_t GainMatch::Fit9(Int_t DetNum, Int_t UpChNum) {//Step1 TTree to TGRaph, 
     exit(EXIT_FAILURE);
   }
   MainTree->Draw("EDown_Rel[0]:EUp_Rel[0]",Form("DetID==%d && UpChNum==%d && HitType==111",DetNum,UpChNum),"");
+  //MainTree->Draw("EDown_Rel[0]:EUp_Rel[0]",Form("DetID==%d && UpChNum==%d && HitType==111 && cut",DetNum,UpChNum),"");//why doesn't this work!?
+  if(doup) {
+    can->Update();
+    cut->Draw("same");
+  }
   counter=MainTree->GetSelectedRows();
   TGraph *graph = new TGraph(counter,MainTree->GetV2(),MainTree->GetV1());
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x");
+  //fun2->SetParameters(offset,slope);//if using values from Fit4
   graph->Fit("fun2","qROB");
+  if(doup) {
+    graph->Draw("ap");
+    cut->Draw("same");
+    fun2->Draw("same");
+    can->Update();
+  }
   slope=fun2->GetParameter(1);
   offset=fun2->GetParameter(0);
   
