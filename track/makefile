@@ -8,9 +8,9 @@ Analyzer_Cal: tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp
 	@echo compiling Analyzer code...
 	g++ -o Analyzer_Cal tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 
-Analyzer_ES: tr_dict.cxx LookUp.cpp Analyzer_ESMaria.cpp
+Analyzer_ES: tr_dict.cxx LookUp.cpp Analyzer_ES.cpp
 	@echo compiling Analyzer code...
-	g++ -o Analyzer_ES tr_dict.cxx LookUp.cpp Analyzer_ESMaria.cpp `root-config --cflags --glibs`
+	g++ -o Analyzer_ES tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
 
 Analyzer_Maria: tr_dict.cxx LookUp.cpp Analyzer_Maria.cpp
 	@echo compiling Analyzer code...

@@ -5,9 +5,9 @@
 // //To create a dictionary:
 //  rootcint -f tr_dict.cxx -c ../Include/tree_structure.h LinkDef.h
 //
-// Usage: g++ -o B tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
+// Usage: g++ -o Analyzer_ES tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
 //
-// ./B DataListCal.txt 2430Cal5Analyzer20170303.root cut/D2.root //
+// ./Analyzer_ES DataListCal.txt 2430Cal5Analyzer20170303.root cut/D2.root //
 //
 // Uses Lookup tables instead of doing integration multiple times for Energyloss, 
 // Final Energy, Initial Energy & Distance calculation.
@@ -34,26 +34,26 @@
 
 #define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
-#define La 53.65   //Length of ANASEN gas volume..
+#define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
-
-#define M_P 938.27206671856      
-#define M_alpha 3727.37929745092
+//NIST values
+#define M_P 938.2720813
+#define M_N 939.5654133
+#define M_D2 1875.612928
+#define M_3He 2808.391586
+#define M_alpha 3727.379378
 
 #define M_Be8 7454.85043438849
 #define M_Li5 4667.6163636366931 //correct
 //#define M_Li5 4665.7163636366931 //correction of -1.90 MeV applied
 
-#define M_3He 2808.3915032078
 #define M_Li6 5601.518452737
 
 #define M_Be7 6534.1836677282 
-#define M_D2 1875.61291385342
 
 #define M_Li7 6533.83277448969
-#define M_N 939.565413351413   
 #define M_He5 4667.67970996292
 
 #define QValue 
@@ -96,7 +96,6 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////////
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
 
-
 void MyFill(string name,int binsX, double lowX, double highX, double valueX);
 
 void MyFill(string name,int binsX, double lowX, double highX, double valueX,
@@ -117,12 +116,12 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
   return 0;
 };
 ////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]){ 
+int main(int argc, char* argv[]) { 
 
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=4){
+  if (argc!=4) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
@@ -267,13 +266,14 @@ int main(int argc, char* argv[]){
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
-      for (Int_t j=0; j<Si.ReadHit->size(); j++){//loop over all silicon
+      for (Int_t j=0; j<Si.ReadHit->size(); j++) {//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(j);	//if we have a good hit type set the parameters in your new tree
 
-	if ( Si.hit_obj.Energy <= 0 ){
+	if ( Si.hit_obj.Energy <= 0 ) {
 	  continue;
-	}else{
+	}
+	else {
 
 	  GoodPC = FindMaxPC(Si.hit_obj.PhiW, PC);
 
@@ -499,7 +499,6 @@ int main(int argc, char* argv[]){
 	      MyFill("D2_7Be_Energy_SX3_2",1000,0,25,Energy_7Be_D2);
 	      MyFill("D2_7Be_Energy_VS_BeamEnergy_SX3_2",1000,0,25,Energy_7Be_D2,1000,0,25,Tr.TrEvent[c].BeamEnergy);	     
 	    }
-
 	  }
 	}
       }
@@ -529,31 +528,30 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
 // Nabin Rijal, June 2016
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC){
-Int_t GoodPC = -1;
-Double_t MaxPC = -10;
-//Double_t MinPhi = 0.2619;
-Double_t MinPhi = 0.5238;
+  Int_t GoodPC = -1;
+  Double_t MaxPC = -10;
+  //Double_t MinPhi = 0.2619;
+  Double_t MinPhi = 0.5238;
 
-for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
-//if the PC falls in a range of phi then it is possible correlated
-//we find the maximum energy on the pc
-PC.pc_obj = PC.ReadHit->at(k);
+  for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
+    //if the PC falls in a range of phi then it is possible correlated
+    //we find the maximum energy on the pc
+    PC.pc_obj = PC.ReadHit->at(k);
 
-//if (PC.pc_obj.TrackType == 1){
-//continue;
-//}
+    //if (PC.pc_obj.TrackType == 1){
+    //continue;
+    //}
 
-if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
-if ( PC.pc_obj.Energy >= MaxPC ){
-MaxPC = PC.pc_obj.Energy;
-GoodPC = k;
-}
-}
-}
-return GoodPC;
+    if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
+      if ( PC.pc_obj.Energy >= MaxPC ){
+	MaxPC = PC.pc_obj.Energy;
+	GoodPC = k;
+      }
+    }
+  }
+  return GoodPC;
 }
 */
-
 ///////////////////////////////////////////////////////////////////////////////////
 // If there are more than one silicon firing within the range of given phi, 
 // picks the one with closer phi and assigns the another pc hit to the next silicon.
