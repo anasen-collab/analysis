@@ -14,27 +14,29 @@
 #include <exception>
 #include <TCutG.h>
 ///////////////////////////////////////////////////////////////////////////
-void PC_UD_RelCal(void) {
+void PC_UpDown_RelCal(void) {
   using namespace std;
 
   Double_t x[10];
   Double_t y[10];  
 
-  string rootfile = "355Pulser_20170501.root";
+  string rootfile = "/home/lighthall/anasen/root/run1262,4m.root";
   TFile *f1 = new TFile(rootfile.c_str());
   if (!f1->IsOpen()) {
     cout << "Root file: " << rootfile << " could not be opened.\n";
     exit(EXIT_FAILURE);
   } 
   ofstream outfile;  
-  outfile.open("PC_UD_RelCal_20170501.txt");
+  outfile.open("PC_UD_RelCal_20170515.txt");
   outfile << "Wire\tSlope\tShift\n";
 
   TCanvas *pad = new TCanvas("pad","pad",800,600);
+  if(!(pad->GetShowEventStatus()))pad->ToggleEventStatus();
+  if(!(pad->GetShowToolBar()))pad->ToggleToolBar();
   TCutG *cut;
   for (Int_t WireNum=0; WireNum<24; WireNum++){
     TH2F *hist = NULL;  
-    hist = (TH2F*)f1->Get(Form("PC_Up_vs_Down_Wire%i",WireNum));
+    hist = (TH2F*)f1->Get(Form("PC_Down_vs_Up_BeforeCal_Wire%i",WireNum));
     if (hist==NULL){
       outfile << WireNum << "\t" << 1 << "\t" << 0 << endl;
       cout << "Warning: hist with wire number " << WireNum << " does not exist.\n";
@@ -64,5 +66,3 @@ void PC_UD_RelCal(void) {
     outfile << WireNum << "\t" << Slope << "\t" << Shift << endl;    
   } 
 }
-//////////////////////////////////////////////////////////////////////////////////
-
