@@ -54,7 +54,7 @@ void AlphaCal(void) {
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3gA.root");
   
   if ( !f1->IsOpen() ) {
     cout << "Error: Root file does not exist\n";
@@ -68,8 +68,8 @@ void AlphaCal(void) {
     exit(EXIT_FAILURE);
   }
   Gains gains;
-  gains.Load("saves/AlphaCalibration_init.dat");
-  gains.Save("saves/AlphaCalibration");
+  gains.Load("saves/AlphaCal_170515.edit.dat");
+  gains.Save("saves/AlphaCal");
     
   TCanvas *can = new TCanvas("can","can",800,600);
   can->Divide(1,2);
@@ -109,6 +109,7 @@ void AlphaCal(void) {
 
     if(hist->GetEntries()==0) {
       printf("DetNum %2d: Histogram %s has zero entries.\n", DetNum,hist->GetTitle());
+      outfile << DetNum << "\t"<< 0 << "\t" << 1 <<endl;
       continue;
     }
 	      
@@ -150,7 +151,7 @@ void AlphaCal(void) {
     
     if (npeaks==1) {
       if (nfound != 1) {
-	printf("DetNum %2d: peaks = %d",nfound);
+	printf("DetNum %2d: peaks = %d",DetNum,nfound);
 	cout << "No peaks found\n";
 	//Double_t median = hist->GetMaximumBin()*0.00266666 + 0.8;
 	Double_t median = hist->GetMaximumBin()*0.0012 + 0.8;
