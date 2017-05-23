@@ -136,7 +136,7 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
   Float_t bTime[16]= {0};
   int i=0,j=0,k=0;
 
-  while ((i< front.size()) && (j< back.size()) && k<16){   
+  while ((i< front.size()) && (j< back.size()) && (k<16)){   
 
     if (fabs(back[j].Energy - front[i].Energy) < Q3_Qdiff*back[j].Energy + 0.2 ){
     
@@ -358,7 +358,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
   Float_t bTi[4]= {0};
   int p=0,q=0,m=0;
 
-  while ((p< front.size()) && (q< back.size()) && m<4){
+  while ((p< front.size()) && (q< back.size()) && (m<4)){
     if (fabs(back[q].Energy - front[p].Energy) < SX3_Qdiff*back[q].Energy + 0.2 ){
       
       fEn[m] = front[p].Energy;
@@ -372,7 +372,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
       q++;
       m++;      
     }else{      
-      // for two front / one back
+      // for two front / one back firing
       if (front[p].Energy < back[q].Energy){
 	// is there another front-hit that matches as a sum 
 	if (((p+1)< front.size()) && (fabs(front[p].Energy + front[p+1].Energy - back[q].Energy)< SX3_Qdiff*back[q].Energy+0.2 )){
@@ -403,15 +403,15 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
 	}else{
 	  break;
 	}
-      } //   for one front / two back  
+      } //   for one front / two back  firing
       else if (front[p].Energy > back[q].Energy){
 	// is there another back-hit that matches as a sum 
 	if (((q+1)< back.size()) && (fabs(back[q].Energy + back[q+1].Energy - front[p].Energy)< SX3_Qdiff*front[p].Energy+0.2 )){
 	  
 	  // first hit //in the back
 	  fEn[m] = back[q].Energy;
-	  fEn_Up[m] = back[p].Energy_Up;
-	  fEn_Down[m] = back[p].Energy_Down;
+	  fEn_Up[m] = back[q].Energy*front[p].Energy_Up/front[p].Energy;
+	  fEn_Down[m] = back[q].Energy*front[p].Energy_Down/front[p].Energy;
 	  bEn[m] = back[q].Energy;
 	  fCh[m] = front[p].Channel;
 	  bCh[m] = back[q].Channel;
@@ -421,8 +421,8 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
 
 	  // second hit //in the back	
 	  fEn[m] = back[q].Energy;
-	  fEn_Up[m] = back[p].Energy_Up;
-	  fEn_Down[m] = back[p].Energy_Down;
+	  fEn_Up[m] = back[q].Energy*front[p].Energy_Up/front[p].Energy;
+	  fEn_Down[m] = back[q].Energy*front[p].Energy_Down/front[p].Energy;
 	  bEn[m] = back[q].Energy;
 	  fCh[m] = front[p].Channel;
 	  bCh[m] = back[q].Channel;
@@ -458,21 +458,21 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
     Si->hit_obj.Time = bTi[s];
    
     Double_t ZUp=0,ZUpCal=-10, ZDown=0, ZDownCal=-10;
-    Double_t xw=0, yw=0, zw=0, rw=0, phiw=0;   
-    
-    ZDown = ((2*fEn_Down[s]/bEn[s])-1);
-    ZUp = (1-(2*fEn_Up[s]/bEn[s]));
+    Double_t xw=0, yw=0, zw=0, rw=0, phiw=0;      
 
-    Si->hit_obj.ZDown_Dummy =ZDown;
-    Si->hit_obj.ZUp_Dummy =ZUp;
+    if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s])){    
+      ZDown = ((2*fEn_Down[s]/bEn[s])-1);
+      Si->hit_obj.ZDown_Dummy =ZDown;
+      //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZDown,ZDownCal);   
+      CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZDown,ZDownCal);  
 
-    //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZDown,ZDownCal);   
-    CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZDown,ZDownCal);    
-  
-    //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZUp,ZUpCal);
-    CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZUp,ZUpCal);
-     
-    //--------------------------------------------------------------
+    }else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])){
+      ZUp = (1-(2*fEn_Up[s]/bEn[s]));    
+      Si->hit_obj.ZUp_Dummy =ZUp;  
+      //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZUp,ZUpCal);
+      CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZUp,ZUpCal);
+    }
+      //--------------------------------------------------------------
     //determine z positions using back channels but it is too wide i.e. bad resolution
     //Si->hit_obj.Z = (3-bCh[s] + ZRandom->Rndm())*1.875; 
 
@@ -503,6 +503,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
 
     Si->Hit.push_back(Si->hit_obj);
     Si->NSiHits++;
-  } 
+    //}
+  }
 };
 ////////////////////////////////////////////////////////////////////////////////////////////
