@@ -306,6 +306,9 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
 	}else if(down[i][1]>0 ){ 
 	  data_obj.Channel = (Int_t)down[i][0];//added 20160927
 	}
+	else{
+	  data_obj.Channel = (Int_t) -1;
+	}
 	//}
       
       data_obj.Energy_Up = up[i][1];
@@ -488,8 +491,8 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
       Si->hit_obj.Z = ZUpCal;
       CMAP->GetSX3WorldCoordinates(Si->hit_obj.DetID,Si->hit_obj.X,Si->hit_obj.Z,xw,yw,zw,rw,phiw);
       //if(Si->hit_obj.HitType != 111){ cout<<"Up:  hit_obj.Z ="<<Si->hit_obj.Z<<"hit_obj.X ="<<Si->hit_obj.X<<"  HitType  = "<<Si->hit_obj.HitType<<endl;}
-    }  else if(ZUpCal == -10 && ZDownCal == -10)  {  
-      continue;  
+      //}  else if(ZUpCal == -10 && ZDownCal == -10)  {  
+      //continue;  
     } else{    
       //continue;
       //cout<<"=============== ========= ==========="<<endl;
