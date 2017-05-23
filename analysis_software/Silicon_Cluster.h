@@ -22,7 +22,7 @@
 
 using namespace std;
 
-#define Q3_Qdiff 0.5
+#define Q3_Qdiff 0.15
 #define SX3_Qdiff 0.5
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Silicon_Cluster{
@@ -136,7 +136,7 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
   Float_t bTime[16]= {0};
   int i=0,j=0,k=0;
 
-  while ((i< front.size()) && ( j< back.size() )){   
+  while ((i< front.size()) && (j< back.size()) && k<16){   
 
     if (fabs(back[j].Energy - front[i].Energy) < Q3_Qdiff*back[j].Energy + 0.2 ){
     
@@ -358,7 +358,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
   Float_t bTi[4]= {0};
   int p=0,q=0,m=0;
 
-  while ((p< front.size()) && ( q< back.size() )){
+  while ((p< front.size()) && (q< back.size()) && m<4){
     if (fabs(back[q].Energy - front[p].Energy) < SX3_Qdiff*back[q].Energy + 0.2 ){
       
       fEn[m] = front[p].Energy;
