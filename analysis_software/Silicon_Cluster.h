@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "/data0/nabin/Vec/Include/ChannelMap.h"
-#include "/data0/nabin/Vec/Include/tree_structure.h"
+#include "ChannelMap.h"
+#include "tree_structure.h"
 
 using namespace std;
 
