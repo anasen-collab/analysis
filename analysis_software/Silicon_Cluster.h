@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Description: Sorts silicon signals and assigns them as particle hit and makes Cluster of hits.
 //
-// Different Methods to sort Q3 && SX3 detectors
+// Different Methods to sort QQQ3 && SX3 detectors
 //
 // Speciality: Multiple particles per detectors are sorted & Front-Back matching.
 // 
 //
-// Usage: Include in Main & call for SortQ3() && SortSX3().
+// Usage: Include in Main & call for SortQQQ() && SortSX3().
 //
-// Author: Nabin Rijal,John Parker, Ingo Wiedenhover 2016 August
+// Author: Nabin Rijal, 2016 August
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <TROOT.h>
@@ -17,10 +17,13 @@
 #include <algorithm>
 #include <vector>
 
-#include "/data0/nabin/A2/ChannelMap.h"
-#include "/data0/nabin/A2/tree_structure.h"
+#include "/data0/nabin/Vec/Include/ChannelMap.h"
+#include "/data0/nabin/Vec/Include/tree_structure.h"
 
 using namespace std;
+
+#define Q3_Qdiff 0.5
+#define SX3_Qdiff 0.5
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Silicon_Cluster{
 
@@ -135,7 +138,7 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
 
   while ((i< front.size()) && ( j< back.size() )){   
 
-    if (fabs(back[j].Energy - front[i].Energy) < 0.15*back[j].Energy + 0.2 ){
+    if (fabs(back[j].Energy - front[i].Energy) < Q3_Qdiff*back[j].Energy + 0.2 ){
     
       fEnergy[k] = front[i].Energy;
       bEnergy[k] = back[j].Energy;
@@ -151,7 +154,7 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
       // test for two rings / one back-wedge
       if (front[i].Energy < back[j].Energy){
 	// is there another front-hit that matches as a sum 
-	if (((i+1)< front.size()) && (fabs(front[i].Energy + front[i+1].Energy - back[j].Energy)< 0.15*back[j].Energy+0.2 )){
+	if (((i+1)< front.size()) && (fabs(front[i].Energy + front[i+1].Energy - back[j].Energy)< Q3_Qdiff*back[j].Energy+0.2 )){
 
 	  // first hit 	
 	  fEnergy[k] = front[i].Energy;
@@ -178,7 +181,7 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
       }     
       else if (front[i].Energy > back[j].Energy){
 	// is there another back-hit that matches as a sum 
-	if (((j+1)< back.size()) && (fabs(back[j].Energy + back[j+1].Energy - front[i].Energy)< 0.15*front[i].Energy+0.2 )){
+	if (((j+1)< back.size()) && (fabs(back[j].Energy + back[j+1].Energy - front[i].Energy)< Q3_Qdiff*front[i].Energy+0.2 )){
 
 	  // first hit //in the back
 	  fEnergy[k] = back[j].Energy;
@@ -288,20 +291,40 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
   //------------------------------------------------------------------
   //copy contents of det_obj into new arrays, get rid of bad energies
   for ( Int_t i=0; i<4; i++ ){
+
     if ( up[i][1]>0 || down[i][1]>0 ){ 
-      data_obj.Channel = (Int_t)up[i][0];//
+     
       data_obj.Channel_Up =(Int_t)up[i][0];
       data_obj.Channel_Down =(Int_t)down[i][0];
       
       //if(data_obj.Channel_Up == data_obj.Channel_Down){
-      data_obj.Energy = up[i][1] + down[i][1];
-      //}else{
-      //continue;
-      //}
+      //data_obj.Energy = up[i][1] + down[i][1];
+
+      // assign channel from the active side of the detector if only one is present 
+	if ( up[i][1]>0){ 
+	  data_obj.Channel = (Int_t)up[i][0];//
+	}else if(down[i][1]>0 ){ 
+	  data_obj.Channel = (Int_t)down[i][0];//added 20160927
+	}
+	//}
       
       data_obj.Energy_Up = up[i][1];
       data_obj.Energy_Down = down[i][1];
-      data_obj.Time = up[i][2];
+
+      data_obj.Energy=0.;//added 20160927
+      if (up[i][1]>0){
+	data_obj.Energy += up[i][1];
+      }
+      if (down[i][1]>0){
+	data_obj.Energy += down[i][1];
+      }
+      
+      // assign time from the active side of the detector if only one is present 
+      if ( up[i][1]>0){ 
+	data_obj.Time = up[i][2];
+      }else if( down[i][1]>0){ 
+	data_obj.Time = down[i][2];
+      }
       front.push_back(data_obj);
     }
   }
@@ -336,7 +359,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
   int p=0,q=0,m=0;
 
   while ((p< front.size()) && ( q< back.size() )){
-    if (fabs(back[q].Energy - front[p].Energy) < 0.2*back[q].Energy + 0.2 ){
+    if (fabs(back[q].Energy - front[p].Energy) < SX3_Qdiff*back[q].Energy + 0.2 ){
       
       fEn[m] = front[p].Energy;
       fEn_Up[m] = front[p].Energy_Up;
@@ -352,7 +375,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
       // for two front / one back
       if (front[p].Energy < back[q].Energy){
 	// is there another front-hit that matches as a sum 
-	if (((p+1)< front.size()) && (fabs(front[p].Energy + front[p+1].Energy - back[q].Energy)< 0.2*back[q].Energy+0.2 )){
+	if (((p+1)< front.size()) && (fabs(front[p].Energy + front[p+1].Energy - back[q].Energy)< SX3_Qdiff*back[q].Energy+0.2 )){
 	  
 	  // first hit 	
 	  fEn[m] = front[p].Energy;
@@ -383,7 +406,7 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
       } //   for one front / two back  
       else if (front[p].Energy > back[q].Energy){
 	// is there another back-hit that matches as a sum 
-	if (((q+1)< back.size()) && (fabs(back[q].Energy + back[q+1].Energy - front[p].Energy)< 0.2*front[p].Energy+0.2 )){
+	if (((q+1)< back.size()) && (fabs(back[q].Energy + back[q+1].Energy - front[p].Energy)< SX3_Qdiff*front[p].Energy+0.2 )){
 	  
 	  // first hit //in the back
 	  fEn[m] = back[q].Energy;
