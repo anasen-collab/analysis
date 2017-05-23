@@ -135,9 +135,9 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
   	     "Param/17F_cals/AlphaCal_170515.edit.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step3_170501.dat",
+  	     "Param/17F_cals/X3RelativeGains_Step2_170518.dat",
   	     "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170501.dat","Param/17F_cals/X3geometry_170502.dat");
+  CMAP->FinalInit("Param/initialize/X3FinalFix_init.dat","Param/17F_cals/X3geometry_170502.dat");
   CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
   CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");

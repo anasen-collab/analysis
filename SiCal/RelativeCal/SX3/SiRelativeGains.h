@@ -35,7 +35,7 @@ TCutG *cut;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
-Bool_t doup=1;
+Bool_t doup=0;
 
 class Gains {
  public:

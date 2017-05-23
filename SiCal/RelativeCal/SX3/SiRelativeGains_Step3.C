@@ -21,7 +21,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step3(void) {
   using namespace std;
-  f1 = new TFile("/home/lighthall/anasen/root/main/run1227mQ2S2.root");
+  f1 = new TFile("/home/lighthall/anasen/root/main/spacer7mQ2S2.root");
   //f1 = new TFile("/home/lighthall/anasen/root/main/run1226-9mQ2_fix.root");
   //f1 = new TFile("/home/lighthall/anasen/root/main/run1255-61mQ2S3.root");
   if ( !f1->IsOpen() ){
