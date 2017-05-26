@@ -1,8 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////This program fixes the relative gains for the up and down on the SX3
-
+////This program fixes the relative gains for the up and down on the PC
+//// Usage: root -l PosCal.C
 //// Edited by : John Parker , 2016Jan24
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C++
+#include <fstream>
+#include <exception>
+//ROOT
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -12,8 +16,6 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <exception>
 #include <TCutG.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,12 +85,11 @@ Double_t MyFit(TH2F* hist, TCanvas* can) {
   return gain;
 }
 
-void PosCal(void){
-
+void PosCal(void) {
   using namespace std;
   Double_t x[10];
   Double_t y[10];
-  string rootfile = "/home2/parker/ANASEN/LSU/ParkerTrack_root/run_alpha0_nocal.root";
+  string rootfile = "/home/lighthall/anasen/root/track/spacer0t.root";
   TFile *f1 = new TFile(rootfile.c_str());
   if (!f1->IsOpen()){
     cout << "Root file: " << rootfile << " could not be opened.\n";
@@ -104,7 +105,7 @@ void PosCal(void){
   Int_t wire = 0;
   ifstream infile;
   string dummy;
-  infile.open("saves/PCWireCal_09272016_cut.dat");
+  infile.open("saves/PCWireCal_init.dat");
   if (infile.is_open()){
     infile >> dummy >> dummy >> dummy;
     while (!infile.eof()){
@@ -119,7 +120,7 @@ void PosCal(void){
   infile.close();
 
   ofstream outfile;
-  outfile.open("PCWireCal_022916.dat");
+  outfile.open("saves\PCWireCal_170526.dat");
   outfile << "Wire\tSlope\tShift\n";
 
   TCutG *cut;
