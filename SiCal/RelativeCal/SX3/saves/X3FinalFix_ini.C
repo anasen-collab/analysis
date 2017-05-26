@@ -8,7 +8,7 @@ void X3FinalFix_ini(void) {
   outfile.open("X3FinalFix_init.dat");
   outfile<<"DetNum\tChNum\tOffset\n";
 
-  for (Int_t DetNum=4; DetNum<27; DetNum++) {
+  for (Int_t DetNum=4; DetNum<28; DetNum++) {
     Double_t offset=0;//default, back
     for (Int_t ChNum=0; ChNum<12; ChNum++) {
       if(ChNum>7)//Step1:up

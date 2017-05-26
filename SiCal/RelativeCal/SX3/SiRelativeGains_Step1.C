@@ -23,7 +23,7 @@
 void SiRelativeGains_Step1(void) {
   using namespace std;
 
-  f1 = new TFile("/home/lighthall/anasen/root/main/run1255-7mQ2S1.root");//10MeV only
+  f1 = new TFile("/home/lighthall/anasen/root/main/10MeVmQ2S3.root");//10MeV only
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -31,7 +31,7 @@ void SiRelativeGains_Step1(void) {
   
   //Input the .dat file used by Main.cpp to generate the .root file given above
   Gains gains;
-  gains.Load("saves/X3RelativeGains_Step2_170518.dat");
+  gains.Load("saves/X3RelativeGains_Step3_170525.dat");
   gains.Save("saves/X3RelativeGains_Step1");
   
   BadDetectors bad;

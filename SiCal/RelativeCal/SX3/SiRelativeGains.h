@@ -29,6 +29,7 @@ const Int_t range=4096*4;
 ofstream outfile;
 ofstream outfile_diag;
 ofstream outfile_offset;
+ofstream outfile_offset_diag;
 Int_t counter;
 TCanvas *can;
 TCutG *cut;
@@ -59,6 +60,7 @@ class Offsets {
   void Add(Int_t,Int_t,Double_t,Double_t);
   ~Offsets() {
     outfile_offset.close();
+    outfile_offset_diag.close();
   };
 };
 
@@ -87,6 +89,10 @@ class GainMatch {
     if(!((TCanvas *) gROOT->FindObject("can")))
       can = new TCanvas("can","can",800,600);
     counter=0;
+  };
+  ~GainMatch() {
+    if(doup==kFALSE)
+      delete can;
   };
   Double_t Fit1(TH2F*,Bool_t docut=kTRUE);
   Double_t Fit2(TH2F*,Float_t dummy=0);
@@ -188,14 +194,24 @@ void Offsets::Print() {
 void Offsets::Save(TString fname) {
   Time time;
   time.Get();
-
   outfile_offset.open(Form("%s_%s.dat",fname.Data(),time.stamp));
   outfile_offset << "DetNum\tFrontCh\tOffset\n";
+
+  outfile_offset_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
+  outfile_offset_diag << "DetNum\tFrontCh\tOld     \tOffset   \tNew     \tCounter\n";
 }
 
 void Offsets::Add(Int_t DetNum,Int_t ChNum,Double_t offset,Double_t new_offset) {
   if(new_offset&&doprint)
     printf(" Previous offset = %f \t Offset = %f \t New offset = %f\n",old[DetNum][ChNum],offset,old[DetNum][ChNum]+new_offset);
+  Int_t wide=8;
+  Int_t prec=wide-3;
+  outfile_offset_diag << DetNum +4 << "\t" << ChNum << "\t"
+		      << right << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum] << "\t"
+		      << right << fixed << setw(wide) << setprecision(prec) << new_offset << "\t"
+		      << right << fixed << setw(wide) << setprecision(prec) << old[DetNum][ChNum]+new_offset << "\t"
+		      << counter
+		      << endl;
   old[DetNum][ChNum]+=new_offset;
 }
 
