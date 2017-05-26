@@ -4,7 +4,7 @@
 // Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
 // MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
 //
-// Usage: root -l SiPulser_All.C++ (from the same directory).
+// Usage: root -l AlphaCal.C++ (from the same directory).
 //
 // Edited by : John Parker , 2016Jan22
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,8 +53,8 @@ void AlphaCal(void) {
 
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-61mQ2S3gA.root");
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/main/run1255-7mQ2S3_geo_init.root");
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/main/run1255-61mQ2S3.root");
   
   if ( !f1->IsOpen() ) {
     cout << "Error: Root file does not exist\n";
@@ -68,7 +68,14 @@ void AlphaCal(void) {
     exit(EXIT_FAILURE);
   }
   Gains gains;
-  gains.Load("saves/AlphaCal_170515.edit.dat");
+  Bool_t isrecal=kTRUE;
+  if(isrecal) {
+    gains.Load("saves/AlphaCal_170515.edit.dat");
+    range=13;
+  }
+  else {
+    gains.Load("saves/AlphaCal_init.dat");
+  }
   gains.Save("saves/AlphaCal");
     
   TCanvas *can = new TCanvas("can","can",800,600);
@@ -117,7 +124,10 @@ void AlphaCal(void) {
       delete s;
     }
 
-    hist->GetXaxis()->SetRangeUser(1500,6000);
+    if(isrecal)
+      hist->GetXaxis()->SetRangeUser(4,11);
+    else
+      hist->GetXaxis()->SetRangeUser(1500,6000);
     can->Update();
     TSpectrum *s = new TSpectrum();
     Int_t nfound = s->Search(hist,2," ",0.05);//9 and 0.15
