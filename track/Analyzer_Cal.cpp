@@ -19,6 +19,7 @@
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
+#define IsCal
 
 #define DiffIP 2 //cm
 #define ConvAngle 180./TMath::Pi(); //when multiplied, Converts to Degree from Radian 
@@ -35,8 +36,7 @@
 
 #define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
 #define pcr 3.846284509;//3.75+0.096284509; //correction for the centroid Kx applied
-//#define La 53.65   //Length of ANASEN gas volume..
-#define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
+#define La 54.42   //Length of ANASEN gas volume.
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
@@ -162,7 +162,11 @@ int main(int argc, char* argv[]) {
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=3) {
+  Int_t numarg=4;
+#ifdef IsCal
+  numarg=3;
+#endif
+  if (argc!=numarg) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
@@ -172,7 +176,8 @@ int main(int argc, char* argv[]) {
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
-  /*
+
+#ifdef IsCal
   //////////////// CUTS ////////////////////
   //
   char* file_cut1 = new char[100]; //for allcut
@@ -191,7 +196,8 @@ int main(int argc, char* argv[]) {
   if (cut1 == NULL){
     cout << "Cut1 does not exist\n";
     exit(EXIT_FAILURE);
-    } */
+  }
+#endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   TObjArray *RootObjects = new TObjArray();
   SiHit Si;
