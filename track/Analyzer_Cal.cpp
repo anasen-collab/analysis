@@ -19,7 +19,7 @@
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
-#define IsCal
+//#define DoCut
 
 #define DiffIP 2 //cm
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
@@ -51,26 +51,34 @@
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
 //NIST values
-#define M_P 938.2720813
-#define M_N 939.5654133
-#define M_D2 1875.612928
+#define M_P  938.2720813
+#define M_N  939.5654133
+#define M_D 1875.612928
 #define M_3He 2808.391586
 #define M_alpha 3727.379378
 
-#define M_Be8 7454.85043438849
-#define M_Li5 4667.6163636366931 //correct
-//#define M_Li5 4665.7163636366931 //correction of -1.90 MeV applied
+// Nabin masses
+#define M_5Li 4667.6163636366931 //correct
+#define M_5He 4667.67970996292
+#define M_6Li 5601.518452737
+#define M_7Li 6533.83277448969
+#define M_7Be 6534.1836677282
+#define M_8Be 7454.85043438849
 
-#define M_Li6 5601.518452737
+//---MARIA nuclear masses //MeV--------------------------------------
+#define M_16O  14895.079
+#define M_18Ne 16767.09917
+#define M_21Na 19553.56884
+#define M_24Mg 22335.79043
+#define M_27Al 25126.49834
 
-#define M_Be7 6534.1836677282
-
-#define M_Li7 6533.83277448969
-#define M_He5 4667.67970996292
+//Jon masses
+#define M_17F  15832.754 
+#define M_Ne20 18617.733
 
 //reaction
-#define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
-#define QValue
+#define BeamE 61.54 //MeV energy of 17F beam inside Kapton Window.
+#define QValue 4.1296 //MeV 17F(a,p)20Ne
 
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -131,13 +139,13 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
 };
 ////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) { 
-
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
-
-  Int_t numarg=4;
-#ifdef IsCal
-  numarg=3;
+  
+  Int_t numarg=3;
+#ifdef DoCut
+  numarg=4;
+  printf("expecting cut file...\n");
 #endif
   if (argc!=numarg) {
     cout << "Error: Wrong Number of Arguments\n";
@@ -150,17 +158,16 @@ int main(int argc, char* argv[]) {
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
 
-  cout << argv[0] << endl;
-  cout << argv[1] << endl;
-  cout << argv[2] << endl;
+  cout << "Command is " << argv[0] << endl;
+  cout << "Input file is " << argv[1] << endl;
+  cout << "Output file is "<< argv[2] << endl;
   
-#ifdef IsCal
+#ifdef DoCut
   //////////////// CUTS ////////////////////
 
   char* file_cut1 = new char[300]; //for allcut
   strcpy( file_cut1, argv[3] );
  
-
   //He4 cut
   TFile *cut_file1 = new TFile(file_cut1);
   if (!cut_file1->IsOpen()){
@@ -189,29 +196,10 @@ int main(int argc, char* argv[]) {
   PC.ReadHit = 0;
   //CsI.ReadHit = 0;
 
-  LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_Be7);
-  LookUp *E_Loss_alpha = new LookUp("/data0/nabin/Vec/Param/He4_D2_400Torr_20160614.eloss",M_alpha);
-  LookUp *E_Loss_proton = new LookUp("/data0/nabin/Vec/Param/P_D2_400Torr_20160614.eloss",M_P);
-  LookUp *E_Loss_deuteron = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D2); 
-  LookUp *E_Loss_3He = new LookUp("/data0/nabin/Vec/Param/He3_D2_400Torr.eloss",M_3He); 
-  //LookUp *E_Loss_Li6 = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D2); 
+  LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
 
   E_Loss_7Be->InitializeLookupTables(30.0,200.0,0.01,0.04);
-  //E_Loss_7Be->InitializeLookupTables(20.0,60.0,0.01,0.04);//not stopped--65.0
 
-  E_Loss_alpha->InitializeLookupTables(40.0,1300.0,0.01,0.04);
-  //E_Loss_alpha->InitializeLookupTables(40.0,2000.0,0.01,0.04);
-  //E_Loss_alpha->InitializeLookupTables(30.0,1000.0,0.01,0.1);
-
-  E_Loss_proton->InitializeLookupTables(40.0,16000.0,0.05,0.01);
-  //E_Loss_proton->InitializeLookupTables(40.0,20000.0,0.05,0.01);
-  //E_Loss_proton->InitializeLookupTables(30.0,10000.0,0.05,0.1);
-
-  E_Loss_deuteron->InitializeLookupTables(30.0,6000.0,0.02,0.04);
-  //E_Loss_deuteron->InitializeLookupTables(25.0,4000.0,0.02,0.04);
-  //E_Loss_deuteron->InitializeLookupTables(20.0,2000.0,0.02,0.1); 
-
-  E_Loss_3He->InitializeLookupTables(20.0,4000.0,0.02,0.04);
   ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   TFile *outputfile = new TFile(file_cal,"RECREATE");
@@ -276,7 +264,7 @@ int main(int argc, char* argv[]) {
       //cout<<" i =  "<<i<<endl;
 
       status = raw_tree->GetEvent(i);
-
+      std::cout << "\rDone: " << i*100./nentries << "%          " << std::flush;
       if (i == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
       if (i == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
       if (i == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
