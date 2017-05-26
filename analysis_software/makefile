@@ -1,4 +1,4 @@
-Main: Main_dict.cxx Main.cpp
+Main: Main_dict.cxx Main.cpp ChannelMap.h Silicon_Cluster.h
 	@echo compiling Main code...
 	g++ -o Main Main_dict.cxx Main.cpp `root-config --cflags --glibs` -O3
 

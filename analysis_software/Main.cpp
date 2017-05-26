@@ -135,9 +135,9 @@ int main(int argc, char* argv[]){
   CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
   	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
   	     "Param/17F_cals/AlphaCal_170515.edit.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step2_170518.dat",
+  	     "Param/17F_cals/X3RelativeGains_Step3_170525.dat",
   	     "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-  CMAP->FinalInit("Param/initialize/X3FinalFix_init.dat","Param/17F_cals/X3geometry_170502.dat");
+  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
   CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
   CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
@@ -272,21 +272,22 @@ int main(int argc, char* argv[]){
   Long64_t nentries = input_tree->GetEntries();
   cout << " nentries = " << nentries<<"  in  "<<filename_callist <<endl;
 
-  for (Long64_t global_evt=0; global_evt<nentries; global_evt++){//loop over all entries in tree------
-
+  for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     status = input_tree->GetEvent(global_evt);
-
-    if (global_evt == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
-    if (global_evt == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
-    if (global_evt == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
-    if (global_evt == TMath::Nint(0.25*nentries))  cout << " 25% through the data" << endl;
-    if (global_evt == TMath::Nint(0.35*nentries))  cout << " 35% through the data" << endl;
-    if (global_evt == TMath::Nint(0.50*nentries))  cout << " 50% through the data" << endl;
-    if (global_evt == TMath::Nint(0.65*nentries))  cout << " 65% through the data" << endl;
-    if (global_evt == TMath::Nint(0.75*nentries))  cout << " 75% through the data" << endl;
-    if (global_evt == TMath::Nint(0.90*nentries))  cout << " 90% through the data" << endl;
-    if (global_evt == TMath::Nint(0.95*nentries))  cout << " 95% through the data" << endl;
-    if (global_evt == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
+    if (global_evt == TMath::Nint(0.01*nentries))  cout << endl<< "   1% through the data";
+    if (global_evt == TMath::Nint(0.10*nentries))  cout << endl<< "  10% through the data";
+    if (global_evt == TMath::Nint(0.15*nentries))  cout << endl<< "  15% through the data";
+    if (global_evt == TMath::Nint(0.25*nentries))  cout << endl<< "  25% through the data";
+    if (global_evt == TMath::Nint(0.35*nentries))  cout << endl<< "  35% through the data";
+    if (global_evt == TMath::Nint(0.50*nentries))  cout << endl<< "  50% through the data";
+    if (global_evt == TMath::Nint(0.65*nentries))  cout << endl<< "  65% through the data";
+    if (global_evt == TMath::Nint(0.75*nentries))  cout << endl<< "  75% through the data";
+    if (global_evt == TMath::Nint(0.90*nentries))  cout << endl<< "  90% through the data";
+    if (global_evt == TMath::Nint(0.95*nentries))  cout << endl<< "  95% through the data";
+    if (global_evt == TMath::Nint(1.00*(nentries-1)))  cout << endl<< " 100% through the data" << endl;
+    if(global_evt%100==0)
+      //std::cout << "\rDone: " << global_evt*100./nentries << "%          " << std::flush;
+      printf(".");
     ////////////////////////////////////////////////////////////////////////////////////////////////////   
     //
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
@@ -818,8 +819,9 @@ int main(int argc, char* argv[]){
     //============================================================
   }//end of for (global_evt=0; global_evt<nentries; global_evt++){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  cout << "Changing to output file... " << endl;
   outputFile->cd();
-
+  cout << "Writing objects... ";
   RootObjects->Write();
   cout << "RootObjects are Written" << endl;
   outputFile->Close();

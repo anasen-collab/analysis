@@ -58,6 +58,7 @@ class ChannelMap {
   
   string Comment[MaxChNum];
   Double_t SiGains[NumDet];
+  Double_t SiOffsets[NumDet];
   Double_t SX3RelativeSlope[NumSX3][MaxSX3Ch],SX3FinalFix[NumSX3][MaxSX3Ch];
   Double_t Q3RelativeSlope[NumQ3][MaxQ3Ch];
   Double_t Q3FinalFix[NumQ3][MaxQ3Ch];
@@ -271,7 +272,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
 
     getline (SiGainsFile,line);//Skips the first line in SiGainsFilename.
     //cout<<"line = "<<line<<endl;
-    i=0;
+    i=0; 
     j=0;
     Int_t Dnum = 0;
     Double_t ChNum = 0.0;
@@ -286,6 +287,8 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
 	}
       SiGainsFile >>  Dnum >> ChNum >> dummy;
       SiGains[Dnum] = dummy;
+      SiOffsets[Dnum]= ChNum;
+      //printf("  SiGains[%d] = %f\n",Dnum,SiGains[Dnum]);
     }
     
     NumberOfSX3AlphaCalibrated = i-1; // The Minus one accounts for the end of line character
@@ -938,7 +941,7 @@ int ChannelMap::Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename) {
     cout << PC_UD_RelCal_Filename << " opened successfully. " << endl;
 
     getline (pc_ud_rel,line11);//Skips the first line in PC_UD_RelCal_Filename.
-    cout<<"line = "<<line11<<endl;
+    //cout<<"line = "<<line11<<endl;
 
     while (!pc_ud_rel.eof()) {
       pc_ud_rel >> WireID >> ud_slope_dummy>> ud_offset_dummy;
