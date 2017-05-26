@@ -4,11 +4,11 @@
 // & for the other (d,p),(d,alpha)..etc..ANASEN experiments with Gas volume target
 //
 // //To create a dictionary:
-//  rootcint -f tr_dict.cxx -c tree_structure_Track.h LinkDef_Track.h
+//  rootcint -f tr_dict.cxx -c tree_structure.h LinkDef.h
 //
-// Usage: g++ -o AnalyzerMaria tr_dict.cxx LookUp.cpp AnalyzerMaria.cpp `root-config --cflags --glibs` -O3
+// Usage: g++ -o Analyzer_Maria tr_dict.cxx LookUp.cpp Analyzer_Maria.cpp `root-config --cflags --glibs` -O3
 //
-// ./AnalyzerMaria  DataList.txt /data0/manasta/OrganizeRaw_files/run###.root  cuts/alphasRun924newPCThres03212017QQQ.root //
+// ./Analyzer_Maria  DataList.txt /data0/manasta/OrganizeRaw_files/run###.root  cuts/alphasRun924newPCThres03212017QQQ.root //
 //
 // Uses Lookup tables instead of doing integration multiple times for Energyloss, 
 // Final Energy, Initial Energy & Distance calculation.
@@ -19,9 +19,10 @@
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
+#define IsCal
 
-#define DiffIP 2 // cm
-#define ConvAngle 57.27272727 //when multiplied, Converts to Degree from Radian 
+#define DiffIP 2 //cm
+#define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 
@@ -34,12 +35,17 @@
 #define MaxTDCHits  500
 #define MaxTracks   100
 
-
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
 #define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
 
-///////////////////Nuclear Masses ///////////////////////////////////////////////////
+/#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017 run930
+//#define gold_pos 22.8981   // spacer 1 = all in - 4.8514 cm run932
+//#define gold_pos 16.8783 // spacer 2 = all in - 10.8712 cm run934
+//#define gold_pos 15.6083 // spacer 3 = all in - 12.1412 cm run936
+//#define gold_pos 12.4587 // spacer 4 = all in - 15.2908 cm
+#define gold_pos -2.8505 // spacer 7 = all in - 30.6 cm
 
+///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //---MARIA nuclear masses //MeV--------------------------------------
 #define M_P 938.27197
 #define M_alpha 3727.37892
@@ -51,18 +57,11 @@
 #define M_27Al 25126.49834
 //---maria-----------------------------------
 
-
 //#define BeamE 54.24 // 16O beam for calibration in 18Ne run
 //#define BeamE 75.7 // 24Mg beam run
 #define BeamE 71.62 // 18Ne beam !!! CORRECTED 5/23/2017 76.55
 #define QValue 2.63819 // MeV 18Ne(a,p)21Na 
 
-//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017 run930
-//#define gold_pos 22.8981   // spacer 1 = all in - 4.8514 cm run932
-//#define gold_pos 16.8783 // spacer 2 = all in - 10.8712 cm run934
-//#define gold_pos 15.6083 // spacer 3 = all in - 12.1412 cm run936
-//#define gold_pos 12.4587 // spacer 4 = all in - 15.2908 cm
-#define gold_pos -2.8505 // spacer 7 = all in - 30.6 cm
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -94,7 +93,7 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-#include "tree_structure_Track.h"
+#include "tree_structure.h"
 #include "LookUp.h"
 #include "/home/manasta/Desktop/parker_codes/Include/ReconstructMaria.h" // so that the Reconstruction process is in separate script
 //#include "/home/maria/rayMountPoint/Desktop/parker_codes/Include/ReconstructMaria.h"
@@ -124,14 +123,16 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
   return 0;
 };
 ////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]){ 
-
-  
+int main(int argc, char* argv[]) { 
 
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=4){
+  Int_t numarg=4;
+#ifdef IsCal
+  numarg=3;
+#endif
+  if (argc!=numarg) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
@@ -141,14 +142,17 @@ int main(int argc, char* argv[]){
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
-  //
+
+  cout << argv[0] << endl;
+  cout << argv[1] << endl;
+  cout << argv[2] << endl;
+  
+#ifdef IsCal
   //////////////// CUTS ////////////////////
-  //
-  /*
+
   char* file_cut1 = new char[300]; //for allcut
   strcpy( file_cut1, argv[3] );
  
-
   //He4 cut
   TFile *cut_file1 = new TFile(file_cut1);
   if (!cut_file1->IsOpen()){
@@ -162,20 +166,13 @@ int main(int argc, char* argv[]){
   if (cut1 == NULL){
     cout << "Cut1 does not exist\n";
     exit(EXIT_FAILURE);
-  } 
-  */
+  }
   
   ///////----------cut2-------------------///////////////////
-  //cout << argv[0] << endl;
-  //cout << argv[1] << endl;
-  //cout << argv[2] << endl;
-  //cout << argv[3] << endl;
-
-  
+   
   char* file_cut2 = new char[300]; //for allcut
   strcpy( file_cut2, argv[3] );
- 
-
+    
   //proton cut
   TFile *cut_file2 = new TFile(file_cut2);
   if (!cut_file2->IsOpen()){
@@ -189,8 +186,10 @@ int main(int argc, char* argv[]){
     cout << "Cut2 does not exist\n";
     exit(EXIT_FAILURE);
   }
-  
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
+cout << argv[3] << endl;
+#endif
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////
   TObjArray *RootObjects = new TObjArray();
   SiHit Si;
   PCHit PC;
@@ -214,8 +213,8 @@ int main(int argc, char* argv[]){
   //LookUp *E_Loss_16O = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O); // when I work from home
   //LookUp *E_Loss_alpha = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/He_in_HeCO2_377Torr_18Nerun.eloss",M_alpha); 
 
-  /*
-  
+
+  /*  
   LookUp *E_Loss_16O = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O);  
   E_Loss_16O->InitializeLookupTables(80.0,1200.0,0.02,0.04);
   //EnergyLoss *E_Loss_16O = new EnergyLoss("/home/manasta/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O);
@@ -233,8 +232,8 @@ int main(int argc, char* argv[]){
 
    ///////-----------------E_Loss_18Ne-------------/////////////////////////////////////////////////////////////////////
 
-  
-  
+
+ 
   //LookUp *E_Loss_18Ne = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/18Ne_in_HeCO2_377Torr_18Nerun.eloss",M_18Ne);  
   LookUp *E_Loss_18Ne = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/18Ne_in_HeCO2_377Torr_18Nerun.eloss",M_18Ne);  
   E_Loss_18Ne->InitializeLookupTables(90.0,850.0,0.02,0.04);
@@ -276,8 +275,6 @@ int main(int argc, char* argv[]){
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
 
   RootObjects->Add(MainTree);
-
-  
 
   fhlist = new TList;
   RootObjects->Add(fhlist);  
@@ -364,10 +361,7 @@ int main(int argc, char* argv[]){
     }   
     cout << "Processing File: " << rootfile << endl;   
 
-    TTree *raw_tree = (TTree*) inputFile->Get("MainTree"); 
-
-   
-
+    TTree *raw_tree = (TTree*) inputFile->Get("MainTree");
     raw_tree->SetBranchAddress("Si.NSiHits",&Si.NSiHits);
     raw_tree->SetBranchAddress("Si.Detector",&Si.ReadDet);
     raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
@@ -415,8 +409,7 @@ int main(int argc, char* argv[]){
       ///////////////////////////////////////////////////////////////////////////////////////////////////
       Tr.zeroTrack();
       Int_t GoodPC = -1;  
-      for(Int_t k=0; k<24;k++)
-	{
+      for(Int_t k=0; k<24;k++) {
 	  PCGoodEnergy[k]=0;
 	}
       /////////////////////////////////////////////////////////////////////////////////////////////////////    
@@ -424,12 +417,12 @@ int main(int argc, char* argv[]){
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
-      for (Int_t j=0; j<Si.ReadHit->size(); j++){//loop over all silicon
+      for (Int_t j=0; j<Si.ReadHit->size(); j++) {//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(j);	//if we have a good hit type set the parameters in your new tree
 
     
-	 if ( Si.hit_obj.Energy <= 0 ){
+	 if ( Si.hit_obj.Energy <= 0 ) {
 	      counterNeg++;
 	      continue;
 	}
@@ -439,8 +432,7 @@ int main(int argc, char* argv[]){
 
 	  GoodPC = FindMaxPC(Si.hit_obj.PhiW, PC);
 
-	   
-	  if (GoodPC > -1){      //if a PC is found do Tracking
+	  if (GoodPC > -1){//if a PC is found do Tracking
 
 	    PC.pc_obj = PC.ReadHit->at(GoodPC);
 
@@ -504,11 +496,10 @@ int main(int argc, char* argv[]){
 	    Si.ReadHit->at(j).Energy = -1000;  // marks the current tracked hit with Energy = -1000 so that it is not counted again
 	    //counterPCMINUSTEN++;
 	    PC.ReadHit->at(GoodPC).Energy = -10;
-	   
 
 	    Tr.NTracks++; //total no. of tracks...Good or bad
 	    Tr.NTracks1++;//good tracks...PC & Si both
-	  }else{ 
+	  }else{
 	    continue;
 	  }
 	  Tr.TrEvent.push_back(Tr.track_obj);
@@ -529,17 +520,15 @@ int main(int argc, char* argv[]){
 	  counter10++;
 	}
 	*/
-	if (Si.hit_obj.Energy == -1000)
-	  {
+	if (Si.hit_obj.Energy == -1000) {
 	    counterEn1000++;
 	    continue;
 	  }
-	else if(Si.hit_obj.Energy <= 0)
-	  {
+	else if(Si.hit_obj.Energy <= 0) {
 	    counterEnLessZero++;
 	    continue;
 	  }
-	else{
+	else {
 	  counter10++;
 	
 	  Tr.ZeroTr_obj();
@@ -554,7 +543,6 @@ int main(int argc, char* argv[]){
 
 	  Tr.NTracks2++;//Only Si && no PC
 	  Tr.NTracks++;//total no. of tracks...Good or bad
-	  
 	  Tr.TrEvent.push_back(Tr.track_obj);
 	}
       }      
@@ -622,7 +610,7 @@ int main(int argc, char* argv[]){
 	  PCGoodEnergy[Tr.track_obj.WireID] = Tr.track_obj.PCEnergy;
 
 	  Tr.TrEvent.push_back(Tr.track_obj);
-	}	
+	}
       }        
       sort(Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2, Tr.TrEvent.end(),Tr.Tr_PCsort_method );      
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -640,7 +628,7 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("PCEnergyMinus_Wire%i_Wire%i",Tr.TrEvent[0].WireID-1,Tr.TrEvent[0].WireID),300,0,0.25,PCGoodEnergy[Tr.TrEvent[0].WireID],300,0,0.25,PCGoodEnergy[Tr.TrEvent[0].WireID-1]);
 
       }
-      
+	 
 
       //////////////test//////////////////////////////
 
@@ -658,10 +646,10 @@ int main(int argc, char* argv[]){
 
 
       ////////////// checking for the heavy hit &/or cross talk in the wire ///////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////    
+      /////////////////////////////////////////////////////////////////////////////////////////////    
 #ifdef PCPlots
       Int_t pct;
-      for(Int_t pc=0; pc<Tr.NTracks; pc++){
+      for(Int_t pc=0; pc<Tr.NTracks; pc++) {
 	//cout<<"   Check 10 " <<Tr.NTracks<<endl;
 
 	//All PCWire vs Energy
@@ -670,23 +658,20 @@ int main(int argc, char* argv[]){
 	for(Int_t pca=0; pca<Tr.NTracks1; pca++){
 
 	  //PCWire with track in channel 12 & other tracks & non-tracks in other channels
-	  MyFill("WireID_mod1_vs_PCEnegy_12",25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID +12)%24),500,0,0.35,Tr.TrEvent[pc].PCEnergy);
-	  MyFill("WireID_mod1_vs_PCEnegy_0",25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID)%24),500,0,0.35,Tr.TrEvent[pc].PCEnergy);
-
-	   
+	  MyFill("WireID_mod1_vs_PCEnegy_12",
+		 25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID +12)%24),
+		 500,0,0.35,Tr.TrEvent[pc].PCEnergy);
+	  MyFill("WireID_mod1_vs_PCEnegy_0" ,
+		 25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID)%24),
+		 500,0,0.35,Tr.TrEvent[pc].PCEnergy);
 	}
-
       }
-	
 
-      for(Int_t m=0; m<Tr.NTracks; m++)
-	  {
-	   MyFill(Form("PCWireID_DetID_%i",Tr.TrEvent[m].DetID),25,0,24,Tr.TrEvent[m].WireID); 
-	   MyFill(Form("PCWireID_DetID2_%i",Tr.TrEvent[0].DetID),25,0,24,Tr.TrEvent[m].WireID); 
-	  }
-	
+      for(Int_t m=0; m<Tr.NTracks; m++) {
+	MyFill(Form("PCWireID_DetID_%i",Tr.TrEvent[m].DetID),25,0,24,Tr.TrEvent[m].WireID); 
+	MyFill(Form("PCWireID_DetID2_%i",Tr.TrEvent[0].DetID),25,0,24,Tr.TrEvent[m].WireID); 
+      }
 #endif     
-
 
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ///////////////////////////////////For the Tracking///////////////////////////////////    
@@ -725,6 +710,7 @@ int main(int argc, char* argv[]){
 	}
 #endif
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+	/////////////////////Calculating Theta and PathLength/////////////////////////////////////////////
 	// Theta is the angle between particle and beam, but our beam points in the negative z-direction 
 	if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) > 0){
 	  // This is forward-scattering, so we have theta b/w 0 and 90 
@@ -823,7 +809,6 @@ int main(int argc, char* argv[]){
 	//cout<<" BeamE = "<<BeamE<<"  pcr = "<<pcr<<endl;
 	//cout<<"bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
-
 	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].pcz_ref);
 
 	MyFill(Form("SiZ_vs_SiEnergy_WireID%i",Tr.TrEvent[s].WireID),600,-1,30,Tr.TrEvent[s].SiEnergy,600,-1,25,Tr.TrEvent[s].SiZ);
@@ -916,9 +901,6 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("PCEnergyMinus_cut_Wire%i_Wire%i",Tr.TrEvent[0].WireID-1,Tr.TrEvent[0].WireID),300,0,0.25,PCGoodEnergy[Tr.TrEvent[0].WireID],300,0,0.25,PCGoodEnergy[Tr.TrEvent[0].WireID-1]);
 
       }
-
-	
-	
 	//} //end of cut2 loop
 
       } // end of for(Int_t s=0; s<Tr.NTracks1;s++){ for PCWireCal
@@ -960,9 +942,6 @@ int main(int argc, char* argv[]){
       }
 #endif
 
-
-
-
       ///////////////////////// DO your analysis here.... /////////////////////////////////////// 
       /*
       Float_t E_4He_rxn1 =0.0;
@@ -970,7 +949,7 @@ int main(int argc, char* argv[]){
       Float_t Energy_16O_4He=0.0;
       Float_t Theta_16O_4He=0.0;
       */
-      
+
       Reconstruct Elastic1(M_18Ne,M_alpha,M_P,M_21Na);
       Elastic1.E_Loss_light = E_Loss_proton;
       // Elastic1.SetELossFile("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/H_in_HeCO2_377Torr_18Nerun.eloss");
@@ -1031,7 +1010,7 @@ int main(int argc, char* argv[]){
 
 
 	  
-	  if(Tr.TrEvent[c].SiEnergy>0.0 && Tr.TrEvent[c].SiEnergy<40.0 && Tr.TrEvent[c].PathLength>0.0 && Tr.TrEvent[c].PathLength<100.0 && 
+	  if(Tr.TrEvent[c].SiEnergy>0.0 && Tr.TrEvent[c].SiEnergy<40.0 && Tr.TrEvent[c].PathLength>0.0 && Tr.TrEvent[c].PathLength<100.0 &&
 	     Tr.TrEvent[c].IntPoint>0.0 && Tr.TrEvent[c].IntPoint<La && Tr.TrEvent[c].BeamEnergy<BeamE){
 	   
 	    E_4He_rxn = E_Loss_alpha->GetLookupEnergy(Tr.TrEvent[c].SiEnergy,(-Tr.TrEvent[c].PathLength));
@@ -1110,7 +1089,7 @@ int main(int argc, char* argv[]){
 	      }
 	      
 	      
-	      
+
 	      if(Tr.TrEvent[c].DetID<4 && Tr.TrEvent[c].DetID>-1 && Energy_16O_4He>BeamE){
 		counterBeamE_largeQQQ++;
 		//outfileQQQ << " BeamE: " << Energy_16O_4He << " Theta_16O: " << Theta_16O_4He << " Theta_He: " << Tr.TrEvent[c].Theta*ConvAngle << " He_energy: " << E_4He_rxn << " SiEnergy: " << Tr.TrEvent[c].SiEnergy  
@@ -1141,14 +1120,14 @@ int main(int argc, char* argv[]){
 		//<< " SiEnergy: " << Tr.TrEvent[c].SiEnergy  << " IntPoint: " << Tr.TrEvent[c].IntPoint << " SiZ: " << Tr.TrEvent[c].SiZ << " PathLength: " << Tr.TrEvent[c].PathLength << endl
 		// << " PCZ: " << Tr.TrEvent[c].PCZ  << " PCEnergy: " << Tr.TrEvent[c].PCEnergy << endl;
 				 
-	      }   
+	      }
 	      
 
 	      
 	  }	 
 	}
       }
-*/
+      */      
 
       	
 	///------------proton cut-----------------------//////////////////////
@@ -1316,9 +1295,6 @@ int main(int argc, char* argv[]){
   */
 
 }//end of Main
-
-
- 
 ////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1327,36 +1303,36 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
   return (fmodf((fabs(phi1-phi2) + 2*TMath::Pi()), 2*TMath::Pi()));
 }
 /////////////////////////////////////////////////////////////////////////////////////
+/* 
+// Finds a maximum PC within a given phi range
+// Nabin Rijal, June 2016
 
- // Finds a maximum PC within a given phi range
- // Nabin Rijal, June 2016
-/*
-  Int_t FindMaxPC(Double_t phi, PCHit& PC){
+Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t GoodPC = -1;
   Double_t MaxPC = -10;
   //Double_t MinPhi = 0.2619;
   Double_t MinPhi = 0.5238;
 
   for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
-  //if the PC falls in a range of phi then it is possible correlated
-  //we find the maximum energy on the pc
-  PC.pc_obj = PC.ReadHit->at(k);
+    //if the PC falls in a range of phi then it is possible correlated
+    //we find the maximum energy on the pc
+    PC.pc_obj = PC.ReadHit->at(k);
 
-  //if (PC.pc_obj.TrackType == 1){
-  //continue;
-  //}
+    //if (PC.pc_obj.TrackType == 1){
+    //continue;
+    //}
 
-  if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
-  if ( PC.pc_obj.Energy >= MaxPC ){
-  MaxPC = PC.pc_obj.Energy;
-  GoodPC = k;
-  }
-  }
+    if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
+      if ( PC.pc_obj.Energy >= MaxPC ){
+	MaxPC = PC.pc_obj.Energy;
+	GoodPC = k;
+      }
+    }
   }
   return GoodPC;
-  }
-
+}
 */
+
 ///////////////////////////////////////////////////////////////////////////////////
 // If there are more than one silicon firing within the range of given phi, 
 // picks the one with closer phi and assigns the another pc hit to the next silicon.
@@ -1379,8 +1355,7 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
 
     if(PC.pc_obj.Energy<0)
       continue;
-   
-
+ 
     if ( phidiff(PC.pc_obj.PhiW,phi) < MinPhi) {      
 
       if ( PC.pc_obj.Energy >= MaxPC ){
@@ -1408,8 +1383,6 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
   }  
   return MaxPCindex; 
 }
-
-
 /////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////

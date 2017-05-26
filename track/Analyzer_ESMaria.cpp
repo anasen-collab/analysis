@@ -1,13 +1,14 @@
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Goal: To Analyze the Elastic Scattering of Deuterons to Calibrate ANASEN for 7Be+d Experiments..
 // & for the other (d,p),(d,alpha)..etc..ANASEN experiments with Gas volume target
 //
 // //To create a dictionary:
-//  rootcint -f tr_dict.cxx -c ../Include/tree_structure_Track.h LinkDef_Track.h
+//  rootcint -f tr_dict.cxx -c tree_structure.h LinkDef.h
 //
-// Usage: g++ -o B tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
+// Usage: g++ -o Analyzer_ES tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
 //
-// ./B DataListCal.txt 2430Cal5Analyzer20170303.root cut/D2.root //
+// ./Analyzer_ES DataListCal.txt 2430Cal5Analyzer20170303.root cut/D2.root //
 //
 // Uses Lookup tables instead of doing integration multiple times for Energyloss, 
 // Final Energy, Initial Energy & Distance calculation.
@@ -20,7 +21,7 @@
 #define CheckBasic
 
 #define DiffIP 2 //cm
-#define ConvAngle 57.27272727 //when multiplied, Converts to Degree from Radian 
+#define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 //#define Be8
@@ -33,35 +34,35 @@
 #define MaxTDCHits  500
 #define MaxTracks   100
 
-#define BeamE 54.27 //Energy of 16O beam inside Kapton Window.
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
-
 #define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
+
+//#define gold_pos 28.9 // old measurement
+//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017
+//#define gold_pos 16.9495 //spacer 2 = all in - 10.8 cm
+//#define gold_pos -2.8505 //spacer 7 = all in - 30.6 cm
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
-
-#define M_P 938.27206671856      
-#define M_alpha 3727.37929745092
+//NIST values
+#define M_P 938.2720813
+#define M_N 939.5654133
+#define M_D2 1875.612928
+#define M_3He 2808.391586
+#define M_alpha 3727.379378
 
 #define M_Be8 7454.85043438849
 #define M_Li5 4667.6163636366931 //correct
 //#define M_Li5 4665.7163636366931 //correction of -1.90 MeV applied
 
-#define M_3He 2808.3915032078
 #define M_Li6 5601.518452737
 
 #define M_Be7 6534.1836677282 
-#define M_D2 1875.61291385342
 
 #define M_Li7 6533.83277448969
-#define M_N 939.565413351413   
 #define M_He5 4667.67970996292
 
-
 //---MARIA--------------------------------------
-#define M_P 938.27197
-#define M_alpha 3727.37892
 #define M_16O 14895.079
 #define M_17F 17692.29961
 #define M_18Ne 16767.09917
@@ -70,12 +71,8 @@
 #define M_27Al 25126.49834
 //---maria-----------------------------------
 
-
+#define BeamE 54.27 //Energy of 16O beam inside Kapton Window.
 #define QValue 
-//#define gold_pos 28.9 // old measurement
-//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017
-//#define gold_pos 16.9495 //spacer 2 = all in - 10.8 cm
-//#define gold_pos -2.8505 //spacer 7 = all in - 30.6 cm
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -107,13 +104,12 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-#include "tree_structure_Track.h"
+#include "tree_structure.h"
 #include "LookUp.h"
 
 using namespace std;
 ////////////////////////////////////////////////////////////////////////////////////
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
-
 
 void MyFill(string name,int binsX, double lowX, double highX, double valueX);
 
@@ -135,18 +131,18 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
   return 0;
 };
 ////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]){ 
+int main(int argc, char* argv[]) { 
 
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  if (argc!=4){
+  if (argc!=4) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
 
-  char* file_raw  = new char [100]; // for input .root file
-  char* file_cal = new char [100]; // for output .root file
+  char* file_raw  = new char [300]; // for input .root file
+  char* file_cal = new char [300]; // for output .root file
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
@@ -293,13 +289,14 @@ int main(int argc, char* argv[]){
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
-      for (Int_t j=0; j<Si.ReadHit->size(); j++){//loop over all silicon
+      for (Int_t j=0; j<Si.ReadHit->size(); j++) {//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(j);	//if we have a good hit type set the parameters in your new tree
 
-	if ( Si.hit_obj.Energy <= 0 ){
+	if ( Si.hit_obj.Energy <= 0 ) {
 	  continue;
-	}else{
+	}
+	else {
 
 	  GoodPC = FindMaxPC(Si.hit_obj.PhiW, PC);
 
@@ -460,8 +457,6 @@ int main(int argc, char* argv[]){
 
 	  //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
 	}
-
-
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0){
 	  Tr.TrEvent[p].EnergyLoss = E_Loss_7Be->GetEnergyLoss(BeamE,(La-Tr.TrEvent[p].IntPoint));
@@ -515,7 +510,6 @@ int main(int argc, char* argv[]){
 
 	    MyFill("16O_4He_Energy",1000,0,25,Energy_16O_4He);
 	    MyFill("16O_4He_Energy_VS_BeamEnergy",1000,0,25,Energy_16O_4He,1000,0,25,Tr.TrEvent[c].BeamEnergy);
-
   
 	    if(Tr.TrEvent[c].DetID<4 && Tr.TrEvent[c].DetID>-1){
 	      MyFill("16O_4He_Energy_Q3",1000,0,25,Energy_16O_4He);
@@ -527,7 +521,6 @@ int main(int argc, char* argv[]){
 	      MyFill("16O_4He_Energy_SX3_2",1000,0,25,Energy_16O_4He);
 	      MyFill("16O_4He_Energy_VS_BeamEnergy_SX3_2",1000,0,25,Energy_16O_4He,1000,0,25,Tr.TrEvent[c].BeamEnergy);	     
 	    }
-
 	  }
 	}
       }
@@ -538,10 +531,11 @@ int main(int argc, char* argv[]){
       //////////////////////////////////////////////////////////////////////////////
     }
     ////////////////////////////////////////////////////////////////////////////////   
-  } 
+  }
   //////////////////////////////////////////////////////////////////////////////////
   outputfile->cd();
   RootObjects->Write(); 
+  cout << "RootObjects are Written" << endl;
   outputfile->Close();
 }//end of Main
 ////////////////////////////////////////////////////////////////////////////////////
@@ -557,28 +551,28 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
 // Nabin Rijal, June 2016
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC){
-Int_t GoodPC = -1;
-Double_t MaxPC = -10;
-//Double_t MinPhi = 0.2619;
-Double_t MinPhi = 0.5238;
+  Int_t GoodPC = -1;
+  Double_t MaxPC = -10;
+  //Double_t MinPhi = 0.2619;
+  Double_t MinPhi = 0.5238;
 
-for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
-//if the PC falls in a range of phi then it is possible correlated
-//we find the maximum energy on the pc
-PC.pc_obj = PC.ReadHit->at(k);
+  for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits
+    //if the PC falls in a range of phi then it is possible correlated
+    //we find the maximum energy on the pc
+    PC.pc_obj = PC.ReadHit->at(k);
 
-//if (PC.pc_obj.TrackType == 1){
-//continue;
-//}
+    //if (PC.pc_obj.TrackType == 1){
+    //continue;
+    //}
 
-if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
-if ( PC.pc_obj.Energy >= MaxPC ){
-MaxPC = PC.pc_obj.Energy;
-GoodPC = k;
-}
-}
-}
-return GoodPC;
+    if ( (fabs(PC.pc_obj.PhiW-phi) <= MinPhi) || ((2*TMath::Pi() - fabs(PC.pc_obj.PhiW-phi)) <= MinPhi) ) {
+      if ( PC.pc_obj.Energy >= MaxPC ){
+	MaxPC = PC.pc_obj.Energy;
+	GoodPC = k;
+      }
+    }
+  }
+  return GoodPC;
 }
 */
 

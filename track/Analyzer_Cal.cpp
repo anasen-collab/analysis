@@ -22,21 +22,31 @@
 #define IsCal
 
 #define DiffIP 2 //cm
-#define ConvAngle 180./TMath::Pi(); //when multiplied, Converts to Degree from Radian 
+#define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 #define Be8
 
 #define PCWireCal
+#define PCPlots
 
 #define MaxSiHits   500
 #define MaxADCHits  500
 #define MaxTDCHits  500
 #define MaxTracks   100
 
-#define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
-#define pcr 3.846284509;//3.75+0.096284509; //correction for the centroid Kx applied
-#define La 54.42   //Length of ANASEN gas volume.
+// ANASEN
+#define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
+#define La 54.42        //Length of ANASEN gas volume.
+
+// target positions
+#define gold_pos 27.7495  //all the way in, based on geometry measurements we did with Lagy at 2/22/2017
+//#define gold_pos 22.9495  //Spacer-1 //4.8cm
+//#define gold_pos 16.9495  //Spacer-2 //10.8cm
+//#define gold_pos 12.4495  //Spacer-4 //15.3cm
+//#define gold_pos  7.4495  //Spacer-5 //20.3cm
+//#define gold_pos  1.5495  //Spacer-6 //26.2cm
+//#define gold_pos -2.8505  //Spacer-7 //30.6cm
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
@@ -58,47 +68,10 @@
 #define M_Li7 6533.83277448969
 #define M_He5 4667.67970996292
 
-//#define Alpha282 //Spacer-0
-#define Alpha285 //Spacer-1
-//#define Alpha288 //Spacer-2
-//#define Alpha290 //Spacer-4
-//#define Alpha292 //Spacer-5
-//#define Alpha296 //Spacer-6
-//#define Alpha299 //Spacer-7
+//reaction
+#define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
+#define QValue
 
-#ifdef Alpha282
-#define gold_pos 27.7495 //all the way in
-#endif
-
-#ifdef Alpha285
-#define gold_pos 22.9495    //Spacer-1 //4.8cm
-#endif
-
-#ifdef Alpha288
-#define gold_pos 16.9495   //Spacer-2 //10.8cm
-#endif
-
-#ifdef Alpha290
-#define gold_pos 12.4495   //Spacer-4 //15.3cm
-#endif
-
-#ifdef Alpha292
-#define gold_pos 7.4495    //Spacer-5 //20.3cm
-#endif
-
-#ifdef Alpha296
-#define gold_pos 1.5495   //Spacer-6 //26.2cm
-#endif
-
-#ifdef Alpha299
-#define gold_pos -2.8505   //Spacer-7 //30.6cm
-#endif
-
-#define QValue 
-//#define gold_pos 28.9 // old measurement
-//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017
-//#define gold_pos 16.9495 //spacer 2 = all in - 10.8 cm
-//#define gold_pos -2.8505 //spacer 7 = all in - 30.6 cm
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -171,16 +144,20 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  char* file_raw  = new char [200]; // for input .root file
-  char* file_cal = new char [200]; // for output .root file
+  char* file_raw  = new char [300]; // for input .root file
+  char* file_cal = new char [300]; // for output .root file
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
 
+  cout << argv[0] << endl;
+  cout << argv[1] << endl;
+  cout << argv[2] << endl;
+  
 #ifdef IsCal
   //////////////// CUTS ////////////////////
-  //
-  char* file_cut1 = new char[100]; //for allcut
+
+  char* file_cut1 = new char[300]; //for allcut
   strcpy( file_cut1, argv[3] );
  
 
@@ -197,6 +174,7 @@ int main(int argc, char* argv[]) {
     cout << "Cut1 does not exist\n";
     exit(EXIT_FAILURE);
   }
+  cout << argv[3] << endl;
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   TObjArray *RootObjects = new TObjArray();
@@ -370,7 +348,7 @@ int main(int argc, char* argv[]) {
 	    Si.ReadHit->at(j).Energy = -1000;
 	    PC.ReadHit->at(GoodPC).Energy = -10;
 
-	    Tr.NTracks++;//total no. of tracks...Good or bad
+	    Tr.NTracks++; //total no. of tracks...Good or bad
 	    Tr.NTracks1++;//good tracks...PC & Si both
 	  }else{
 	    continue;
@@ -438,6 +416,30 @@ int main(int argc, char* argv[]) {
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //cout<<"Tr.NTracks = "<<Tr.NTracks<<" Tr.NTracks1 = "<<Tr.NTracks1<<" Tr.NTracks2 = "<<Tr.NTracks2<<" Tr.NTracks3 = "<<Tr.NTracks3<<endl;      
     
+      /////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////// checking for the heavy hit &/or cross talk in the wire ///////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////    
+#ifdef PCPlots
+      Int_t pct;
+      for(Int_t pc=0; pc<Tr.NTracks; pc++) {
+	//cout<<"   Check 10 " <<Tr.NTracks<<endl;
+	
+	//All PCWire vs Energy
+	MyFill("WireID_vs_PCEnegy",25,0,24,Tr.TrEvent[pc].WireID,500,0,2,Tr.TrEvent[pc].PCEnergy);
+	
+	for(Int_t pca=0; pca<Tr.NTracks1; pca++) {
+	  
+	  //PCWire with track in channel 12 & other tracks & non-tracks in other channels
+	  MyFill("WireID_mod1_vs_PCEnegy",
+		 25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID +12)%24),
+		 500,0,2,Tr.TrEvent[pc].PCEnergy);
+	}
+      }
+#endif
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ///////////////////////////////////For the Tracking///////////////////////////////////    
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++        
@@ -530,6 +532,7 @@ int main(int argc, char* argv[]) {
 	mpc1 = (Tr.TrEvent[s].SiZ - gold_pos)/Tr.TrEvent[s].SiR;
 	bpc1 = Tr.TrEvent[s].SiZ - mpc1*Tr.TrEvent[s].SiR;
 	Tr.TrEvent[s].PCZ_Ref = mpc1*pcr + bpc1;
+
 	//cout<<"mpc = "<<mpc<<"  bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
 	//cout<<" BeamE = "<<BeamE<<"  pcr = "<<pcr<<endl;
@@ -571,7 +574,7 @@ int main(int argc, char* argv[]) {
       //////////////////////////////////////////////////////////////////////////////
     }
     ////////////////////////////////////////////////////////////////////////////////   
-  } 
+  }
   //////////////////////////////////////////////////////////////////////////////////
   outputfile->cd();
   RootObjects->Write(); 
@@ -589,7 +592,7 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
 // Finds a maximum PC within a given phi range
 // Nabin Rijal, June 2016
 
-  Int_t FindMaxPC(Double_t phi, PCHit& PC){
+Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t GoodPC = -1;
   Double_t MaxPC = -10;
   //Double_t MinPhi = 0.2619;
@@ -614,6 +617,7 @@ Float_t phidiff ( Float_t phi1,Float_t phi2)
   return GoodPC;
 }
 */
+
 ///////////////////////////////////////////////////////////////////////////////////
 // If there are more than one silicon firing within the range of given phi, 
 // picks the one with closer phi and assigns the another pc hit to the next silicon.
