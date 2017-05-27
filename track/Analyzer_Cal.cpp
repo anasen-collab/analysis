@@ -525,15 +525,36 @@ int main(int argc, char* argv[]) {
 
 	//cout<<" BeamE = "<<BeamE<<"  pcr = "<<pcr<<endl;
 	//cout<<"bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
-
+	Int_t pcbins=400;
+	
 	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].pcz_ref);
-	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),
+	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
+	       pcbins,1.0,30.0,Tr.TrEvent[s].pcz_ref); // before PCWIRECAL applied
+
+	MyFill(Form("PCZ_vs_Zc%i",Tr.TrEvent[s].WireID),
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref); // after PCWIRECAL applied
+
+	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1) {
+	  MyFill(Form("PCZ_vs_Zc_q3_r1%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	  MyFill("PCZ_vs_Zc_q3_r1",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	}
+
+	if(Tr.TrEvent[s].DetID<28 && Tr.TrEvent[s].DetID>3) {
+	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	}
+	
+	MyFill("PCZ_vs_Zc",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
 
 	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
 	  
-	  MyFill(Form("PCZ_Ref_Clean%i",Tr.TrEvent[s].WireID),300,1.0,30.0,Tr.TrEvent[s].pcz_ref);
-	  MyFill(Form("PCZ_vs_Z_Clean%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);
-	
+	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
+		 pcbins*2,1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,pcbins,1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	  MyFill(Form("PCZ_vs_Zgc%i",Tr.TrEvent[s].WireID),
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref); // after PCWIRECAL applied
 	  /////////////////////////////////////////////////////////////////	 
 	}
 	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].pcz_ref);

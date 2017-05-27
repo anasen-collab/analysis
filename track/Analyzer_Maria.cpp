@@ -391,7 +391,10 @@ cout << argv[3] << endl;
       if(MCPTime > 0 && RFTime>0){
 	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
 
-	if( (fmod((MCPTime*correct - RFTime),546)<26.54) || (fmod((MCPTime*correct - RFTime),546)>53.86  && fmod((MCPTime*correct - RFTime),546)<302.91) || fmod((MCPTime*correct - RFTime),546)>326.21 ){
+	if( (fmod((MCPTime*correct - RFTime),546)<26.54) ||
+	    (fmod((MCPTime*correct - RFTime),546)>53.86  &&
+	     fmod((MCPTime*correct - RFTime),546)<302.91) ||
+	    fmod((MCPTime*correct - RFTime),546)>326.21 ) {
 	  //if( (((MCPTime - RFTime)% 538)<60) || (((MCPTime - RFTime)% 538)>110  && ((MCPTime - RFTime)% 538)<325) || ((MCPTime - RFTime)% 538)>380 ){
 	  continue;
 	}
@@ -813,7 +816,7 @@ cout << argv[3] << endl;
 	MyFill(Form("PCZ_vs_Z_beforeCal%i",Tr.TrEvent[s].WireID),600,-1.5,1.5,Tr.TrEvent[s].PCZ,600,1.0,30.0,Tr.TrEvent[s].pcz_ref); // before PCWIRECAL applied
 	MyFill(Form("PCZ_vs_Z_afterCal%i",Tr.TrEvent[s].WireID),600,-1.0,30.0,Tr.TrEvent[s].PCZ,600,-1.0,30.0,Tr.TrEvent[s].pcz_ref); // after PCWIRECAL applied
 
-	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1){
+	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1) {
 	  MyFill(Form("PCZ_vs_Z_afterCal_q3_r1%i",Tr.TrEvent[s].WireID),600,-1.0,30.0,Tr.TrEvent[s].PCZ,600,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
 	  MyFill("PCZ_vs_Z_afterCal_q3_r1",600,-1.0,30.0,Tr.TrEvent[s].PCZ,600,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
 	}
@@ -1337,8 +1340,8 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t MaxPCindex = -1,NexttoMaxPCindex =-1;
   Double_t MaxPC = -10, NexttoMaxPC = -10;
 
-  Double_t MinPhi = 0.2619; // 15 degree opening for search  
-  //Double_t MinPhi = 0.5238;   // 30 degree opening for search 
+  //Double_t MinPhi = 0.2619; // 15 degree opening for search  
+  Double_t MinPhi = 0.5238;   // 30 degree opening for search 
 
   for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits 
     //if the PC falls in a range of phi then it is possible correlated

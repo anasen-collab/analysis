@@ -62,7 +62,7 @@ void PosCal(void) {
   for (Int_t DetNum=0; DetNum<24; DetNum++) {
     TH2F *hist = NULL;
     if(DetNum!=18) continue;
-    hist = (TH2F*)f1->Get(Form("PCZ_vs_Z_Clean%i",DetNum));
+    hist = (TH2F*)f1->Get(Form("PCZ_vs_Zg%i",DetNum));
     if (hist==NULL){
       outfile << DetNum << "\t" << 1 << "\t" << 0 << endl;
       cout << "Warning: hist with wire number " << DetNum << " does not exist.\n";
