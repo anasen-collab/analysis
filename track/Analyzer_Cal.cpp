@@ -196,9 +196,9 @@ int main(int argc, char* argv[]) {
   PC.ReadHit = 0;
   //CsI.ReadHit = 0;
 
-  LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
+  //LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
 
-  E_Loss_7Be->InitializeLookupTables(30.0,200.0,0.01,0.04);
+  //E_Loss_7Be->InitializeLookupTables(30.0,200.0,0.01,0.04);
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -492,11 +492,11 @@ int main(int argc, char* argv[]) {
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0){
-	  Tr.TrEvent[p].EnergyLoss = E_Loss_7Be->GetEnergyLoss(BeamE,(La-Tr.TrEvent[p].IntPoint));
+	  //Tr.TrEvent[p].EnergyLoss = E_Loss_7Be->GetEnergyLoss(BeamE,(La-Tr.TrEvent[p].IntPoint));
 	  //Tr.TrEvent[p].BeamEnergy = BeamE - Tr.TrEvent[p].EnergyLoss;
 	    
 	  if((La-Tr.TrEvent[p].IntPoint)>0.0 && (La-Tr.TrEvent[p].IntPoint)<54.0){
-	    Tr.TrEvent[p].BeamEnergy = E_Loss_7Be->GetLookupEnergy(BeamE,(La-Tr.TrEvent[p].IntPoint));
+	    //Tr.TrEvent[p].BeamEnergy = E_Loss_7Be->GetLookupEnergy(BeamE,(La-Tr.TrEvent[p].IntPoint));
 	  }	
 	}
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -529,7 +529,7 @@ int main(int argc, char* argv[]) {
 	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].pcz_ref);
 	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);
 
-	if (Tr.TrEvent[s].SiEnergy>11.6 && Tr.TrEvent[s].SiEnergy< 13.3){//this cut is to clean up calibration data... 	  
+	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
 	  
 	  MyFill(Form("PCZ_Ref_Clean%i",Tr.TrEvent[s].WireID),300,1.0,30.0,Tr.TrEvent[s].pcz_ref);
 	  MyFill(Form("PCZ_vs_Z_Clean%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);

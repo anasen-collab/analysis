@@ -144,15 +144,15 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.Time = 0;
     hit_obj.X = 0;
     hit_obj.Y = 0;
-    hit_obj.Z = -10;
+    hit_obj.Z = sqrt(-1);
     hit_obj.Z_linear = -10; // added 12/09/2016 for the ZPosCal_linear
-    hit_obj.ZUp_Dummy = -10;
-    hit_obj.ZDown_Dummy = -10;
+    hit_obj.ZUp_Dummy = sqrt(-1);
+    hit_obj.ZDown_Dummy = sqrt(-1);
     hit_obj.XW = 0;
     hit_obj.YW = 0;
-    hit_obj.ZW = -10;
+    hit_obj.ZW = sqrt(-1);
     hit_obj.RW = 0;
-    hit_obj.PhiW = 0;
+    hit_obj.PhiW = sqrt(-1);
     hit_obj.TrackType = 0;
     //hit_obj.RFSubtract = 0;
   };
@@ -196,12 +196,12 @@ public:
     pc_obj.DownVoltage = 0;
     pc_obj.UpVoltage = 0;
     pc_obj.Energy = -10;
-    pc_obj.Z = -10;
+    pc_obj.Z = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
     pc_obj.ZW = -10;
     pc_obj.RW = 0;
-    pc_obj.PhiW = 0;
+    pc_obj.PhiW = sqrt(-1);
     pc_obj.TrackType = 0;
   };
   //-------------------------------------------------------------
@@ -326,7 +326,7 @@ class Track { //This Class is for Tracking
     track_obj.SiX = 0;
     track_obj.SiY = 0;
     track_obj.SiR = 0;
-    track_obj.SiPhi = 0;
+    track_obj.SiPhi = sqrt(-1);
     track_obj.SiBCh = 0;
     track_obj.DetID = -1;
 
@@ -336,7 +336,7 @@ class Track { //This Class is for Tracking
     track_obj.Z = -10.0; //by M.A. 01/16/2017
     track_obj.PCY = 0;
     track_obj.PCR = 0;
-    track_obj.PCPhi = 0;
+    track_obj.PCPhi = sqrt(-1);
     track_obj.WireID = -1;
     track_obj.PCZ_Ref = -10; // parker's code variable
     track_obj.pcz_ref = -10; // nabin's code variable for same thing
@@ -351,8 +351,8 @@ class Track { //This Class is for Tracking
     track_obj.DiffIntPoint_Y = 0;
 
 
-    track_obj.Theta = 0;
-    track_obj.Phi = 0;
+    track_obj.Theta = sqrt(-1);
+    track_obj.Phi = sqrt(-1);
 
     track_obj.BeamEnergy = -10; //used to be zero, changed by MA 03/15/2017
     track_obj.EnergyLoss= -10;  //used to be zero, changed by MA 03/15/2017

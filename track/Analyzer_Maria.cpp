@@ -19,7 +19,7 @@
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
-#define IsCal
+//#define DoCut
 
 #define DiffIP 2 //cm
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
@@ -38,7 +38,7 @@
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
 #define La 55.0545   //Length of ANASEN gas volume as measured 2/22/2017 with Lagy
 
-/#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017 run930
+//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017 run930
 //#define gold_pos 22.8981   // spacer 1 = all in - 4.8514 cm run932
 //#define gold_pos 16.8783 // spacer 2 = all in - 10.8712 cm run934
 //#define gold_pos 15.6083 // spacer 3 = all in - 12.1412 cm run936
@@ -50,7 +50,7 @@
 #define M_P 938.27197
 #define M_alpha 3727.37892
 #define M_16O 14895.079
-#define M_17F 17692.29961
+#define M_17F  15832.754 
 #define M_18Ne 16767.09917
 #define M_21Na 19553.56884
 #define M_24Mg 22335.79043
@@ -128,9 +128,9 @@ int main(int argc, char* argv[]) {
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
-  Int_t numarg=4;
-#ifdef IsCal
-  numarg=3;
+  Int_t numarg=3;
+#ifdef DoCut
+  numarg=4;
 #endif
   if (argc!=numarg) {
     cout << "Error: Wrong Number of Arguments\n";
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
   cout << argv[1] << endl;
   cout << argv[2] << endl;
   
-#ifdef IsCal
+#ifdef DoCut
   //////////////// CUTS ////////////////////
 
   char* file_cut1 = new char[300]; //for allcut
@@ -206,19 +206,15 @@ cout << argv[3] << endl;
   //CsI.ReadHit = 0;
 
   //--------------------------------MARIA Eloss---------------------------------------------------
- 
-  ///////-----------------E_Loss_16O-------------/////////////////////////////////////////////////////////////////////
-
+  ///////-----------------E_Loss_16O-------------/////////////////////////////////////////////////
 
   //LookUp *E_Loss_16O = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O); // when I work from home
   //LookUp *E_Loss_alpha = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/He_in_HeCO2_377Torr_18Nerun.eloss",M_alpha); 
-
 
   /*  
   LookUp *E_Loss_16O = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O);  
   E_Loss_16O->InitializeLookupTables(80.0,1200.0,0.02,0.04);
   //EnergyLoss *E_Loss_16O = new EnergyLoss("/home/manasta/Desktop/anasen_analysis_software/srim_files/16O_in_HeCO2_377Torr_18Nerun.eloss",M_16O);
-
   
   LookUp *E_Loss_alpha = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/He_in_HeCO2_377Torr_18Nerun.eloss",M_alpha);
   E_Loss_alpha->InitializeLookupTables(50.0,1800.0,0.02,0.04); 
@@ -230,9 +226,7 @@ cout << argv[3] << endl;
   
   */
 
-   ///////-----------------E_Loss_18Ne-------------/////////////////////////////////////////////////////////////////////
-
-
+  ///////-----------------E_Loss_18Ne-------------////////////////////////////////////////////////
  
   //LookUp *E_Loss_18Ne = new LookUp("/home/maria/rayMountPoint/Desktop/anasen_analysis_software/srim_files/18Ne_in_HeCO2_377Torr_18Nerun.eloss",M_18Ne);  
   LookUp *E_Loss_18Ne = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/18Ne_in_HeCO2_377Torr_18Nerun.eloss",M_18Ne);  
@@ -249,8 +243,7 @@ cout << argv[3] << endl;
   LookUp *E_Loss_proton = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/H_in_HeCO2_377Torr_18Nerun.eloss",M_P); 
   E_Loss_proton->InitializeLookupTables(30.0,9000.0,0.02,0.04); 
   
-  
-  ///////-----------------E_Loss_24Mg-------------/////////////////////////////////////////////////////////////////////
+  ///////-----------------E_Loss_24Mg-------------////////////////////////////////////////////////
   
   /*
   LookUp *E_Loss_24Mg = new LookUp("/home/manasta/Desktop/anasen_analysis_software/srim_files/24Mg_in_HeCO2_303Torr_24Mgrun.eloss",M_24Mg);
@@ -956,19 +949,19 @@ cout << argv[3] << endl;
      for(Int_t c=0; c<Tr.NTracks1; c++){
        //if(Tr.NTracks==Tr.NTracks1){
 	if((Tr.TrEvent[c].DetID>-1 && Tr.TrEvent[c].DetID<16) && (Tr.TrEvent[c].BeamEnergy>0 && Tr.TrEvent[c].BeamEnergy<20)){
-	  if ( cut2->IsInside(Tr.TrEvent[c].SiEnergy,Tr.TrEvent[c].PCEnergy*sin(Tr.TrEvent[c].Theta)) )
-	      {
-		MyFill("Timing_Cut",600,1,600,fmod((MCPTime*correct-RFTime),546));
-		//Elastic1.ReconstructHeavy(Tr,0);
-		Elastic1.ReconstructHeavy_Qvalue(QValue,Tr,c);
-		std::cout << Tr.NTracks1 << " " << c  << std::endl;
-	      }    
-	   }
+#ifdef DoCut
+	  if (cut2->IsInside(Tr.TrEvent[c].SiEnergy,Tr.TrEvent[c].PCEnergy*sin(Tr.TrEvent[c].Theta))) {
+	    MyFill("Timing_Cut",600,1,600,fmod((MCPTime*correct-RFTime),546));
+	    //Elastic1.ReconstructHeavy(Tr,0);
+	    Elastic1.ReconstructHeavy_Qvalue(QValue,Tr,c);
+	    std::cout << Tr.NTracks1 << " " << c  << std::endl;
+	  }
+#endif
+	}
 	//}
      }
-      Elastic1.E_Loss_light = NULL;
-      
-
+     Elastic1.E_Loss_light = NULL;
+          
       /*
       Reconstruct Elastic2(M_16O,M_alpha,M_alpha,M_16O);
       Elastic2.SetELossFile("/home/manasta/Desktop/anasen_analysis_software/srim_files/He_in_HeCO2_377Torr_18Nerun.eloss");
@@ -987,7 +980,7 @@ cout << argv[3] << endl;
 
       for(Int_t c=0; c<Tr.NTracks1;c++){
 	 
-	if (cut1->IsInside(Tr.TrEvent[c].SiEnergy,Tr.TrEvent[c].PCEnergy*sin(Tr.TrEvent[c].Theta))){
+	if (cut1->IsInside(Tr.TrEvent[c].SiEnergy,Tr.TrEvent[c].PCEnergy*sin(Tr.TrEvent[c].Theta))) {
 
 	  MyFill("4He_E_si",500,0,35,Tr.TrEvent[c].SiEnergy);
 	  MyFill("4He_E_si_vs_Theta",500,0,200,Tr.TrEvent[c].Theta*ConvAngle,500,0,35,Tr.TrEvent[c].SiEnergy);
