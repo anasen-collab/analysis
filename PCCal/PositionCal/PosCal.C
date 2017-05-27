@@ -97,7 +97,9 @@ void PosCal(void) {
   }
 
   TCanvas *can = new TCanvas("can","can",800,600);
-
+  can->ToggleEventStatus(); 
+  can->ToggleToolBar();
+  
   Double_t slope[24];
   Double_t offset[24];
   Double_t dummy_slope = 0;
@@ -120,13 +122,13 @@ void PosCal(void) {
   infile.close();
 
   ofstream outfile;
-  outfile.open("saves\PCWireCal_170526.dat");
+  outfile.open("saves/PCWireCal_170527_2.dat");
   outfile << "Wire\tSlope\tShift\n";
 
   TCutG *cut;
-  for (Int_t DetNum=0; DetNum<24; DetNum++){
+  for (Int_t DetNum=0; DetNum<24; DetNum++) {
     TH2F *hist = NULL;
-    hist = (TH2F*)f1->Get(Form("PCZ_vs_Z%i",DetNum));
+    hist = (TH2F*)f1->Get(Form("PCZ_vs_Z_Clean%i",DetNum));
     if (hist==NULL){
       outfile << DetNum << "\t" << 1 << "\t" << 0 << endl;
       cout << "Warning: hist with wire number " << DetNum << " does not exist.\n";
@@ -147,17 +149,23 @@ void PosCal(void) {
     graph->Fit("fun");
 	
     can->Update();
-    can->WaitPrimitive();
+    //can->WaitPrimitive();
 
-    slope[DetNum] = slope[DetNum]/fun->GetParameter(1);
-    offset[DetNum] = offset[DetNum] - fun->GetParameter(0);
+    
+    printf(" Previous gain   = %f \t Slope  = %f \t New gain  = %f\n",
+	   slope[DetNum],fun->GetParameter(1),slope[DetNum]*fun->GetParameter(1));
+    printf(" Previous offset   = %f \t offset  = %f \t new offset  = %f\n",
+	   offset[DetNum],fun->GetParameter(0),offset[DetNum]+fun->GetParameter(0));
 
-    outfile << DetNum << "\t" << slope[DetNum]*fun->GetParameter(1) << "\t" << offset[DetNum] << endl;
+    //slope[DetNum] *= fun->GetParameter(1);
+    //offset[DetNum] += fun->GetParameter(0);
+
+    //slope[DetNum] = fun->GetParameter(1);                      
+    //offset[DetNum] = fun->GetParameter(0);
+    
+    outfile << DetNum << "\t"
+	    << slope[DetNum]*fun->GetParameter(1) << "\t"
+	    << offset[DetNum]+fun->GetParameter(0) << endl;
 
   }  
-
 }
-
-
-
-
