@@ -13,7 +13,7 @@
 
 //Set PC Thresholds here
 #define PC_Min_threshold 100  //to forbid Noise
-#define PC_Max_threshold 4000 //to forbid Overflow
+#define PC_Max_threshold 3500 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 //To select the component of the beam //mostly for Radio-active beams
@@ -22,12 +22,12 @@
 //#define MCP_RF_Cut
 
 //Select the Histograms for Calibration or for a Check.
-//#define Hist_after_Cal
+#define Hist_after_Cal
 
-#define Hist_for_Cal
+//#define Hist_for_Cal
 #define ZPosCal 
 
-#define Pulser_ReRun //redefine this for cal
+//#define Pulser_ReRun //redefine this for cal
 
 //Energy for each calibration steps can be switched off after Calibration
 #define FillTree_Esteps
@@ -140,8 +140,9 @@ int main(int argc, char* argv[]){
   CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
   CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
   CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
-  CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
+  CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
   CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
+  CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
   else {//load trivial calibration
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -154,6 +155,7 @@ int main(int argc, char* argv[]){
     CMAP->InitPCCalibration("Param/initialize/PCpulser_init.dat");
     CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
     CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
+    CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
     
   /*
@@ -274,6 +276,7 @@ int main(int argc, char* argv[]){
 
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     status = input_tree->GetEvent(global_evt);
+    std::cout << "\r Done: " << global_evt*100./nentries << "%          " << std::flush;
     if (global_evt == TMath::Nint(0.01*nentries))  cout << endl<< "   1% through the data";
     if (global_evt == TMath::Nint(0.10*nentries))  cout << endl<< "  10% through the data";
     if (global_evt == TMath::Nint(0.15*nentries))  cout << endl<< "  15% through the data";
@@ -285,9 +288,6 @@ int main(int argc, char* argv[]){
     if (global_evt == TMath::Nint(0.90*nentries))  cout << endl<< "  90% through the data";
     if (global_evt == TMath::Nint(0.95*nentries))  cout << endl<< "  95% through the data";
     if (global_evt == TMath::Nint(1.00*(nentries-1)))  cout << endl<< " 100% through the data" << endl;
-    if(global_evt%100==0)
-      //std::cout << "\rDone: " << global_evt*100./nentries << "%          " << std::flush;
-      printf(".");
     ////////////////////////////////////////////////////////////////////////////////////////////////////   
     //
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
@@ -381,7 +381,7 @@ int main(int argc, char* argv[]){
 
 	  CMAP->Get_PCWire_RelGain(PC.pc_obj.WireID, PCRelGain);
 	  //cout<<"  PCRelGain == "<<PCRelGain<<endl;
-	  PC.pc_obj.Energy = PC.pc_obj.Energy * PCRelGain;
+	  PC.pc_obj.Energy *= PCRelGain;
 	}
 
 	CMAP->GetPCWorldCoordinates(PC.pc_obj.WireID,PC.pc_obj.Z,XWPC,YWPC,ZWPC,RWPC,PhiWPC);
@@ -414,12 +414,15 @@ int main(int argc, char* argv[]){
     }
     //=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
+    Double_t slope=1.004009623;
+    Double_t wrap=546;      //538 -->546 
+
     if(MCPTime > 0 && RFTime>0){
       //cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
       MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%538);
 
-      if( (((MCPTime - RFTime)% 538)<47) || (((MCPTime - RFTime)% 538)>118  && ((MCPTime - RFTime)% 538)<320) || ((MCPTime - RFTime)% 538)>384 ){
-	//if( (((MCPTime - RFTime)% 538)<60) || (((MCPTime - RFTime)% 538)>110  && ((MCPTime - RFTime)% 538)<325) || ((MCPTime - RFTime)% 538)>380 ){
+      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ){
+	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
 	continue;
       }else{	
       }
@@ -710,9 +713,10 @@ int main(int argc, char* argv[]){
 
 	  Si.Detector.push_back(Si.det_obj);
 	  Si.NSiHits++;
+#else
+	  continue;
 #endif
-	  //continue;
-	}
+      }
 
       //============================================================ 
     }//end of for(int i=0; i<NumSX3; i++){
@@ -807,8 +811,9 @@ int main(int argc, char* argv[]){
 #ifdef Pulser_ReRun
 	Si.Detector.push_back(Si.det_obj);
 	Si.NSiHits++;
+#else
+	continue;
 #endif
-	//continue;
       }
       //============================================================ 
     }//end of for(int i=0; i<NumQ3; i++){
@@ -821,11 +826,11 @@ int main(int argc, char* argv[]){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "Changing to output file... " << endl;
   outputFile->cd();
-  cout << "Writing objects... ";
+  cout << " Writing objects... ";
   RootObjects->Write();
   cout << "RootObjects are Written" << endl;
   outputFile->Close();
-  cout << "Outputfile Closed\n";
+  cout << " Outputfile Closed\n";
   for(int i=0;i<3;i++) {//print beeps at end of program
     printf(" beep!\a\n");
     sleep(1);
@@ -853,7 +858,7 @@ void MyFill(string name,
     fhmap.at(name)->Fill(valueX,valueY);
   } catch(out_of_range e) {
     TH2F* newHist = new TH2F(name.c_str(),name.c_str(),
-			     binsX,lowX,highX,
+		     binsX,lowX,highX,
 			     binsY,lowY,highY);
     newHist->Fill(valueX,valueY);
     fhlist->Add(newHist);

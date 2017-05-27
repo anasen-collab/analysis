@@ -623,7 +623,7 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
 }
 
 //------------------------------------------------------------------------------------------------//
-int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
+int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename) {
   ifstream pcwire_rel;
   string line1;
   Double_t rel_dummy;
@@ -632,7 +632,7 @@ int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
   pcwire_rel.open(PCWire_RelGain_Filename);
 
   for (Int_t i=0; i<WireNum; i++) {   
-    PCWire_RelGain[i]=0.0;
+    PCWire_RelGain[i]=1;
   }
 
   if (pcwire_rel.is_open()) {
@@ -640,12 +640,12 @@ int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename){
     cout << PCWire_RelGain_Filename << " opened successfully. " << endl;
 
     getline (pcwire_rel,line1);//Skips the first line in PCWire_RelGain_Filename.
-    //cout<<"line = "<<line1<<endl;
+    cout<<"line = "<<line1<<endl;
 
     while (!pcwire_rel.eof()) {
       pcwire_rel >> WireID >> rel_dummy;
       PCWire_RelGain[WireID] = rel_dummy;
-      
+      //printf("Gain for wire %d is %f\n",WireID,PCWire_RelGain[WireID]);
     }
   }
   else LoadFail(PCWire_RelGain_Filename);
