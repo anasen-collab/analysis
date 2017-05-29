@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
       //cout<<" i =  "<<i<<endl;
 
       status = raw_tree->GetEvent(i);
-      std::cout << "\rDone: " << i*100./nentries << "%          " << std::flush;
+      //std::cout << "\rDone: " << i*100./nentries << "%          " << std::flush;
       if (i == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
       if (i == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
       if (i == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
@@ -563,10 +563,13 @@ int main(int argc, char* argv[]) {
 
       /////////////////////////////////////////////////////////////////////////////////////
 #ifdef FillEdE_cor
-      for(Int_t q=0; q<Tr.NTracks1;q++){
-	MyFill("E_de",1000,-1,29,Tr.TrEvent[q].SiEnergy,1000,-0.1,2.0,Tr.TrEvent[q].PCEnergy);
-	//MyFill("E_de_corrected",200,-1,35,Tr.TrEvent[q].SiEnergy,200,-0.1,20,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
-	MyFill("E_de_corrected",1000,-1,29,Tr.TrEvent[q].SiEnergy,1000,-0.1,1.2,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
+      Float_t demin=-0.01;
+      Float_t demax=0.25;
+      Float_t debins=600;
+      for(Int_t q=0; q<Tr.NTracks1;q++) {
+	MyFill("E_de",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy);
+	//MyFill("E_de_corrected",debins,-1,35,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
+	MyFill("E_de_corrected",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
 	///MyFill(Form("PCZ%i",PC.WireID[GoodPC]),300,-10,50,Tr.TrEvent[q].PCZ);	    
 	MyFill("InteractionPoint",300,-10,50,Tr.TrEvent[q].IntPoint);	
       }
