@@ -189,7 +189,8 @@ int main(int argc, char* argv[]) {
   PCHit PC;
   ///CsIHit CsI;
   Track Tr; 
-  Int_t RFTime, MCPTime; 
+  Int_t RFTime, MCPTime;
+  Int_t Old_RFTime,Old_MCPTime;
 
   Si.ReadDet = 0;
   Si.ReadHit = 0;
@@ -286,13 +287,13 @@ int main(int argc, char* argv[]) {
       Double_t wrap=546;//538
       MCPTime = Old_MCPTime;
       RFTime = Old_RFTime;
-      time=MCPTime-RFTime;
-      tiemc=MCPTime*correct-RFTime;
-      tbins=600;
+      Double_t tof=MCPTime-RFTime;
+      Double_t tiemc=MCPTime*correct-RFTime;
+      Int_t tbins=600;
       if(MCPTime > 0 && RFTime>0) {
-	MyFill("tof",tbins,0,tbins,time);
-	MyFill("tofw",tbins,0,tbins,fmod(time,wrap));
-	MyFill("tofw",tbins,0,tbins,fmod(time,wrap));
+	MyFill("tof",tbins,0,tbins,tof);
+	MyFill("tofw",tbins,0,tbins,fmod(tof,wrap));
+	MyFill("tofw",tbins,0,tbins,fmod(tof,wrap));
 	MyFill("tofwc",tbins,0,tbins,fmod((MCPTime*correct-RFTime),wrap));
       }
       
@@ -300,10 +301,10 @@ int main(int argc, char* argv[]) {
       if(MCPTime > 0 && RFTime>0) {
 	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
 	
-	MyFill("MCP_RF_Wrapped",2*tbins,-tbins,tbins,time%wrap);
+	MyFill("MCP_RF_Wrapped",2*tbins,-tbins,tbins,tof%wrap);
 
-	if( ((time%wrap)<47) || ((time%wrap)>118  && (time%wrap)<320) || (time%wrap)>384 ) {
-	  //if( ((time% wrap)<60) || ((time% wrap)>110  && (time% wrap)<325) || (time% wrap)>380 ){
+	if( ((tof%wrap)<47) || ((tof%wrap)>118  && (tof%wrap)<320) || (tof%wrap)>384 ) {
+	  //if( ((tof% wrap)<60) || ((tof% wrap)>110  && (tof% wrap)<325) || (tof% wrap)>380 ){
 	  continue;
 	}else{	  
 	}
@@ -585,7 +586,7 @@ int main(int argc, char* argv[]) {
 #ifdef FillEdE_cor
       Float_t demin=-0.01;
       Float_t demax=0.25;
-      Float_t debins=600;
+      Int_t debins=600;
       for(Int_t q=0; q<Tr.NTracks1;q++) {
 	MyFill("E_de",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy);
 	//MyFill("E_de_corrected",debins,-1,35,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
