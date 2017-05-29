@@ -209,7 +209,9 @@ int main(int argc, char* argv[]) {
   MainTree->Branch("Tr.NTracks1",&Tr.NTracks1,"NTracks1/I");
   MainTree->Branch("Tr.NTracks2",&Tr.NTracks2,"NTracks2/I");
   MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
-  MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);   
+  MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
+  MainTree->Branch("RFTime",&RFTime,"RFTime/I");
+  MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
   
   RootObjects->Add(MainTree);
 
@@ -253,8 +255,10 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
     raw_tree->SetBranchAddress("PC.NPCHits",&PC.NPCHits);
     raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
-    raw_tree->SetBranchAddress("RFTime",&RFTime);
-    raw_tree->SetBranchAddress("MCPTime",&MCPTime);
+    //raw_tree->SetBranchAddress("RFTime",&RFTime);
+    //raw_tree->SetBranchAddress("MCPTime",&MCPTime);
+    raw_tree->SetBranchAddress("RFTime",&Old_RFTime);
+    raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
  
     Long64_t nentries = raw_tree->GetEntries();
     cout<<"nentries = "<<nentries<<endl;
@@ -277,13 +281,29 @@ int main(int argc, char* argv[]) {
       if (i == TMath::Nint(0.95*nentries))  cout << " 95% through the data" << endl;
       if (i == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef MCP_RF_Cut    
-      if(MCPTime > 0 && RFTime>0){
-	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-	MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%538);
 
-	if( (((MCPTime - RFTime)% 538)<47) || (((MCPTime - RFTime)% 538)>118  && ((MCPTime - RFTime)% 538)<320) || ((MCPTime - RFTime)% 538)>384 ){
-	  //if( (((MCPTime - RFTime)% 538)<60) || (((MCPTime - RFTime)% 538)>110  && ((MCPTime - RFTime)% 538)<325) || ((MCPTime - RFTime)% 538)>380 ){
+      Double_t correct=1.004009623;
+      Double_t wrap=546;//538
+      MCPTime = Old_MCPTime;
+      RFTime = Old_RFTime;
+      time=MCPTime-RFTime;
+      tiemc=MCPTime*correct-RFTime;
+      tbins=600;
+      if(MCPTime > 0 && RFTime>0) {
+	MyFill("tof",tbins,0,tbins,time);
+	MyFill("tofw",tbins,0,tbins,fmod(time,wrap));
+	MyFill("tofw",tbins,0,tbins,fmod(time,wrap));
+	MyFill("tofwc",tbins,0,tbins,fmod((MCPTime*correct-RFTime),wrap));
+      }
+      
+#ifdef MCP_RF_Cut    
+      if(MCPTime > 0 && RFTime>0) {
+	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
+	
+	MyFill("MCP_RF_Wrapped",2*tbins,-tbins,tbins,time%wrap);
+
+	if( ((time%wrap)<47) || ((time%wrap)>118  && (time%wrap)<320) || (time%wrap)>384 ) {
+	  //if( ((time% wrap)<60) || ((time% wrap)>110  && (time% wrap)<325) || (time% wrap)>380 ){
 	  continue;
 	}else{	  
 	}
