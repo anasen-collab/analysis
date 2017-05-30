@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
       if(MCPTime > 0 && RFTime>0) {
 	MyFill("tof",tbins,0,tbins,tof);
 	MyFill("tofw",tbins,0,tbins,fmod(tof,wrap));
-	MyFill("tofw",tbins,0,tbins,fmod(tof,wrap));
+	MyFill("tofm",tbins,0,tbins,tof%wrap);
 	MyFill("tofwc",tbins,0,tbins,fmod((MCPTime*correct-RFTime),wrap));
       }
       
