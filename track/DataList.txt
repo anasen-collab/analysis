@@ -1,1 +1,11 @@
-/home/lighthall/anasen/root/main/spacer0mQ2S3.root
+/home/lighthall/anasen/root/main/run1193.root
+/home/lighthall/anasen/root/main/run1194.root
+/home/lighthall/anasen/root/main/run1195.root
+/home/lighthall/anasen/root/main/run1196.root
+/home/lighthall/anasen/root/main/run1197.root
+/home/lighthall/anasen/root/main/run1198.root
+/home/lighthall/anasen/root/main/run1200.root
+/home/lighthall/anasen/root/main/run1201.root
+/home/lighthall/anasen/root/main/run1202.root
+/home/lighthall/anasen/root/main/run1203.root
+/home/lighthall/anasen/root/main/run1204.root

@@ -1,12 +1,8 @@
-all: Analyzer Analyzer_Cal Analyzer_ES Analyzer_Maria
+all: Analyzer Analyzer_ES Analyzer_Maria
 
 Analyzer: tr_dict.cxx LookUp.cpp Analyzer.cpp
 	@echo compiling Analyzer code...
 	g++ -o Analyzer tr_dict.cxx LookUp.cpp Analyzer.cpp `root-config --cflags --glibs`
-
-Analyzer_Cal: tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp
-	@echo compiling Analyzer code...
-	g++ -o Analyzer_Cal tr_dict.cxx LookUp.cpp Analyzer_Cal.cpp `root-config --cflags --glibs`
 
 Analyzer_ES: tr_dict.cxx LookUp.cpp Analyzer_ES.cpp
 	@echo compiling Analyzer code...

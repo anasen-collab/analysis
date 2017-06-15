@@ -19,86 +19,68 @@
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
-//#define IsCal
+//#define DoCut //read in and apply cut file?
+//#define DoLoss //look up energy loss?
 
 #define DiffIP 2 //cm
-#define ConvAngle 180./TMath::Pi(); //when multiplied, Converts to Degree from Radian 
+#define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 #define Be8
 
 #define PCWireCal
+#define PCPlots //for heavy hits
 
 #define MaxSiHits   500
 #define MaxADCHits  500
 #define MaxTDCHits  500
 #define MaxTracks   100
 
-#define BeamE 19.6 //Energy of 7Be beam inside Kapton Window.
-#define pcr 3.846284509;//3.75+0.096284509; //correction for the centroid Kx applied
-#define La 54.42   //Length of ANASEN gas volume.
+// ANASEN
+#define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
+#define La 54.42        //Length of ANASEN gas volume.
+
+// target positions
+#define gold_pos 27.7495 //Spacer-0 all the way in, based on geometry measurements we did with Lagy at 2/22/2017
+//#define gold_pos 22.9495 //Spacer-1 //4.8cm
+//#define gold_pos 16.9495 //Spacer-2 //10.8cm
+//#define gold_pos 12.4495 //Spacer-4 //15.3cm
+//#define gold_pos  7.4495 //Spacer-5 //20.3cm
+//#define gold_pos  1.5495 //Spacer-6 //26.2cm
+//#define gold_pos -2.8505 //Spacer-7 //30.6cm
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
 //NIST values
 #define M_P 938.2720813
 #define M_N 939.5654133
-#define M_D2 1875.612928
+#define M_D 1875.612928
 #define M_3He 2808.391586
 #define M_alpha 3727.379378
 
-#define M_Be8 7454.85043438849
-#define M_Li5 4667.6163636366931 //correct
-//#define M_Li5 4665.7163636366931 //correction of -1.90 MeV applied
+// Nabin masses
+#define M_5Li 4667.6163636366931 //correct
+#define M_5He 4667.67970996292
+#define M_6Li 5601.518452737
+#define M_7Li 6533.83277448969
+#define M_7Be 6534.1836677282
+#define M_8Be 7454.85043438849
 
-#define M_Li6 5601.518452737
+//---MARIA nuclear masses //MeV--------------------------------------
+#define M_16O  14895.079
+#define M_18Ne 16767.09917
+#define M_21Na 19553.56884
+#define M_24Mg 22335.79043
+#define M_27Al 25126.49834
 
-#define M_Be7 6534.1836677282
+//Jon masses
+#define M_17F  15832.754 
+#define M_Ne20 18617.733
 
-#define M_Li7 6533.83277448969
-#define M_He5 4667.67970996292
+//reaction
+#define BeamE 61.54 //MeV energy of 17F beam inside Kapton Window.
+#define QValue 4.1296 //MeV 17F(a,p)20Ne
 
-//#define Alpha282 //Spacer-0
-#define Alpha285 //Spacer-1
-//#define Alpha288 //Spacer-2
-//#define Alpha290 //Spacer-4
-//#define Alpha292 //Spacer-5
-//#define Alpha296 //Spacer-6
-//#define Alpha299 //Spacer-7
-
-#ifdef Alpha282
-#define gold_pos 27.7495 //all the way in
-#endif
-
-#ifdef Alpha285
-#define gold_pos 22.9495    //Spacer-1 //4.8cm
-#endif
-
-#ifdef Alpha288
-#define gold_pos 16.9495   //Spacer-2 //10.8cm
-#endif
-
-#ifdef Alpha290
-#define gold_pos 12.4495   //Spacer-4 //15.3cm
-#endif
-
-#ifdef Alpha292
-#define gold_pos 7.4495    //Spacer-5 //20.3cm
-#endif
-
-#ifdef Alpha296
-#define gold_pos 1.5495   //Spacer-6 //26.2cm
-#endif
-
-#ifdef Alpha299
-#define gold_pos -2.8505   //Spacer-7 //30.6cm
-#endif
-
-#define QValue 
-//#define gold_pos 28.9 // old measurement
-//#define gold_pos 27.7495 //cm based on geometry measurements we did with Lagy at 2/22/2017
-//#define gold_pos 16.9495 //spacer 2 = all in - 10.8 cm
-//#define gold_pos -2.8505 //spacer 7 = all in - 30.6 cm
 /////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
@@ -158,32 +140,35 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
 };
 ////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) { 
-
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
-
-  Int_t numarg=4;
-#ifdef IsCal
-  numarg=3;
+  
+  Int_t numarg=3;
+#ifdef DoCut
+  numarg=4;
+  printf("expecting cut file...\n");
 #endif
   if (argc!=numarg) {
     cout << "Error: Wrong Number of Arguments\n";
     exit(EXIT_FAILURE);
   }
 
-  char* file_raw  = new char [200]; // for input .root file
-  char* file_cal = new char [200]; // for output .root file
+  char* file_raw  = new char [300]; // for input .root file
+  char* file_cal = new char [300]; // for output .root file
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
 
-#ifdef IsCal
+  cout << "Command is " << argv[0] << endl;
+  cout << "Input file is " << argv[1] << endl;
+  cout << "Output file is "<< argv[2] << endl;
+  
+#ifdef DoCut
   //////////////// CUTS ////////////////////
-  //
-  char* file_cut1 = new char[100]; //for allcut
+
+  char* file_cut1 = new char[300]; //for allcut
   strcpy( file_cut1, argv[3] );
  
-
   //He4 cut
   TFile *cut_file1 = new TFile(file_cut1);
   if (!cut_file1->IsOpen()){
@@ -197,6 +182,7 @@ int main(int argc, char* argv[]) {
     cout << "Cut1 does not exist\n";
     exit(EXIT_FAILURE);
   }
+  cout << argv[3] << endl;
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   TObjArray *RootObjects = new TObjArray();
@@ -204,19 +190,21 @@ int main(int argc, char* argv[]) {
   PCHit PC;
   ///CsIHit CsI;
   Track Tr; 
-  Int_t RFTime, MCPTime; 
+  Int_t RFTime, MCPTime;
+  Int_t Old_RFTime,Old_MCPTime;
 
   Si.ReadDet = 0;
   Si.ReadHit = 0;
   PC.ReadHit = 0;
   //CsI.ReadHit = 0;
 
-  LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_Be7);
+#ifdef DoLoss
+  LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
   LookUp *E_Loss_alpha = new LookUp("/data0/nabin/Vec/Param/He4_D2_400Torr_20160614.eloss",M_alpha);
   LookUp *E_Loss_proton = new LookUp("/data0/nabin/Vec/Param/P_D2_400Torr_20160614.eloss",M_P);
-  LookUp *E_Loss_deuteron = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D2); 
+  LookUp *E_Loss_deuteron = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D); 
   LookUp *E_Loss_3He = new LookUp("/data0/nabin/Vec/Param/He3_D2_400Torr.eloss",M_3He); 
-  //LookUp *E_Loss_Li6 = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D2); 
+  //LookUp *E_Loss_Li6 = new LookUp("/data0/nabin/Vec/Param/D2_D2_400Torr_20160614.eloss",M_D); 
 
   E_Loss_7Be->InitializeLookupTables(30.0,200.0,0.01,0.04);
   //E_Loss_7Be->InitializeLookupTables(20.0,60.0,0.01,0.04);//not stopped--65.0
@@ -234,6 +222,7 @@ int main(int argc, char* argv[]) {
   //E_Loss_deuteron->InitializeLookupTables(20.0,2000.0,0.02,0.1); 
 
   E_Loss_3He->InitializeLookupTables(20.0,4000.0,0.02,0.04);
+#endif
   ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   TFile *outputfile = new TFile(file_cal,"RECREATE");
@@ -243,7 +232,9 @@ int main(int argc, char* argv[]) {
   MainTree->Branch("Tr.NTracks1",&Tr.NTracks1,"NTracks1/I");
   MainTree->Branch("Tr.NTracks2",&Tr.NTracks2,"NTracks2/I");
   MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
-  MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);   
+  MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
+  MainTree->Branch("RFTime",&RFTime,"RFTime/I");
+  MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
   
   RootObjects->Add(MainTree);
 
@@ -287,8 +278,10 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
     raw_tree->SetBranchAddress("PC.NPCHits",&PC.NPCHits);
     raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
-    raw_tree->SetBranchAddress("RFTime",&RFTime);
-    raw_tree->SetBranchAddress("MCPTime",&MCPTime);
+    //raw_tree->SetBranchAddress("RFTime",&RFTime);
+    //raw_tree->SetBranchAddress("MCPTime",&MCPTime);
+    raw_tree->SetBranchAddress("RFTime",&Old_RFTime);
+    raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
  
     Long64_t nentries = raw_tree->GetEntries();
     cout<<"nentries = "<<nentries<<endl;
@@ -298,7 +291,7 @@ int main(int argc, char* argv[]) {
       //cout<<" i =  "<<i<<endl;
 
       status = raw_tree->GetEvent(i);
-
+      //std::cout << "\rDone: " << i*100./nentries << "%          " << std::flush;
       if (i == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
       if (i == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
       if (i == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
@@ -311,13 +304,28 @@ int main(int argc, char* argv[]) {
       if (i == TMath::Nint(0.95*nentries))  cout << " 95% through the data" << endl;
       if (i == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef MCP_RF_Cut    
-      if(MCPTime > 0 && RFTime>0){
-	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-	MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%538);
 
-	if( (((MCPTime - RFTime)% 538)<47) || (((MCPTime - RFTime)% 538)>118  && ((MCPTime - RFTime)% 538)<320) || ((MCPTime - RFTime)% 538)>384 ){
-	  //if( (((MCPTime - RFTime)% 538)<60) || (((MCPTime - RFTime)% 538)>110  && ((MCPTime - RFTime)% 538)<325) || ((MCPTime - RFTime)% 538)>380 ){
+      Double_t correct=1.004009623;
+      Double_t wrap=272.0975;//546//538
+      MCPTime = Old_MCPTime;
+      RFTime = Old_RFTime;
+      Double_t tof=MCPTime-RFTime;
+      Double_t tiemc=MCPTime*correct-RFTime;
+      Int_t tbins=600;
+      if(MCPTime > 0 && RFTime>0) {
+	MyFill("tof",tbins,0,tbins,tof);
+	MyFill("tofw",tbins,0,TMath::Nint(wrap),fmod(tof,wrap));
+	MyFill("tofwc",tbins,0,TMath::Nint(wrap),fmod((MCPTime*correct-RFTime),wrap));
+      }
+      
+#ifdef MCP_RF_Cut    
+      if(MCPTime > 0 && RFTime>0) {
+	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
+	
+	MyFill("MCP_RF_Wrapped",2*tbins,-tbins,tbins,tof%wrap);
+
+	if( ((tof%wrap)<47) || ((tof%wrap)>118  && (tof%wrap)<320) || (tof%wrap)>384 ) {
+	  //if( ((tof% wrap)<60) || ((tof% wrap)>110  && (tof% wrap)<325) || (tof% wrap)>380 ){
 	  continue;
 	}else{	  
 	}
@@ -438,13 +446,37 @@ int main(int argc, char* argv[]) {
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //cout<<"Tr.NTracks = "<<Tr.NTracks<<" Tr.NTracks1 = "<<Tr.NTracks1<<" Tr.NTracks2 = "<<Tr.NTracks2<<" Tr.NTracks3 = "<<Tr.NTracks3<<endl;      
     
+      /////////////////////////////////////////////////////////////////////////////////////////////
+      ////////////// checking for the heavy hit &/or cross talk in the wire ///////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////    
+#ifdef PCPlots
+      Int_t pct;
+      for(Int_t pc=0; pc<Tr.NTracks; pc++) {
+	//cout<<"   Check 10 " <<Tr.NTracks<<endl;
+	
+	//All PCWire vs Energy
+	MyFill("WireID_vs_PCEnegy",25,0,24,Tr.TrEvent[pc].WireID,500,0,2,Tr.TrEvent[pc].PCEnergy);
+	
+	for(Int_t pca=0; pca<Tr.NTracks1; pca++) {
+	  
+	  //PCWire with track in channel 12 & other tracks & non-tracks in other channels
+	  MyFill("WireID_mod1_vs_PCEnegy",
+		 25,0,24,(((Int_t)Tr.TrEvent[pc].WireID-(Int_t)Tr.TrEvent[pca].WireID +12)%24),
+		 500,0,2,Tr.TrEvent[pc].PCEnergy);
+	}
+      }
+#endif
+      /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ///////////////////////////////////For the Tracking///////////////////////////////////    
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++        
       //reconstruction variables
       Double_t m = 0, b = 0; 
 
-      for(Int_t p=0; p<Tr.NTracks1;p++){
+      for(Int_t p=0; p<Tr.NTracks1;p++) {
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
 #ifdef CheckBasic
@@ -501,60 +533,85 @@ int main(int argc, char* argv[]) {
 	  //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////
-	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0){
+#ifdef DoLoss
+	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0) {
 	  Tr.TrEvent[p].EnergyLoss = E_Loss_7Be->GetEnergyLoss(BeamE,(La-Tr.TrEvent[p].IntPoint));
 	  //Tr.TrEvent[p].BeamEnergy = BeamE - Tr.TrEvent[p].EnergyLoss;
-	    
-	  if((La-Tr.TrEvent[p].IntPoint)>0.0 && (La-Tr.TrEvent[p].IntPoint)<54.0){
+	  
+	  if((La-Tr.TrEvent[p].IntPoint)>0.0 && (La-Tr.TrEvent[p].IntPoint)<54.0) {
 	    Tr.TrEvent[p].BeamEnergy = E_Loss_7Be->GetLookupEnergy(BeamE,(La-Tr.TrEvent[p].IntPoint));
 	  }	
 	}
+#endif
 	////////////////////////////////////////////////////////////////////////////////////////
       }//end of for loop Tracking.
       ////////////////////////////////////////////////////////////////////////////////////////
       
-
 #ifdef PCWireCal      
-      Double_t mpc,bpc;
-      Double_t mpc1,bpc1;
-
-      for(Int_t s=0; s<Tr.NTracks1;s++){
+      Double_t tantheta;
+           
+      for(Int_t s=0; s<Tr.NTracks1;s++) {
 
 	//determine PC position from Silicon position and gold position
-	mpc = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
-	bpc = Tr.TrEvent[s].SiR - mpc*Tr.TrEvent[s].SiZ;
-	Tr.TrEvent[s].pcz_ref = (3.846284509-bpc)/mpc;
-	//cout<<"mpc1 = "<<mpc1<<"  bpc1 = "<<bpc1<<"  PCZ_Ref = "<<Tr.TrEvent[s].pcz_ref<<endl;
+	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
+	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
+	//cout<<"tantheta = "<< tantheta <<" PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
-	//Alternative way
-	mpc1 = (Tr.TrEvent[s].SiZ - gold_pos)/Tr.TrEvent[s].SiR;
-	bpc1 = Tr.TrEvent[s].SiZ - mpc1*Tr.TrEvent[s].SiR;
-	Tr.TrEvent[s].PCZ_Ref = mpc1*pcr + bpc1;
-	//cout<<"mpc = "<<mpc<<"  bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
-
-	//cout<<" BeamE = "<<BeamE<<"  pcr = "<<pcr<<endl;
-	//cout<<"bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
-
-	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].pcz_ref);
-	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);
-
-	if (Tr.TrEvent[s].SiEnergy>11.6 && Tr.TrEvent[s].SiEnergy< 13.3){//this cut is to clean up calibration data... 	  
-	  
-	  MyFill(Form("PCZ_Ref_Clean%i",Tr.TrEvent[s].WireID),300,1.0,30.0,Tr.TrEvent[s].pcz_ref);
-	  MyFill(Form("PCZ_vs_Z_Clean%i",Tr.TrEvent[s].WireID),200,-1.5,1.5,Tr.TrEvent[s].PCZ,200,1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	Int_t pcbins=400;
 	
+	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),pcbins,1,30,Tr.TrEvent[s].PCZ_Ref);
+	// before PCWIRECAL applied
+	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),
+	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
+	       pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref); 
+
+	// after PCWIRECAL applied
+	MyFill(Form("PCZ_vs_Zc%i",Tr.TrEvent[s].WireID),
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); 
+
+	MyFill("PCZ_vs_Zc",
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	
+	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1) {
+	  MyFill(Form("PCZ_vs_Zc_q3_r1%i",Tr.TrEvent[s].WireID),
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill("PCZ_vs_Zc_q3_r1",
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	}
+
+	if(Tr.TrEvent[s].DetID<28 && Tr.TrEvent[s].DetID>3) {
+	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	}
+	
+	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
+	  
+	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
+		 pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),
+		 pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
+		 pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill(Form("PCZ_vs_Zgc%i",Tr.TrEvent[s].WireID),
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); // after PCWIRECAL applied
 	  /////////////////////////////////////////////////////////////////	 
 	}
-	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].pcz_ref);
+	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].PCZ_Ref);
       }
 #endif
 
       /////////////////////////////////////////////////////////////////////////////////////
 #ifdef FillEdE_cor
-      for(Int_t q=0; q<Tr.NTracks1;q++){
-	MyFill("E_de",1000,-1,29,Tr.TrEvent[q].SiEnergy,1000,-0.1,2.0,Tr.TrEvent[q].PCEnergy);
-	//MyFill("E_de_corrected",200,-1,35,Tr.TrEvent[q].SiEnergy,200,-0.1,20,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
-	MyFill("E_de_corrected",1000,-1,29,Tr.TrEvent[q].SiEnergy,1000,-0.1,1.2,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
+      Float_t demin=-0.01;
+      Float_t demax=0.25;
+      Int_t debins=600;
+      for(Int_t q=0; q<Tr.NTracks1;q++) {
+	MyFill("E_de",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy);
+	//MyFill("E_de_corrected",debins,-1,35,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
+	MyFill("E_de_corrected",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
 	///MyFill(Form("PCZ%i",PC.WireID[GoodPC]),300,-10,50,Tr.TrEvent[q].PCZ);	    
 	MyFill("InteractionPoint",300,-10,50,Tr.TrEvent[q].IntPoint);	
       }
