@@ -267,7 +267,6 @@ class Track { //This Class is for Tracking
     Double_t HeEnergyQvalue;
 
     Double_t PCZ_Ref;
-    Double_t pcz_ref;
   }track_obj;
 
 
@@ -332,14 +331,13 @@ class Track { //This Class is for Tracking
 
     track_obj.PCEnergy = -10.0;
     track_obj.PCX = 0;
-    track_obj.PCZ = -10.0;
+    track_obj.PCZ = sqrt(-1);
     track_obj.Z = -10.0; //by M.A. 01/16/2017
     track_obj.PCY = 0;
     track_obj.PCR = 0;
     track_obj.PCPhi = sqrt(-1);
     track_obj.WireID = -1;
-    track_obj.PCZ_Ref = -10; // parker's code variable
-    track_obj.pcz_ref = -10; // nabin's code variable for same thing
+    track_obj.PCZ_Ref = sqrt(-1); 
 
     track_obj.IntPoint = -10; //used to be zero, changed by MA 03/15/2017
     track_obj.IntPoint_X = 0;
@@ -349,7 +347,6 @@ class Track { //This Class is for Tracking
     track_obj.DiffIntPoint = 0;
     track_obj.DiffIntPoint_X = 0;
     track_obj.DiffIntPoint_Y = 0;
-
 
     track_obj.Theta = sqrt(-1);
     track_obj.Phi = sqrt(-1);
@@ -371,7 +368,7 @@ class Track { //This Class is for Tracking
     pc_obj.TrackType = 0;
     pc_obj.WireID = -1;
     pc_obj.PCEnergy = -10;
-    pc_obj.PCZ = -10;
+    pc_obj.PCZ = sqrt(-1);
     pc_obj.PCR = 0;
     pc_obj.PCPhi = 0;
 

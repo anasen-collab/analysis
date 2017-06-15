@@ -28,7 +28,7 @@
 #define Be8
 
 #define PCWireCal
-#define PCPlots
+#define PCPlots //for heavy hits
 
 #define MaxSiHits   500
 #define MaxADCHits  500
@@ -40,19 +40,19 @@
 #define La 54.42        //Length of ANASEN gas volume.
 
 // target positions
-#define gold_pos 27.7495  //all the way in, based on geometry measurements we did with Lagy at 2/22/2017
-//#define gold_pos 22.9495  //Spacer-1 //4.8cm
-//#define gold_pos 16.9495  //Spacer-2 //10.8cm
-//#define gold_pos 12.4495  //Spacer-4 //15.3cm
-//#define gold_pos  7.4495  //Spacer-5 //20.3cm
-//#define gold_pos  1.5495  //Spacer-6 //26.2cm
-//#define gold_pos -2.8505  //Spacer-7 //30.6cm
+#define gold_pos 27.7495 //Spacer-0 all the way in, based on geometry measurements we did with Lagy at 2/22/2017
+//#define gold_pos 22.9495 //Spacer-1 //4.8cm
+//#define gold_pos 16.9495 //Spacer-2 //10.8cm
+//#define gold_pos 12.4495 //Spacer-4 //15.3cm
+//#define gold_pos  7.4495 //Spacer-5 //20.3cm
+//#define gold_pos  1.5495 //Spacer-6 //26.2cm
+//#define gold_pos -2.8505 //Spacer-7 //30.6cm
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
 //NIST values
-#define M_P  938.2720813
-#define M_N  939.5654133
+#define M_P 938.2720813
+#define M_N 939.5654133
 #define M_D 1875.612928
 #define M_3He 2808.391586
 #define M_alpha 3727.379378
@@ -197,10 +197,6 @@ int main(int argc, char* argv[]) {
   PC.ReadHit = 0;
   //CsI.ReadHit = 0;
 
-  //LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
-
-  //E_Loss_7Be->InitializeLookupTables(30.0,200.0,0.01,0.04);
-
   ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   TFile *outputfile = new TFile(file_cal,"RECREATE");
@@ -292,9 +288,8 @@ int main(int argc, char* argv[]) {
       Int_t tbins=600;
       if(MCPTime > 0 && RFTime>0) {
 	MyFill("tof",tbins,0,tbins,tof);
-	MyFill("tofw",tbins,0,tbins,fmod(tof,wrap));
-	MyFill("tofm",tbins,0,tbins,tof%wrap);
-	MyFill("tofwc",tbins,0,tbins,fmod((MCPTime*correct-RFTime),wrap));
+	MyFill("tofw",tbins,0,TMath::Nint(wrap),fmod(tof,wrap));
+	MyFill("tofwc",tbins,0,TMath::Nint(wrap),fmod((MCPTime*correct-RFTime),wrap));
       }
       
 #ifdef MCP_RF_Cut    
@@ -455,7 +450,7 @@ int main(int argc, char* argv[]) {
       //reconstruction variables
       Double_t m = 0, b = 0; 
 
-      for(Int_t p=0; p<Tr.NTracks1;p++){
+      for(Int_t p=0; p<Tr.NTracks1;p++) {
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
 #ifdef CheckBasic
@@ -511,74 +506,52 @@ int main(int argc, char* argv[]) {
 
 	  //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
 	}
-	//////////////////////////////////////////////////////////////////////////////////////////////////
-	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0){
-	  //Tr.TrEvent[p].EnergyLoss = E_Loss_7Be->GetEnergyLoss(BeamE,(La-Tr.TrEvent[p].IntPoint));
-	  //Tr.TrEvent[p].BeamEnergy = BeamE - Tr.TrEvent[p].EnergyLoss;
-	    
-	  if((La-Tr.TrEvent[p].IntPoint)>0.0 && (La-Tr.TrEvent[p].IntPoint)<54.0){
-	    //Tr.TrEvent[p].BeamEnergy = E_Loss_7Be->GetLookupEnergy(BeamE,(La-Tr.TrEvent[p].IntPoint));
-	  }	
-	}
-	////////////////////////////////////////////////////////////////////////////////////////
       }//end of for loop Tracking.
       ////////////////////////////////////////////////////////////////////////////////////////
       
-
 #ifdef PCWireCal      
-      Double_t mpc,bpc;
-      Double_t mpc1,bpc1;
-
-      for(Int_t s=0; s<Tr.NTracks1;s++){
+      Double_t tantheta;
+           
+      for(Int_t s=0; s<Tr.NTracks1;s++) {
 
 	//determine PC position from Silicon position and gold position
-	mpc = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
-	bpc = Tr.TrEvent[s].SiR - mpc*Tr.TrEvent[s].SiZ;
-	Tr.TrEvent[s].pcz_ref = (3.846284509-bpc)/mpc;
-	//cout<<"mpc1 = "<<mpc1<<"  bpc1 = "<<bpc1<<"  PCZ_Ref = "<<Tr.TrEvent[s].pcz_ref<<endl;
+	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
+	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
+	//cout<<"tantheta = "<< tantheta <<" PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
-	//Alternative way
-	mpc1 = (Tr.TrEvent[s].SiZ - gold_pos)/Tr.TrEvent[s].SiR;
-	bpc1 = Tr.TrEvent[s].SiZ - mpc1*Tr.TrEvent[s].SiR;
-	Tr.TrEvent[s].PCZ_Ref = mpc1*pcr + bpc1;
-
-	//cout<<"mpc = "<<mpc<<"  bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
-
-	//cout<<" BeamE = "<<BeamE<<"  pcr = "<<pcr<<endl;
-	//cout<<"bpc = "<<bpc<<"  PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 	Int_t pcbins=400;
 	
-	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].pcz_ref);
+	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),300,1,30,Tr.TrEvent[s].PCZ_Ref);
 	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),
 	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
-	       pcbins,1.0,30.0,Tr.TrEvent[s].pcz_ref); // before PCWIRECAL applied
+	       pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref); // before PCWIRECAL applied
 
 	MyFill(Form("PCZ_vs_Zc%i",Tr.TrEvent[s].WireID),
 	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-	       pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref); // after PCWIRECAL applied
+	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); // after PCWIRECAL applied
 
 	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1) {
-	  MyFill(Form("PCZ_vs_Zc_q3_r1%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
-	  MyFill("PCZ_vs_Zc_q3_r1",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	  MyFill(Form("PCZ_vs_Zc_q3_r1%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill("PCZ_vs_Zc_q3_r1",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 	}
 
 	if(Tr.TrEvent[s].DetID<28 && Tr.TrEvent[s].DetID>3) {
-	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 	}
 	
-	MyFill("PCZ_vs_Zc",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref);
+	MyFill("PCZ_vs_Zc",pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 
 	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
 	  
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
-		 pcbins*2,1.0,30.0,Tr.TrEvent[s].pcz_ref);
-	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,pcbins,1.0,30.0,Tr.TrEvent[s].pcz_ref);
+		 pcbins*2,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill(Form("PCZ_vs_Zgc%i",Tr.TrEvent[s].WireID),
 		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].pcz_ref); // after PCWIRECAL applied
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); // after PCWIRECAL applied
 	  /////////////////////////////////////////////////////////////////	 
 	}
-	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].pcz_ref);
+	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].PCZ_Ref);
       }
 #endif
 
