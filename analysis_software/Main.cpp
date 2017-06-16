@@ -132,17 +132,17 @@ int main(int argc, char* argv[]){
   
   //initialize 17F
   if(1) {//load calibration files
-  CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
-  	     "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
-  	     "Param/17F_cals/AlphaCal_170515.edit.dat",
-  	     "Param/17F_cals/X3RelativeGains_Step3_170525.dat",
-  	     "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-  CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
-  CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
-  CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
-  CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
-  CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
-  CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
+    CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
+	       "Param/17F_cals/Sipulser_2016.07.20offsets_centroid.dat",
+	       "Param/17F_cals/AlphaCal_170515.edit.dat",
+	       "Param/17F_cals/X3RelativeGains_Step3_170525.dat",
+	       "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
+    CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
+    CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
+    CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
+    CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
+    CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
+    CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
   else {//load trivial calibration
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]){
   cout<<" ============================================================================================"<<endl;
   //------------------------------------------------------------------------------------------
   TFile *inputFile = new TFile(filename_callist);//open root file and make sure it exists---------------------
-  if (!inputFile->IsOpen()){
+  if (!inputFile->IsOpen()) {
     cout << "Root file: " << filename_callist << " could not be opened.\n";
     exit(EXIT_FAILURE);
   }
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]){
 
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     status = input_tree->GetEvent(global_evt);
-    std::cout << "\r Done: " << global_evt*100./nentries << "%          " << std::flush;
+    //std::cout << "\r Done: " << global_evt*100./nentries << "%          " << std::flush;
     if (global_evt == TMath::Nint(0.01*nentries))  cout << endl<< "   1% through the data";
     if (global_evt == TMath::Nint(0.10*nentries))  cout << endl<< "  10% through the data";
     if (global_evt == TMath::Nint(0.15*nentries))  cout << endl<< "  15% through the data";
@@ -609,14 +609,21 @@ int main(int argc, char* argv[]){
 	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal	----- Down vs Up histo needs it //Back vs front will be simpler
 
 	  // Step 1 RelCal/U-D, all energies changed to E_Rel
+	  MyFill(Form("down_vs_up%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),
+		 bins,0,udmax, Si.det_obj.EUp_Rel[0],bins,0,udmax,Si.det_obj.EDown_Rel[0]);
+	  MyFill(Form("down_vs_up_divB%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),
+		 bins,0,1.3, Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0],
+		 bins,0,1.3,Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]);
 	  MyFill(Form("down_vs_up%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
 		 bins,0,udmax, Si.det_obj.EUp_Rel[0],bins,0,udmax,Si.det_obj.EDown_Rel[0]);
-	  MyFill(Form("down_vs_up_divideBack%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
+	  MyFill(Form("down_vs_up_divB%i_f%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0]),
 		 bins,0,1.3,(Si.det_obj.EUp_Rel[0]/Si.det_obj.EBack_Rel[0]),
 		 bins,0,1.3,(Si.det_obj.EDown_Rel[0]/Si.det_obj.EBack_Rel[0]));
 
 	  // Step 2 RelCal//F-B //Condition: RelGain Cal from Up-Down is applied
-	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),
+		 bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],
+		 bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
 
 	  // Step 3 RelCal//F-B //RelGain Cal from Step 2 is applied
 	  MyFill(Form("back_vs_front%i_b%i",Si.det_obj.DetID,Si.det_obj.BackChNum[0]),bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0],bins,0,fbmax,Si.det_obj.EBack_Rel[0]);
@@ -633,7 +640,7 @@ int main(int argc, char* argv[]){
 	  // 	 bins,0,fbmax,Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0]
 	  // 	 );
 	  
-	  MyFill(Form("back_vs_offset_normback%i",Si.det_obj.DetID),
+	  MyFill(Form("back_vs_offset_divB%i",Si.det_obj.DetID),
 		 obins,-0.2,0.2,((Si.det_obj.EBack_Rel[0]-(Si.det_obj.EUp_Rel[0]+Si.det_obj.EDown_Rel[0]))/Si.det_obj.EBack_Rel[0]),
 		 bins,0,fbmax,Si.det_obj.EBack_Rel[0]
 		 );
@@ -703,18 +710,18 @@ int main(int argc, char* argv[]){
 	
       }else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
 #ifdef Pulser_ReRun
-	  //if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
-	  Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
-	  Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
-	  Si.det_obj.BackMult = Si.det_obj.EBack_Cal.size();
+	//if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
+	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
+	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
+	Si.det_obj.BackMult = Si.det_obj.EBack_Cal.size();
 	  
-	  Si.det_obj.DetID = i+4;
-	  Si.det_obj.HitType = Si.det_obj.BackMult*100 + Si.det_obj.UpMult*10 + Si.det_obj.DownMult;
+	Si.det_obj.DetID = i+4;
+	Si.det_obj.HitType = Si.det_obj.BackMult*100 + Si.det_obj.UpMult*10 + Si.det_obj.DownMult;
 
-	  Si.Detector.push_back(Si.det_obj);
-	  Si.NSiHits++;
+	Si.Detector.push_back(Si.det_obj);
+	Si.NSiHits++;
 #else
-	  continue;
+	continue;
 #endif
       }
 
@@ -774,11 +781,11 @@ int main(int argc, char* argv[]){
 	/////////////////////////////////////////  Fill Q3 Histograms after Calibration  ///////////////////////////////////////
 #ifdef Hist_after_Cal
 	if(Si.hit_obj.HitType ==11){
-	MyFill(Form("back_vs_front_Cal%i",Si.hit_obj.DetID),500,0,30,Si.hit_obj.EnergyFront,500,0,30,Si.hit_obj.EnergyBack);
-	MyFill(Form("Q3_offset_back_vs_front_Cal%i",Si.hit_obj.DetID),960,0,30,Si.hit_obj.EnergyBack,340,-10,10,(Si.hit_obj.EnergyBack-Si.hit_obj.EnergyFront));
-	//MyFill(Form("back_vs_front_Cal%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
-	//MyFill(Form("back_vs_front_Cal%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
-	//MyFill(Form("back_vs_front_Cal%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
+	  MyFill(Form("back_vs_front_Cal%i",Si.hit_obj.DetID),500,0,30,Si.hit_obj.EnergyFront,500,0,30,Si.hit_obj.EnergyBack);
+	  MyFill(Form("Q3_offset_back_vs_front_Cal%i",Si.hit_obj.DetID),960,0,30,Si.hit_obj.EnergyBack,340,-10,10,(Si.hit_obj.EnergyBack-Si.hit_obj.EnergyFront));
+	  //MyFill(Form("back_vs_front_Cal%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
+	  //MyFill(Form("back_vs_front_Cal%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
+	  //MyFill(Form("back_vs_front_Cal%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),100,0,30,Si.hit_obj.EnergyFront,100,0,30,Si.hit_obj.EnergyBack);
 	}
 #endif
 	////////////////////////////////////////  Fill Q3 Histograms for Calibration  ///////////////////////////////////////////
@@ -858,7 +865,7 @@ void MyFill(string name,
     fhmap.at(name)->Fill(valueX,valueY);
   } catch(out_of_range e) {
     TH2F* newHist = new TH2F(name.c_str(),name.c_str(),
-		     binsX,lowX,highX,
+			     binsX,lowX,highX,
 			     binsY,lowY,highY);
     newHist->Fill(valueX,valueY);
     fhlist->Add(newHist);
