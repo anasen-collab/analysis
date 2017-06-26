@@ -198,18 +198,26 @@ int main(int argc, char* argv[]){
   ChannelMap *CMAP;
   CMAP = new ChannelMap();
   //Initialization of the main channel map
-  //CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716");
-  //CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_06292016","/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt","/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
-  //CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716","/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt","/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains_Slope1.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");
-   //CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_020416.dat");
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_06292016",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
   CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_032816.dat");
+  /*
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains_Slope1.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");
+  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_020416.dat");
+  */  
+
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
   CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/NewWorld_030316.dat");
   
-  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  
   //Mesytec Shaper
+  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
   CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/PCPulser042016.dat");
   CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/PCWireCal_030416.dat");
 
@@ -566,6 +574,7 @@ int main(int argc, char* argv[]){
 	  }
 	}
       }
+
       if ( Si.det_place_holder.EnergyDown_Cal.size()!=0 || Si.det_place_holder.EnergyUp_Cal.size()!=0 || Si.det_place_holder.EnergyBack_Cal.size()!=0 ){
 	//cout << "Sorted Data\n";
 	Si.det_place_holder.UpMult = Si.det_place_holder.EnergyUp_Cal.size();
