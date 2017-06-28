@@ -90,22 +90,10 @@
 //Proton or alpha cal
 //  MainTree->Draw("Tr.Event.PCZ:Tr.Event.PCZ_Ref>>hist(bins...)","Tr.Event.WireID==1","colz")
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////
-//// Removed the randomization from the SiEnergy_Pulser calculation
-////
-//// Add a new histogram on the SX3s "down_vs_up_divideBack%i_front%i" in case it is need for the relative calibration of the detectors.
-//// If necessary create also for the QQQs. 
-////
-//// Created an output file to dump the excluded Entry# and the SiHit to check the consistency of the code due to the randomizations
-////
 //// For the moment filling the histograms using Energy(Raw) > 0 not EnergyCal > 0
 ////
 //// Edited by Maria Anastasiou, 2016Sept21
-////
-
-
-
 
 #define M_PI  3.14159265358979323846264338328 // Pi 
 #define Tracking
@@ -120,7 +108,6 @@
 #include <TH2.h>
 #include <TStyle.h>
 #include <TMath.h>
-#include <TRandom3.h>
 #include <stdexcept>
 #include <map>
 #include <fstream>
@@ -204,9 +191,6 @@ int main(int argc, char* argv[]){
 
   //Initialize variables and channel map
   //-------------------------------------------------------------------------------------------------------------------------------------------
-  TRandom3 *ChRandom = new TRandom3();
-  //TRandom3 *PhiRandom = new TRandom3();
-  //TRandom3 *RRandom = new TRandom3();
 
   fhlist = new TList;
   RootObjects->Add(fhlist);
@@ -308,8 +292,6 @@ int main(int argc, char* argv[]){
   Double_t QQQ3Energy[NumQQQ3][MaxQQQ3Ch],QQQ3Time[NumQQQ3][MaxQQQ3Ch];
   Double_t QQQ3Energy_Pulser[NumQQQ3][MaxQQQ3Ch],QQQ3Energy_Rel[NumQQQ3][MaxQQQ3Ch],QQQ3Energy_Cal[NumQQQ3][MaxQQQ3Ch];
   
-  ChRandom->SetSeed();  //always set the seed
-
   //PC place holder variables
   Int_t Side,WireID;
   Double_t PCDownstream[NPCWires],PCUpstream[NPCWires];
@@ -318,12 +300,6 @@ int main(int argc, char* argv[]){
   Double_t Vcal;
 
   Int_t status = 0;
-  Int_t counter=0;
-
-  //create an output file to dump the excluded Entry# and the SiHit to check the consistency of the code due to the randomizations
-  ofstream outfile;
-  outfile.open("dumb_entries.txt");
-
   Long64_t nentries = input_tree->GetEntries();
   cout << nentries << endl;
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++){//loop over all entries in tree---------------------------------------------------------------------------
@@ -540,7 +516,6 @@ p	      E_IC = (Double_t)ADC.Data[n];
 	CMAP->GetX3MeVPerChannel2(DN,DetCh,slope_alpha);  
 	CMAP->GetX3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
 	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];     // includes the RAW DATA 
-	//SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;   //// the randomization was not correct
 	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh; 
        	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
 	SiEnergy_Cal[DN-4][DetCh] = SiEnergy_Rel[DN-4][DetCh]*slope_alpha;
@@ -551,7 +526,6 @@ p	      E_IC = (Double_t)ADC.Data[n];
 	CMAP->GetQQQ3MeVPerChannel2(DN,DetCh,slope_alpha);
 	CMAP->GetQQQ3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
 	QQQ3Energy[DN][DetCh] = (Double_t)Si_Old.Energy[n];
-	//QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;   //// the randomization was not correct
 	QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh;
 	QQQ3Energy_Rel[DN][DetCh] = QQQ3Energy_Pulser[DN][DetCh]*slope_rel;
 	QQQ3Energy_Cal[DN][DetCh] = QQQ3Energy_Rel[DN][DetCh]*slope_alpha;
@@ -565,8 +539,7 @@ p	      E_IC = (Double_t)ADC.Data[n];
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxX3Ch; j++){
-	//if ( (SiEnergy_Cal[i][j] > 0.0)){
-	  if ( (SiEnergy[i][j] > 0.0)){                           //Fill when the Raw Energy is >0  
+	  if ( (SiEnergy[i][j] > 0.0)){//Fill when the Raw Energy is >0  
 	  if (j<4){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(SiEnergy[i][j]);
@@ -641,8 +614,7 @@ p	      E_IC = (Double_t)ADC.Data[n];
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxQQQ3Ch; j++){
-	//if ( (QQQ3Energy_Cal[i][j] > 0)){
-	  if ( (QQQ3Energy[i][j] > 0)){
+	if ( (QQQ3Energy[i][j] > 0)){
 	  if (j<16){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(QQQ3Energy[i][j]);
@@ -798,28 +770,12 @@ p	      E_IC = (Double_t)ADC.Data[n];
       Tr.TrEvent.push_back(Tr.track_place_holder);
 
     }
-#endif
+#endif  //end of tracking
 
-    //////////////-----------------end of tracking---------------------------------------/////////////////////////////
-
-    
-    
     if (Si.NSiHits>0 ){    
       MainTree->Fill();
     }
-    else{
-      
-      //---Dump the excluded events in a file:
-          outfile << "event number = " << global_evt << " " << "Si_Old.Nhits= " << Si_Old.Nhits << endl;
-          counter++; 
-        }
-   
   }
-  
-    outfile.close(); 
-    cout << "event not count = " << counter << endl;
-    cout << "entries = " << nentries << endl;
-    cout << "hist = " << nentries - counter << endl;
 
 outputFile->cd();
 cout << "change to output file directory" << endl;
