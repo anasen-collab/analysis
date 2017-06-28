@@ -9,7 +9,7 @@
 //To compile the code:
 //  g++ -o OrganizeIC organize_dictionary.cxx OrganizeIC.cpp `root-config --cflags --glibs`
 //To run the code:
-//  ./OrganizeIC ../../../../../../data0/manasta/evt2root_files/runXXX.root ../../../../../../data0/manasta/OrganizeRaw_files/runXXX.root
+//  ./OrganizeIC ../../../../../../data0/manasta/evt2root_files_new/runXXX.root ../../../../../../data0/manasta/OrganizeRaw_files/runXXX.root
 //
 //Obviously need to change headers to point to where you have them and all of the arguments of the ChannelMap functions
 //
@@ -91,6 +91,22 @@
 //  MainTree->Draw("Tr.Event.PCZ:Tr.Event.PCZ_Ref>>hist(bins...)","Tr.Event.WireID==1","colz")
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//// Removed the randomization from the SiEnergy_Pulser calculation
+////
+//// Add a new histogram on the SX3s "down_vs_up_divideBack%i_front%i" in case it is need for the relative calibration of the detectors.
+//// If necessary create also for the QQQs. 
+////
+//// Created an output file to dump the excluded Entry# and the SiHit to check the consistency of the code due to the randomizations
+////
+//// For the moment filling the histograms using Energy(Raw) > 0 not EnergyCal > 0
+////
+//// Edited by Maria Anastasiou, 2016Sept21
+////
+
+
+
+
 #define M_PI  3.14159265358979323846264338328 // Pi 
 #define Tracking
 #define PC_Pos_Cal
@@ -130,7 +146,7 @@ void MyFill(string name,
 	    int binsX, double lowX, double highX, double valueX);
 
 #include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
-#include "/home/manasta/Desktop/parker_codes/Include/2015_detclass.h"
+#include "/home/manasta/Desktop/parker_codes/Include/2016_detclass.h"
 #include "/home/manasta/Desktop/parker_codes/Include/SortSilicon.h"
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
@@ -198,28 +214,19 @@ int main(int argc, char* argv[]){
   ChannelMap *CMAP;
   CMAP = new ChannelMap();
   //Initialization of the main channel map
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_06292016",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
-  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_032816.dat");
-  /*
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains_Slope1.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");
-  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_020416.dat");
-  */  
-
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/ASICS_cmap_06292016",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/alignchannels_09122016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/AlphaCalibration_09132016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3RelativeGains09202016_Step3_maskzero.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/QQQRelativeGains09182016_Step2.dat");
+  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3geometry_09132016.dat");
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
-  CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/NewWorld_030316.dat");
+  CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewWorld_030316.dat");
   
   //Mesytec Shaper
-  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/PCPulser042016.dat");
-  CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/PCWireCal_030416.dat");
+  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewPCMap");
+  CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCpulserCal2016July27.dat");
+  CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCWireCal_030416.dat");
 
   //save the calibration information in the root file, so that the info doesn't get lost
   //This part is still under construction
@@ -311,6 +318,12 @@ int main(int argc, char* argv[]){
   Double_t Vcal;
 
   Int_t status = 0;
+  Int_t counter=0;
+
+  //create an output file to dump the excluded Entry# and the SiHit to check the consistency of the code due to the randomizations
+  ofstream outfile;
+  outfile.open("dumb_entries.txt");
+
   Long64_t nentries = input_tree->GetEntries();
   cout << nentries << endl;
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++){//loop over all entries in tree---------------------------------------------------------------------------
@@ -489,7 +502,7 @@ int main(int argc, char* argv[]){
       for(Int_t n=0; n<ADC.Nhits; n++)
 	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==24)
 	    {
-	      IC = ADC.Data[n];
+	      IC = (Double_t)ADC.Data[n];
 	      //cout << IC << endl;
 	    }
 	}
@@ -497,7 +510,7 @@ int main(int argc, char* argv[]){
       for(Int_t n=0; n<ADC.Nhits; n++)
 	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==28)
 	    {
-	      E_IC = ADC.Data[n];
+p	      E_IC = (Double_t)ADC.Data[n];
 	      //cout << IC << endl;
 	    }
 	}
@@ -527,8 +540,9 @@ int main(int argc, char* argv[]){
 	CMAP->GetX3MeVPerChannel2(DN,DetCh,slope_alpha);  
 	CMAP->GetX3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
 	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];     // includes the RAW DATA 
-	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;
-	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
+	//SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;   //// the randomization was not correct
+	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh; 
+       	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
 	SiEnergy_Cal[DN-4][DetCh] = SiEnergy_Rel[DN-4][DetCh]*slope_alpha;
 	SiEnergy_Cal[DN-4][DetCh] += FinalShift;
 	SiTime[DN-4][DetCh]   = (Double_t)Si_Old.Time[n];
@@ -537,7 +551,8 @@ int main(int argc, char* argv[]){
 	CMAP->GetQQQ3MeVPerChannel2(DN,DetCh,slope_alpha);
 	CMAP->GetQQQ3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
 	QQQ3Energy[DN][DetCh] = (Double_t)Si_Old.Energy[n];
-	QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;
+	//QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;   //// the randomization was not correct
+	QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh;
 	QQQ3Energy_Rel[DN][DetCh] = QQQ3Energy_Pulser[DN][DetCh]*slope_rel;
 	QQQ3Energy_Cal[DN][DetCh] = QQQ3Energy_Rel[DN][DetCh]*slope_alpha;
 	QQQ3Energy_Cal[DN][DetCh] += FinalShift;
@@ -550,7 +565,8 @@ int main(int argc, char* argv[]){
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxX3Ch; j++){
-	if ( (SiEnergy_Cal[i][j] > 0.0)){
+	//if ( (SiEnergy_Cal[i][j] > 0.0)){
+	  if ( (SiEnergy[i][j] > 0.0)){                           //Fill when the Raw Energy is >0  
 	  if (j<4){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(SiEnergy[i][j]);
@@ -592,6 +608,8 @@ int main(int argc, char* argv[]){
 
 	Si.NSiHits++;
 	
+	//---Histos after the energy calibration
+
 	if (Si.hit_place_holder.HitType==111){
 	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),300,0,30,Si.hit_place_holder.EnergyFront,300,0,30,Si.hit_place_holder.EnergyBack);
 	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
@@ -599,6 +617,17 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	  MyFill(Form("down_vs_up%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyDown_Cal[0]);
 	}
+
+	//---Histos before energy calibration
+	
+	if (Si.hit_place_holder.HitType==111){
+	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),512,0,16384,Si.hit_place_holder.EnergyFront,512,0,16384,Si.hit_place_holder.EnergyBack);
+	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("down_vs_up%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyDown_Cal[0]);
+	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),100,0,1,(Si.det_place_holder.EnergyUp_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]),100,0,1,(Si.det_place_holder.EnergyDown_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]));
+	  }
 	
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_SX3",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
@@ -612,7 +641,8 @@ int main(int argc, char* argv[]){
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxQQQ3Ch; j++){
-	if ( (QQQ3Energy_Cal[i][j] > 0)){
+	//if ( (QQQ3Energy_Cal[i][j] > 0)){
+	  if ( (QQQ3Energy[i][j] > 0)){
 	  if (j<16){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(QQQ3Energy[i][j]);
@@ -643,11 +673,13 @@ int main(int argc, char* argv[]){
 	//cout << "Sorted Data\n";
 
 	//ProcessQQQ_1 treats QQQ in a general way (recommended)
-	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);
 	//ProcessQQQ_2 only does hit type 11, 12, and 21 (assuming adjacent channels fired)
+	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);
 	Si.Detector.push_back(Si.det_place_holder);
 	Si.Hit.push_back(Si.hit_place_holder);
 	Si.NSiHits++;
+
+	//---Histos after the energy calibration
 
 	if (Si.det_place_holder.HitType==11){
 	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),300,0,30,Si.hit_place_holder.EnergyFront,300,0,30,Si.hit_place_holder.EnergyBack);
@@ -655,6 +687,15 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	}
+
+	//---Histos before the energy calibration
+
+	if (Si.det_place_holder.HitType==11){
+	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),512,0,16384,Si.hit_place_holder.EnergyFront,512,0,16384,Si.hit_place_holder.EnergyBack);
+	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  }
 
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_QQQ",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
@@ -766,7 +807,19 @@ int main(int argc, char* argv[]){
     if (Si.NSiHits>0 ){    
       MainTree->Fill();
     }
+    else{
+      
+      //---Dump the excluded events in a file:
+          outfile << "event number = " << global_evt << " " << "Si_Old.Nhits= " << Si_Old.Nhits << endl;
+          counter++; 
+        }
+   
   }
+  
+    outfile.close(); 
+    cout << "event not count = " << counter << endl;
+    cout << "entries = " << nentries << endl;
+    cout << "hist = " << nentries - counter << endl;
 
 outputFile->cd();
 cout << "change to output file directory" << endl;
