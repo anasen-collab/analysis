@@ -145,8 +145,6 @@ void MyFill(string name,
 void MyFill(string name,
 	    int binsX, double lowX, double highX, double valueX);
 
-
-//#include "/home/manasta/Desktop/parker_codes/Include/2015_detclass.h"
 #include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
 #include "/home/manasta/Desktop/parker_codes/Include/2016_detclass.h"
 #include "/home/manasta/Desktop/parker_codes/Include/SortSilicon.h"
@@ -216,9 +214,11 @@ int main(int argc, char* argv[]){
   ChannelMap *CMAP;
   CMAP = new ChannelMap();
   //Initialization of the main channel map
-  ////////////////////////////////////////////////////////
-  //maria calibration files:
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/ASICS_cmap_06292016","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/alignchannels_09122016.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/AlphaCalibration_09132016.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3RelativeGains09202016_Step3_maskzero.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/QQQRelativeGains09182016_Step2.dat");
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/ASICS_cmap_06292016",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/alignchannels_09122016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/AlphaCalibration_09132016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3RelativeGains09202016_Step3_maskzero.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/QQQRelativeGains09182016_Step2.dat");
   CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3geometry_09132016.dat");
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
   CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewWorld_030316.dat");
@@ -226,8 +226,6 @@ int main(int argc, char* argv[]){
   CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewPCMap");
   CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCpulserCal2016July27.dat");
   CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCWireCal_030416.dat");
-
-  //////////////////////////////////////////////////////////////
 
   //save the calibration information in the root file, so that the info doesn't get lost
   //This part is still under construction
@@ -367,9 +365,6 @@ int main(int argc, char* argv[]){
       }
     }
     //Done initializing------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   
-    
-
     //PC stuff
     Int_t Identifier=-1;
   
@@ -467,9 +462,7 @@ int main(int argc, char* argv[]){
     }
  
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //--------------MCP/RF TIMING------------------------
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    
     if (TDC.Nhits>MaxTDCHits) TDC.Nhits=MaxTDCHits;
   
@@ -502,9 +495,8 @@ int main(int argc, char* argv[]){
       }
 #endif  
 
-      /////////////////////////////////////////////////////////////////////////////
-      //-------------------------------------
-      //------------Ion Chamber----------------------
+//-------------------------------------
+//------------Ion Chamber----------------------
       IC = 0; E_IC = 0;
       for(Int_t n=0; n<ADC.Nhits; n++)
 	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==24)
@@ -526,8 +518,6 @@ int main(int argc, char* argv[]){
 
 
     //end PC stuff et al-----------------------------------------------------------------------------------------------------------------
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Make sure you dont have too many hits.
     if (Si_Old.Nhits>MaxSiHits) Si_Old.Nhits=MaxSiHits;
     //cout << "New Event\n";
@@ -569,12 +559,7 @@ int main(int argc, char* argv[]){
       }
     }// End loop over X3_Nhits------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////-----------------------------SX3s------------------------------------------------------------------------------
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
     for (int i=0; i<NumX3; i++){//Determine multiplicities for SX3 detector: forward and back--------------------------------------------------------------------------------------------------
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -644,7 +629,6 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("down_vs_up%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyDown_Cal[0]);
 	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),100,0,1,(Si.det_place_holder.EnergyUp_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]),100,0,1,(Si.det_place_holder.EnergyDown_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]));
 	  }
-
 	
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_SX3",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
@@ -653,13 +637,7 @@ int main(int argc, char* argv[]){
       }
     }
 
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////--------------------------QQQs-----------------------------------------------------------------------------------------------
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
     for (int i=0; i<NumQQQ3; i++){//Determine multiplicities for QQQ detector: forward and back-------------------------------------------------------------------------------------------------------
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -694,7 +672,7 @@ int main(int argc, char* argv[]){
       if ( Si.det_place_holder.EnergyUp_Cal.size()!=0 && Si.det_place_holder.EnergyBack_Cal.size()!=0 ){
 	//we require both front and back of qqq to fire to sort the data
 	//cout << "Sorted Data\n";
-	
+
 	//ProcessQQQ_1 treats QQQ in a general way (recommended)
 	//ProcessQQQ_2 only does hit type 11, 12, and 21 (assuming adjacent channels fired)
 	SiSort.ProcessQQQ_2(&Si,CMAP,RFTime);
@@ -720,8 +698,6 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
 	  }
 
-
-
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_QQQ",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
 	}
@@ -742,14 +718,7 @@ int main(int argc, char* argv[]){
       cout << Si.NSiHits << "  " << Si.Detector.size() << endl;
     }
 
-
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////----------Tracking--------------------------------------------------------------------------------------------
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    //-----------------------------------------------------------------------------------------------------------------------------
 #ifdef Tracking
     //associate Silicon hits with PC hits
     Int_t GoodPC = -1;

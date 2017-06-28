@@ -526,7 +526,7 @@ int main(int argc, char* argv[]){
 	CMAP->GetX3MeVPerChannel1(DN,DetCh,slope_rel);  
 	CMAP->GetX3MeVPerChannel2(DN,DetCh,slope_alpha);  
 	CMAP->GetX3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
-	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];
+	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];     // includes the RAW DATA 
 	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;
 	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
 	SiEnergy_Cal[DN-4][DetCh] = SiEnergy_Rel[DN-4][DetCh]*slope_alpha;
@@ -545,6 +545,7 @@ int main(int argc, char* argv[]){
       }
     }// End loop over X3_Nhits------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /////////////////-----------------------------SX3s------------------------------------------------------------------------------
     for (int i=0; i<NumX3; i++){//Determine multiplicities for SX3 detector: forward and back--------------------------------------------------------------------------------------------------
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -606,6 +607,7 @@ int main(int argc, char* argv[]){
       }
     }
 
+    //////////////////////////--------------------------QQQs-----------------------------------------------------------------------------------------------
     for (int i=0; i<NumQQQ3; i++){//Determine multiplicities for QQQ detector: forward and back-------------------------------------------------------------------------------------------------------
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -639,8 +641,9 @@ int main(int argc, char* argv[]){
       if ( Si.det_place_holder.EnergyUp_Cal.size()!=0 && Si.det_place_holder.EnergyBack_Cal.size()!=0 ){
 	//we require both front and back of qqq to fire to sort the data
 	//cout << "Sorted Data\n";
-	
-	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);//ProcessQQQ_1 treats QQQ in a general way (recommended)
+
+	//ProcessQQQ_1 treats QQQ in a general way (recommended)
+	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);
 	//ProcessQQQ_2 only does hit type 11, 12, and 21 (assuming adjacent channels fired)
 	Si.Detector.push_back(Si.det_place_holder);
 	Si.Hit.push_back(Si.hit_place_holder);
@@ -672,7 +675,8 @@ int main(int argc, char* argv[]){
     if (Si.NSiHits != Si.Hit.size()){
       cout << Si.NSiHits << "  " << Si.Detector.size() << endl;
     }
-    //-----------------------------------------------------------------------------------------------------------------------------
+
+    ////////////////////----------Tracking--------------------------------------------------------------------------------------------
 #ifdef Tracking
     //associate Silicon hits with PC hits
     Int_t GoodPC = -1;
@@ -754,6 +758,11 @@ int main(int argc, char* argv[]){
 
     }
 #endif
+
+    //////////////-----------------end of tracking---------------------------------------/////////////////////////////
+
+    
+    
     if (Si.NSiHits>0 ){    
       MainTree->Fill();
     }
