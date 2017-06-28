@@ -134,7 +134,7 @@ void MyFill(string name,
 
 #include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
 #include "/home/manasta/Desktop/parker_codes/Include/2016_detclass.h"
-#include "/home/manasta/Desktop/parker_codes/Include/SortSilicon.h"
+#include "SortSilicon.h"
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
 
