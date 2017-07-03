@@ -53,7 +53,7 @@
 
 //Associated header files/methods
 #include "ChannelMap.h"
-#include "2015_detclass.h"
+#include "../include/2016_detclass.h"
 #include "Silicon_Cluster.h"
 
 using namespace std;

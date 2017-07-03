@@ -133,7 +133,7 @@ void MyFill(string name,
 	    int binsX, double lowX, double highX, double valueX);
 
 #include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
-#include "/home/manasta/Desktop/parker_codes/Include/2016_detclass.h"
+#include "../include/2016_detclass.h"
 #include "SortSilicon.h"
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
