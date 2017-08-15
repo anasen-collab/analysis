@@ -560,6 +560,17 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	  MyFill(Form("down_vs_up%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyDown_Cal[0]);
 	}
+
+	//---Histos before energy calibration
+	
+	if (Si.hit_place_holder.HitType==111){
+	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),512,0,16384,Si.hit_place_holder.EnergyFront,512,0,16384,Si.hit_place_holder.EnergyBack);
+	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("down_vs_up%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyDown_Cal[0]);
+	  MyFill(Form("down_vs_up_divideBack%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),100,0,1,(Si.det_place_holder.EnergyUp_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]),100,0,1,(Si.det_place_holder.EnergyDown_Cal[0]/Si.det_place_holder.EnergyBack_Cal[0]));
+	  }
 	
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_SX3",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
@@ -618,6 +629,15 @@ int main(int argc, char* argv[]){
 	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
 	}
+
+	//---Histos before the energy calibration
+
+	if (Si.det_place_holder.HitType==11){
+	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),512,0,16384,Si.hit_place_holder.EnergyFront,512,0,16384,Si.hit_place_holder.EnergyBack);
+	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_back%i",Si.det_place_holder.DetID,Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  MyFill(Form("back_vs_front%i_%i_%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0],Si.det_place_holder.BackChNum[0]),512,0,16384,Si.det_place_holder.EnergyUp_Cal[0],512,0,16384,Si.det_place_holder.EnergyBack_Cal[0]);
+	  }
 
 	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
 	  MyFill("PCPhi_vs_SiPhi_QQQ",300,0,8,Si.hit_place_holder.PhiW,300,0,8,PC.Hit.at(hits).PhiW);
@@ -681,6 +701,22 @@ int main(int argc, char* argv[]){
 	  Tr.track_place_holder.Theta = TMath::Pi()/2;
 	  Tr.track_place_holder.PathLength = Tr.track_place_holder.SiR;
 	}
+	
+
+	//--------------------E_dE histograms--------------------------------------------------------
+	
+       	for(int i=0;i<NumQQQ3; i++){
+	MyFill("E_de_QQQ",300,0,30,Tr.track_place_holder.SiEnergy,300,0,1,Tr.track_place_holder.PCEnergy*sin(Tr.track_place_holder.Theta));
+	MyFill("E_theta_QQQ",300,0,180,Tr.track_place_holder.Theta*180/TMath::Pi(),300,0,35,Tr.track_place_holder.SiEnergy);
+	}
+	
+	
+	for(int i=0;i<NumX3; i++){
+	MyFill("E_de_SX3",300,0,30,Tr.track_place_holder.SiEnergy,300,0,1,Tr.track_place_holder.PCEnergy*sin(Tr.track_place_holder.Theta));
+	MyFill("E_theta_SX3",300,0,180,Tr.track_place_holder.Theta*180/TMath::Pi(),300,0,35,Tr.track_place_holder.SiEnergy);
+	}
+
+
 	//if you are doing a proton or alpha cal run, then you need to input the proper gold position here
 	//this calculates where the PC should have fired, based off of the gold and silicon positions
 	//compare where it should have fired to the measured Z to calibrate
