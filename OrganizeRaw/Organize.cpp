@@ -90,6 +90,11 @@
 //Proton or alpha cal
 //  MainTree->Draw("Tr.Event.PCZ:Tr.Event.PCZ_Ref>>hist(bins...)","Tr.Event.WireID==1","colz")
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//// For the moment filling the histograms using Energy(Raw) > 0 not EnergyCal > 0
+////
+//// Edited by Maria Anastasiou, 2016Sept21
+
 #define Tracking
 #define PC_Pos_Cal
 //#define TimingCut
@@ -101,7 +106,6 @@
 #include <TH2.h>
 #include <TStyle.h>
 #include <TMath.h>
-#include <TRandom3.h>
 #include <stdexcept>
 #include <map>
 #include <fstream>
@@ -181,9 +185,6 @@ int main(int argc, char* argv[]){
 
   //Initialize variables and channel map
   //-------------------------------------------------------------------------------------------------------------------------------------------
-  TRandom3 *ChRandom = new TRandom3();
-  //TRandom3 *PhiRandom = new TRandom3();
-  //TRandom3 *RRandom = new TRandom3();
 
   fhlist = new TList;
   RootObjects->Add(fhlist);
@@ -191,20 +192,20 @@ int main(int argc, char* argv[]){
   ChannelMap *CMAP;
   CMAP = new ChannelMap();
   //Initialization of the main channel map
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat",
-	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/ASICS_cmap_06292016",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/alignchannels_09122016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/AlphaCalibration_09132016.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3RelativeGains09202016_Step3_maskzero.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/QQQRelativeGains09182016_Step2.dat");
   CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat",
-		  "/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_032816.dat");
+		  "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3geometry_09132016.dat");
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
-  CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/NewWorld_030316.dat");
+  CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewWorld_030316.dat");
   
   //Mesytec Shaper
-  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/PCPulser042016.dat");
-  CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/PCWireCal_030416.dat");
+  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewPCMap");
+  CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCpulserCal2016July27.dat");
+  CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/PCWireCal_030416.dat");
 
   //save the calibration information in the root file, so that the info doesn't get lost
   //This part is still under construction
@@ -286,8 +287,6 @@ int main(int argc, char* argv[]){
   Double_t QQQ3Energy[NumQQQ3][MaxQQQ3Ch],QQQ3Time[NumQQQ3][MaxQQQ3Ch];
   Double_t QQQ3Energy_Pulser[NumQQQ3][MaxQQQ3Ch],QQQ3Energy_Rel[NumQQQ3][MaxQQQ3Ch],QQQ3Energy_Cal[NumQQQ3][MaxQQQ3Ch];
   
-  ChRandom->SetSeed();  //always set the seed
-
   //PC place holder variables
   Int_t Side,WireID;
   Double_t PCDownstream[NPCWires],PCUpstream[NPCWires];
@@ -438,6 +437,8 @@ int main(int argc, char* argv[]){
    
     if (TDC.Nhits>MaxTDCHits) TDC.Nhits=MaxTDCHits;
   
+
+    Double_t correct=1.004009623; //by M.A.
     RFTime = 0;
     MCPTime = 0;
   
@@ -450,8 +451,9 @@ int main(int argc, char* argv[]){
       }
     }
 
-
-    MyFill("Timing",400,-600,600,(MCPTime-RFTime)%538);
+    MyFill("Timing",600,1,600,fmod((MCPTime*correct-RFTime),546)); //by M.A.
+    
+    //MyFill("Timing",400,-600,600,(MCPTime-RFTime)%538);
     //Can define the TimingCut at the top of the program
 #ifdef TimingCut   
       if ( (MCPTime-RFTime)%538<71 || (MCPTime-RFTime)%538>370 ){
@@ -483,9 +485,9 @@ int main(int argc, char* argv[]){
 	CMAP->GetX3MeVPerChannel1(DN,DetCh,slope_rel);  
 	CMAP->GetX3MeVPerChannel2(DN,DetCh,slope_alpha);  
 	CMAP->GetX3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
-	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];
-	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;
-	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
+	SiEnergy[DN-4][DetCh] = (Double_t)Si_Old.Energy[n];     // includes the RAW DATA 
+	SiEnergy_Pulser[DN-4][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh; 
+       	SiEnergy_Rel[DN-4][DetCh] = SiEnergy_Pulser[DN-4][DetCh]*slope_rel;
 	SiEnergy_Cal[DN-4][DetCh] = SiEnergy_Rel[DN-4][DetCh]*slope_alpha;
 	SiEnergy_Cal[DN-4][DetCh] += FinalShift;
 	SiTime[DN-4][DetCh]   = (Double_t)Si_Old.Time[n];
@@ -494,7 +496,7 @@ int main(int argc, char* argv[]){
 	CMAP->GetQQQ3MeVPerChannel2(DN,DetCh,slope_alpha);
 	CMAP->GetQQQ3FinalEnergyOffsetInMeV(DN,DetCh,FinalShift);
 	QQQ3Energy[DN][DetCh] = (Double_t)Si_Old.Energy[n];
-	QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n]+ChRandom->Rndm()-0.5+ZeroShift/VperCh;
+	QQQ3Energy_Pulser[DN][DetCh] = (Double_t)Si_Old.Energy[n] + ZeroShift/VperCh;
 	QQQ3Energy_Rel[DN][DetCh] = QQQ3Energy_Pulser[DN][DetCh]*slope_rel;
 	QQQ3Energy_Cal[DN][DetCh] = QQQ3Energy_Rel[DN][DetCh]*slope_alpha;
 	QQQ3Energy_Cal[DN][DetCh] += FinalShift;
@@ -507,7 +509,7 @@ int main(int argc, char* argv[]){
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxX3Ch; j++){
-	if ( (SiEnergy_Cal[i][j] > 0.0)){
+	  if ( (SiEnergy[i][j] > 0.0)){//Fill when the Raw Energy is >0  
 	  if (j<4){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(SiEnergy[i][j]);
@@ -571,7 +573,7 @@ int main(int argc, char* argv[]){
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxQQQ3Ch; j++){
-	if ( (QQQ3Energy_Cal[i][j] > 0)){
+	if ( (QQQ3Energy[i][j] > 0)){
 	  if (j<16){
 	    Si.det_place_holder.BackChNum.push_back(j);
 	    Si.det_place_holder.EnergyBack_Raw.push_back(QQQ3Energy[i][j]);
@@ -600,9 +602,10 @@ int main(int argc, char* argv[]){
       if ( Si.det_place_holder.EnergyUp_Cal.size()!=0 && Si.det_place_holder.EnergyBack_Cal.size()!=0 ){
 	//we require both front and back of qqq to fire to sort the data
 	//cout << "Sorted Data\n";
-	
-	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);//ProcessQQQ_1 treats QQQ in a general way (recommended)
+
+	//ProcessQQQ_1 treats QQQ in a general way (recommended)
 	//ProcessQQQ_2 only does hit type 11, 12, and 21 (assuming adjacent channels fired)
+	SiSort.ProcessQQQ_1(&Si,CMAP,RFTime);
 	Si.Detector.push_back(Si.det_place_holder);
 	Si.Hit.push_back(Si.hit_place_holder);
 	Si.NSiHits++;
@@ -683,7 +686,12 @@ int main(int argc, char* argv[]){
 	//compare where it should have fired to the measured Z to calibrate
 
 #ifdef PC_Pos_Cal
-	Double_t gold_pos = 28.956;
+	Double_t gold_pos = 28.956; //all the way in
+	//Double_t gold_pos = 24.156; // spacer 1= 4.8514 cm
+	//Double_t gold_pos = 18.085; // spacer 2= 10.8712 cm
+	//Double_t gold_pos = 16.815; // spacer 3= 12.1412 cm
+	//Double_t gold_pos = 13.665; // spacer 4= 15.2908 cm
+	//Double_t gold_pos = 8.611; // spacer 5= 20.3454 cm
 	Double_t mpc = (Tr.track_place_holder.SiZ - gold_pos)/Tr.track_place_holder.SiR;
 	Double_t bpc = Tr.track_place_holder.SiZ - mpc*Tr.track_place_holder.SiR;
 
