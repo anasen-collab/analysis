@@ -3,8 +3,8 @@
 //      ./ParkerMain DataList.txt outputfile.root
 //DataList.txt contains a list of root files with a DataTree
 
-//#define TimingCut
 #define Tracking
+//#define TimingCut
 
 #define MaxADCHits  500
 #define MaxTDCHits  500
@@ -21,16 +21,17 @@
 #include <algorithm>
 //#include <vector>
 
-#include "/home2/parker/ANASEN/LSU/Include/ChannelMap.h"
-#include "/home2/parker/ANASEN/LSU/Include/2015_detclass.h"
-#include "/home2/parker/ANASEN/LSU/Include/organizetree.h"
-//#include "organize_dictionary.h"
 #include <TObjArray.h>
 #include <TList.h>
 #include <TFile.h>
 //#include <TROOT.h>
 #include <TTree.h>
 #include <TApplication.h>
+
+#include "/home2/parker/ANASEN/LSU/Include/ChannelMap.h"
+#include "/home2/parker/ANASEN/LSU/Include/2015_detclass.h"
+#include "/home2/parker/ANASEN/LSU/Include/organizetree.h"
+//#include "organize_dictionary.h"
 
 #define MaxPCHits 24
 #define NPCWires  24
@@ -84,6 +85,7 @@ int main(int argc, char* argv[]){
   strcpy( filename_histout, argv[2] );
 
   TFile *outputFile = new TFile(filename_histout,"RECREATE");
+  //define tree and branches
   TTree *MainTree = new TTree("MainTree","MainTree");
   
   MainTree->Branch("Si.NSiHits",&Si.NSiHits,"NSiHits/I");
@@ -159,8 +161,6 @@ int main(int argc, char* argv[]){
   }
 
   settings_tree->Fill();
-
-  Int_t mult111_bad = 0;
 
   TFile *inputFile = new TFile(filename_callist);//open root file and make sure it exists----------------------------------------------------------------------------
   if (!inputFile->IsOpen()){
@@ -364,15 +364,15 @@ int main(int argc, char* argv[]){
     }
 
 #ifdef TimingCut   
-    if ( (MCPTime-RFTime)%538<71 || (MCPTime-RFTime)%538>370 ){
-      continue;
-    }
-    if ( (MCPTime-RFTime)%538>100 && (MCPTime-RFTime)%538<330 ){
-      continue;
-    }
-#endif   
+      if ( (MCPTime-RFTime)%538<71 || (MCPTime-RFTime)%538>370 ){
+	continue;
+      }
+      if ( (MCPTime-RFTime)%538>100 && (MCPTime-RFTime)%538<330 ){
+	continue;
+      }
+#endif  
+
     //end PC stuff et al-----------------------------------------------------------------------------------------------------------------
-      
     // Make sure you dont have too many hits.
     if (Si_Old.Nhits>MaxSiHits) Si_Old.Nhits=MaxSiHits;
     //cout << "New Event\n";
@@ -412,6 +412,7 @@ int main(int argc, char* argv[]){
       }
     }// End loop over X3_Nhits------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /////////////////-----------------------------SX3s------------------------------------------------------------------------------
     for (int i=0; i<NumX3; i++){//Determine multiplicities for SX3 detector: forward and back--------------------------------------------------------------------------------------------------
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxX3Ch; j++){
@@ -552,6 +553,7 @@ int main(int argc, char* argv[]){
       }
     }
 
+    //////////////////////////--------------------------QQQs-----------------------------------------------------------------------------------------------
     for (int i=0; i<NumQQQ3; i++){//Determine multiplicities for QQQ detector: forward and back-------------------------------------------------------------------------------------------------------
       Si.zeroPlaceHolder();
       for (int j=0; j<MaxQQQ3Ch; j++){
@@ -592,8 +594,8 @@ int main(int argc, char* argv[]){
 	Si.NSiHits++;
       }
     }
-
-    if (Si.NSiHits != Si.Detector.size()){
+    
+    if (Si.NSiHits != Si.Detector.size()){//these should always equal. If not, something is wrong
       cout << Si.NSiHits << "  " << Si.Detector.size() << endl;
     }
     if (Si.NSiHits != Si.Hit.size()){
@@ -604,6 +606,7 @@ int main(int argc, char* argv[]){
     //exit(EXIT_FAILURE);
     //}
 
+    ////////////////////----------Tracking--------------------------------------------------------------------------------------------
 #ifdef Tracking
     //BasicTrack
     //associate Silicon hits with PC hits
@@ -648,7 +651,8 @@ int main(int argc, char* argv[]){
       Tr.Event.push_back(Tr.track_place_holder);
 
     }
-#endif
+#endif  //end of tracking
+
     if (Si.NSiHits>0 ){    
       MainTree->Fill();
     }

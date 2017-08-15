@@ -119,7 +119,7 @@
 #include <TTree.h>
 #include <TApplication.h>
 
-#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
+#include "../include/ChannelMap.h"
 #include "../include/2016_detclass.h"
 #include "SortSilicon.h"
 

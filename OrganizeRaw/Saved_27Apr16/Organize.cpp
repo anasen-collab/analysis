@@ -104,7 +104,6 @@ int main(int argc, char* argv[]){
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
 
-
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
@@ -178,8 +177,6 @@ int main(int argc, char* argv[]){
   }
   string rootfile;
   char rootfile_char[100];
-
-  Int_t mult111_bad = 0;
 
   while (!inFileList.eof()){//loop over all of the incoming root files----------------------------------------------------------------------------------------------
     getline(inFileList,rootfile);

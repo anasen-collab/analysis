@@ -4,10 +4,16 @@
 #include <algorithm>
 #include <vector>
 
-#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
-#include "/home/manasta/Desktop/parker_codes/Include/organizetree.h"
+#include "../include/ChannelMap.h"
+#include "../include/organizetree.h"
 
 using namespace std;
+
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX,
+	    int binsY, double lowY, double highY, double valueY);
+void MyFill(string name,
+	    int binsX, double lowX, double highX, double valueX);
 
 class SortSilicon {
  public:
