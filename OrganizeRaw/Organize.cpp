@@ -115,6 +115,10 @@
 #include <TTree.h>
 #include <TApplication.h>
 
+#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
+#include "../include/2016_detclass.h"
+#include "SortSilicon.h"
+
 #define MaxPCHits 24
 #define NPCWires  24
 
@@ -125,10 +129,6 @@ void MyFill(string name,
 	    int binsY, double lowY, double highY, double valueY);
 void MyFill(string name,
 	    int binsX, double lowX, double highX, double valueX);
-
-#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
-#include "/home/manasta/Desktop/parker_codes/Include/2015_detclass.h"
-#include "SortSilicon.h"
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
 
@@ -191,18 +191,18 @@ int main(int argc, char* argv[]){
   ChannelMap *CMAP;
   CMAP = new ChannelMap();
   //Initialization of the main channel map
-  //CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716");
-  //CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716","/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt","/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
-  //CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716","/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt","/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains_Slope1.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");
-   //CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_020416.dat");
-  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_032816.dat");
+  CMAP->Init("/home/manasta/Desktop/parker_codes/CalParamFiles/ASICS_cmap_022716",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/alignchannels_012216.txt",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/AlphaCalibration_022716.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/X3RelativeGains031516.dat",
+	     "/home/manasta/Desktop/parker_codes/CalParamFiles/QQQRelativeGains020216.dat");//most updated cal files 03/07/2016
+  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat",
+		  "/home/manasta/Desktop/parker_codes/CalParamFiles/X3geometry_032816.dat");
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
   CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/NewWorld_030316.dat");
   
-  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
-  
   //Mesytec Shaper
+  CMAP->InitPCADC("/home/manasta/Desktop/parker_codes/CalParamFiles/NewPCMap");
   CMAP->InitPCCalibration("/home/manasta/Desktop/parker_codes/CalParamFiles/PCPulser042016.dat");
   CMAP->InitPCWireCal("/home/manasta/Desktop/parker_codes/CalParamFiles/PCWireCal_030416.dat");
 
@@ -433,6 +433,9 @@ int main(int argc, char* argv[]){
     if (Good8 == 1 && Good9 == 1){
       MyFill("PCEnergy_Wire8_vs_9",300,0,1,Energy8,300,0,1,Energy9);
     }
+ 
+    //--------------MCP/RF TIMING------------------------
+   
     if (TDC.Nhits>MaxTDCHits) TDC.Nhits=MaxTDCHits;
   
     RFTime = 0;
@@ -499,6 +502,7 @@ int main(int argc, char* argv[]){
       }
     }// End loop over X3_Nhits------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /////////////////-----------------------------SX3s------------------------------------------------------------------------------
     for (int i=0; i<NumX3; i++){//Determine multiplicities for SX3 detector: forward and back--------------------------------------------------------------------------------------------------
       //loop over all SX3s and count up/down/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -528,6 +532,7 @@ int main(int argc, char* argv[]){
 	  }
 	}
       }
+
       if ( Si.det_place_holder.EnergyDown_Cal.size()!=0 || Si.det_place_holder.EnergyUp_Cal.size()!=0 || Si.det_place_holder.EnergyBack_Cal.size()!=0 ){
 	//cout << "Sorted Data\n";
 	Si.det_place_holder.UpMult = Si.det_place_holder.EnergyUp_Cal.size();
@@ -544,6 +549,8 @@ int main(int argc, char* argv[]){
 
 	Si.NSiHits++;
 	
+	//---Histos after the energy calibration
+
 	if (Si.hit_place_holder.HitType==111){
 	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),300,0,30,Si.hit_place_holder.EnergyFront,300,0,30,Si.hit_place_holder.EnergyBack);
 	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0]+Si.det_place_holder.EnergyDown_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
@@ -559,6 +566,7 @@ int main(int argc, char* argv[]){
       }
     }
 
+    //////////////////////////--------------------------QQQs-----------------------------------------------------------------------------------------------
     for (int i=0; i<NumQQQ3; i++){//Determine multiplicities for QQQ detector: forward and back-------------------------------------------------------------------------------------------------------
      //loop over all QQQs and count up (front)/back multiplicities and fill the detector place holder if we have an energy>0
       Si.zeroPlaceHolder();
@@ -599,6 +607,8 @@ int main(int argc, char* argv[]){
 	Si.Hit.push_back(Si.hit_place_holder);
 	Si.NSiHits++;
 
+	//---Histos after the energy calibration
+
 	if (Si.det_place_holder.HitType==11){
 	  MyFill(Form("back_vs_front%i",Si.hit_place_holder.DetID),300,0,30,Si.hit_place_holder.EnergyFront,300,0,30,Si.hit_place_holder.EnergyBack);
 	  MyFill(Form("back_vs_front%i_front%i",Si.det_place_holder.DetID,Si.det_place_holder.UpChNum[0]),300,0,30,Si.det_place_holder.EnergyUp_Cal[0],300,0,30,Si.det_place_holder.EnergyBack_Cal[0]);
@@ -625,7 +635,8 @@ int main(int argc, char* argv[]){
     if (Si.NSiHits != Si.Hit.size()){
       cout << Si.NSiHits << "  " << Si.Detector.size() << endl;
     }
-    //-----------------------------------------------------------------------------------------------------------------------------
+
+    ////////////////////----------Tracking--------------------------------------------------------------------------------------------
 #ifdef Tracking
     //associate Silicon hits with PC hits
     Int_t GoodPC = -1;
@@ -670,6 +681,7 @@ int main(int argc, char* argv[]){
 	//if you are doing a proton or alpha cal run, then you need to input the proper gold position here
 	//this calculates where the PC should have fired, based off of the gold and silicon positions
 	//compare where it should have fired to the measured Z to calibrate
+
 #ifdef PC_Pos_Cal
 	Double_t gold_pos = 28.956;
 	Double_t mpc = (Tr.track_place_holder.SiZ - gold_pos)/Tr.track_place_holder.SiR;
@@ -684,7 +696,8 @@ int main(int argc, char* argv[]){
       Tr.TrEvent.push_back(Tr.track_place_holder);
 
     }
-#endif
+#endif  //end of tracking
+
     if (Si.NSiHits>0 ){    
       MainTree->Fill();
     }
