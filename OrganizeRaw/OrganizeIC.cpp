@@ -95,10 +95,8 @@
 ////
 //// Edited by Maria Anastasiou, 2016Sept21
 
-#define M_PI  3.14159265358979323846264338328 // Pi 
 #define Tracking
 #define PC_Pos_Cal
-//#define FillHists
 //#define TimingCut
 
 #define MaxADCHits  500
@@ -121,6 +119,10 @@
 #include <TTree.h>
 #include <TApplication.h>
 
+#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
+#include "../include/2016_detclass.h"
+#include "SortSilicon.h"
+
 #define MaxPCHits 24
 #define NPCWires  24
 
@@ -131,10 +133,6 @@ void MyFill(string name,
 	    int binsY, double lowY, double highY, double valueY);
 void MyFill(string name,
 	    int binsX, double lowX, double highX, double valueX);
-
-#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
-#include "../include/2016_detclass.h"
-#include "SortSilicon.h"
 
 Int_t FindMaxPC(Double_t phi, PCHit& PC);
 
@@ -203,7 +201,8 @@ int main(int argc, char* argv[]){
 	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/AlphaCalibration_09132016.dat",
 	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3RelativeGains09202016_Step3_maskzero.dat",
 	     "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/QQQRelativeGains09182016_Step2.dat");
-  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat","/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3geometry_09132016.dat");
+  CMAP->FinalInit("/home/manasta/Desktop/parker_codes/CalParamFiles/FinalFix012516.dat",
+		  "/home/manasta/Desktop/parker_codes/CalParamFiles/maria/X3geometry_09132016.dat");
   CMAP->LoadQQQ3FinalFix("/home/manasta/Desktop/parker_codes/CalParamFiles/QQQ3FinalFix.012216");
   CMAP->InitWorldCoordinates("/home/manasta/Desktop/parker_codes/CalParamFiles/maria/NewWorld_030316.dat");
   
@@ -438,7 +437,6 @@ int main(int argc, char* argv[]){
       MyFill("PCEnergy_Wire8_vs_9",300,0,1,Energy8,300,0,1,Energy9);
     }
  
-
     //--------------MCP/RF TIMING------------------------
    
     if (TDC.Nhits>MaxTDCHits) TDC.Nhits=MaxTDCHits;
@@ -457,9 +455,7 @@ int main(int argc, char* argv[]){
       }
     }
 
-
     MyFill("Timing",600,1,600,fmod((MCPTime*correct-RFTime),546)); //by M.A.
-
     
     //MyFill("Timing",400,-600,600,(MCPTime-RFTime)%538);
     //Can define the TimingCut at the top of the program
@@ -737,13 +733,13 @@ p	      E_IC = (Double_t)ADC.Data[n];
 	
        	for(int i=0;i<NumQQQ3; i++){
 	MyFill("E_de_QQQ",300,0,30,Tr.track_place_holder.SiEnergy,300,0,1,Tr.track_place_holder.PCEnergy*sin(Tr.track_place_holder.Theta));
-	MyFill("E_theta_QQQ",300,0,180,Tr.track_place_holder.Theta*180/M_PI,300,0,35,Tr.track_place_holder.SiEnergy);
+	MyFill("E_theta_QQQ",300,0,180,Tr.track_place_holder.Theta*180/TMath::Pi(),300,0,35,Tr.track_place_holder.SiEnergy);
 	}
 	
 	
 	for(int i=0;i<NumX3; i++){
 	MyFill("E_de_SX3",300,0,30,Tr.track_place_holder.SiEnergy,300,0,1,Tr.track_place_holder.PCEnergy*sin(Tr.track_place_holder.Theta));
-	MyFill("E_theta_SX3",300,0,180,Tr.track_place_holder.Theta*180/M_PI,300,0,35,Tr.track_place_holder.SiEnergy);
+	MyFill("E_theta_SX3",300,0,180,Tr.track_place_holder.Theta*180/TMath::Pi(),300,0,35,Tr.track_place_holder.SiEnergy);
 	}
 
 
