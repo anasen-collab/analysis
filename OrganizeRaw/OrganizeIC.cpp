@@ -119,7 +119,7 @@
 #include <TTree.h>
 #include <TApplication.h>
 
-#include "/home/manasta/Desktop/parker_codes/Include/ChannelMap.h"
+#include "../include/ChannelMap.h"
 #include "../include/2016_detclass.h"
 #include "SortSilicon.h"
 
@@ -482,7 +482,7 @@ int main(int argc, char* argv[]){
       for(Int_t n=0; n<ADC.Nhits; n++)
 	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==28)
 	    {
-p	      E_IC = (Double_t)ADC.Data[n];
+	      E_IC = (Double_t)ADC.Data[n];
 	      //cout << IC << endl;
 	    }
 	}
