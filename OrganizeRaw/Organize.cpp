@@ -98,6 +98,7 @@
 #define Tracking
 #define PC_Pos_Cal
 //#define TimingCut
+#define IC_hists
 
 #define MaxADCHits  500
 #define MaxTDCHits  500
@@ -157,6 +158,10 @@ int main(int argc, char* argv[]){
   PCHit PC;
   Track Tr;
   Int_t RFTime,MCPTime;
+#ifdef IC_hists 
+  Double_t IC;
+  Double_t E_IC;
+#endif
   SortSilicon SiSort;
 
   //read in command line arguments
@@ -179,6 +184,10 @@ int main(int argc, char* argv[]){
   MainTree->Branch("Tr.TrackEvent", &Tr.TrEvent);
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
+#ifdef IC_hists 
+  MainTree->Branch("IC",&IC,"IC/D");
+  MainTree->Branch("E_IC",&E_IC,"E_IC/D");
+#endif
 
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
@@ -463,6 +472,27 @@ int main(int argc, char* argv[]){
 	continue;
       }
 #endif  
+
+#ifdef IC_hists       
+//-------------------------------------
+//------------Ion Chamber----------------------
+      IC = 0; E_IC = 0;
+      for(Int_t n=0; n<ADC.Nhits; n++)
+	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==24)
+	    {
+	      IC = (Double_t)ADC.Data[n];
+	      //cout << IC << endl;
+	    }
+	}
+
+      for(Int_t n=0; n<ADC.Nhits; n++)
+	{ if(ADC.ID[n]==3 && ADC.ChNum[n]==28)
+	    {
+	      E_IC = (Double_t)ADC.Data[n];
+	      //cout << IC << endl;
+	    }
+	}
+#endif      
 
     //end PC stuff et al-----------------------------------------------------------------------------------------------------------------
     // Make sure you dont have too many hits.
