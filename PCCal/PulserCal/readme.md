@@ -2,11 +2,11 @@
  Developed by : Jon Lighthall Nov 2016
  
 ## Instructions
- Usage: root -l PCPulser_All.C 
+ Usage: `root -l PCPulser_All.C`
 
 ### Output files
 The output files are saved in the `saves` directory.
-The output file (e.g."PCpulserCal.dat") has the following columns:
+The output file (e.g.`PCpulserCal.dat`) has the following columns:
  ID, Chan, zero shift (fit offset), voltage per can (fit slope)
 
 The first line of dat files is a dummy line.
