@@ -32,6 +32,8 @@
 //Energy for each calibration steps can be switched off after Calibration
 #define FillTree_Esteps
 
+#define IC_hists
+
 ///////////////////////////////////////////////////// include Libraries ///////////////////////////////////////////////////////
 //C/C++
 #include <stdexcept>
@@ -101,25 +103,25 @@ int main(int argc, char* argv[]){
   strcpy( filename_histout, argv[2] );
 
   TFile *outputFile = new TFile(filename_histout,"RECREATE");
-
-  //define Tree and Branches
   TTree *MainTree = new TTree("MainTree","MainTree");
   
   MainTree->Branch("Si.NSiHits",&Si.NSiHits,"NSiHits/I");
   MainTree->Branch("Si.Detector",&Si.Detector);
   MainTree->Branch("Si.Hit",&Si.Hit);
-
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
-
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
+
+#ifdef IC_hists 
+  Int_t IC,E_IC;
+  MainTree->Branch("IC",&IC,"IC/I");
+  MainTree->Branch("E_IC",&E_IC,"E_IC/I");
+#endif
 
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
-  //Initialize variables and channel map
-  //------------------------------------------------------------------------------------------
   fhlist = new TList;
   RootObjects->Add(fhlist);
 
@@ -403,13 +405,13 @@ int main(int argc, char* argv[]){
     RFTime = 0;
     MCPTime = 0;  
   
-    for (Int_t n=0; n<TDC.Nhits; n++){     
-      if( TDC.ID[n] == 12 ){
+    for (Int_t n=0; n<TDC.Nhits; n++) {     
+      if( TDC.ID[n] == 12 ) {
 	if (TDC.ChNum[n]==0)  RFTime   = TDC.Data[n];
 	if (TDC.ChNum[n]==7)  MCPTime  = TDC.Data[n];
 	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-	if(RFTime >0)MyFill("RF_Time",100,0,4000,RFTime);
-	if(MCPTime >0)MyFill("MCP_Time",100,0,4000,MCPTime);
+	if(RFTime >0)MyFill("RF_Time",1028,0,4096,RFTime);
+	if(MCPTime >0)MyFill("MCP_Time",1028,0,4096,MCPTime);
       }
     }
     //=========================== MCP - RF Gate =================================================
@@ -419,7 +421,7 @@ int main(int argc, char* argv[]){
 
     if(MCPTime > 0 && RFTime>0){
       //cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-      MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%538);
+      MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%wrap);
 
       if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ){
 	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
@@ -430,6 +432,26 @@ int main(int argc, char* argv[]){
       continue;
     }
 #endif
+
+#ifdef IC_hists       
+//-------------------------------------
+//------------Ion Chamber----------------------
+    IC = 0; E_IC = 0;
+    for(Int_t n=0; n<ADC.Nhits; n++) {
+      if(ADC.ID[n]==3 && ADC.ChNum[n]==24) {
+	IC = (Int_t)ADC.Data[n];
+	//cout << IC << endl;
+      }
+    }
+    
+    for(Int_t n=0; n<ADC.Nhits; n++) {
+      if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
+	E_IC = (Int_t)ADC.Data[n];
+	//cout << IC << endl;
+      }
+    }
+#endif     
+    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     /////////////////////////////////////////////  ASICS Section //////////////////////////////////////////////////////

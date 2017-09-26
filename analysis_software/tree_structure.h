@@ -185,8 +185,8 @@ public:
     pc_obj.Up = 0;
     pc_obj.DownVoltage = 0;
     pc_obj.UpVoltage = 0;
-    pc_obj.Energy = 0;
-    pc_obj.Z = 0;
+    pc_obj.Energy = sqrt(-1);
+    pc_obj.Z = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
     pc_obj.ZW = 0;
@@ -268,9 +268,9 @@ class Track { //This Class is for Tracking
     track_obj.SiPhi = sqrt(-1);
     track_obj.DetID = -1;
 
-    track_obj.PCEnergy = 0;
+    track_obj.PCEnergy = sqrt(-1);
     track_obj.PCX = 0;
-    track_obj.PCZ = -100.0;
+    track_obj.PCZ = sqrt(-1);
     track_obj.PCY = 0;
     track_obj.PCR = 0;
     track_obj.PCPhi = sqrt(-1);
@@ -284,7 +284,6 @@ class Track { //This Class is for Tracking
     track_obj.DiffIntPoint = 0;
     track_obj.DiffIntPoint_X = 0;
     track_obj.DiffIntPoint_Y = 0;
-
 
     track_obj.Theta = sqrt(-1);
     track_obj.Phi = sqrt(-1);
