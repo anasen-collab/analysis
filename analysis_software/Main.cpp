@@ -349,7 +349,7 @@ int main(int argc, char* argv[]){
     //=================================
     Double_t XWPC,YWPC,ZWPC,RWPC,PhiWPC,PCRelGain, SlopeUD, OffsetUD;
    
-    for ( Int_t i=0; i<NPCWires; i++ ){
+    for ( Int_t i=0; i<NPCWires; i++ ) {
 
       PC.ZeroPC_obj();
 
@@ -434,7 +434,6 @@ int main(int argc, char* argv[]){
 #endif
 
 #ifdef IC_hists       
-//-------------------------------------
 //------------Ion Chamber----------------------
     IC = 0; E_IC = 0;
     for(Int_t n=0; n<ADC.Nhits; n++) {
@@ -442,20 +441,20 @@ int main(int argc, char* argv[]){
 	IC = (Int_t)ADC.Data[n];
 	//cout << IC << endl;
       }
-    }
-    
-    for(Int_t n=0; n<ADC.Nhits; n++) {
       if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
 	E_IC = (Int_t)ADC.Data[n];
 	//cout << IC << endl;
       }
+      //if(IC >0)
+      MyFill("deltaE_IC",1028,0,4096,IC);
+	//if(E_IC >0)
+      MyFill("E_Si",1028,0,4096,E_IC);
+	//if(IC >0 && E_IC >0)
+      MyFill("EDE_IC",512,0,4096,IC,512,0,4096,E_IC);
     }
 #endif     
     
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
     /////////////////////////////////////////////  ASICS Section //////////////////////////////////////////////////////
-    ////
     // ==========================  ASICS  variables are initialized here ====================
 
     Si.zeroSiHit();  
