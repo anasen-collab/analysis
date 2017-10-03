@@ -115,6 +115,10 @@ int main(int argc, char* argv[]){
   MainTree->Branch("E_IC",&E_IC,"E_IC/I");
 #endif
 
+  Int_t test,test2;
+  MainTree->Branch("test",&test,"test/I");
+  MainTree->Branch("test2",&test2,"test2/I");
+  
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
@@ -421,6 +425,15 @@ int main(int argc, char* argv[]){
 	MyFill("MCP_Time",1028,0,4096,MCPTime);
       if(RFTime >0 && MCPTime >0)
 	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
+    }
+
+    for (Int_t n=0; n<TDC.Nhits; n++) {     
+      if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
+	test = (Int_t)TDC.Data[n];
+      }
+      if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
+	test2 = (Int_t)TDC.Data[n];
+      }
     }
     
     //=========================== MCP - RF Gate =================================================
