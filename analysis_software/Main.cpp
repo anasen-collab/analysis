@@ -16,23 +16,19 @@
 #define PC_Max_threshold 3500 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
-//To select the component of the beam //mostly for Radio-active beams
-//disable while you work with Calibration data & enable while you do data analysis
+// To select the component of the beam //mostly for Radio-active beams
+// disable while you work with Calibration data & enable while you do data analysis
 
 //#define MCP_RF_Cut
-
-//Select the Histograms for Calibration or for a Check.
-#define Hist_after_Cal
-
-//#define Hist_for_Cal
-#define ZPosCal 
+#define IC_hists
 
 //#define Pulser_ReRun //redefine this for cal
-
-//Energy for each calibration steps can be switched off after Calibration
-#define FillTree_Esteps
-
-#define IC_hists
+//#define Hist_for_Cal
+// Energy for each calibration steps can be switched off after Calibration
+//#define FillTree_Esteps
+// Select the Histograms for Calibration or for a Check.
+//#define Hist_after_Cal
+//#define ZPosCal 
 
 ///////////////////////////////////////////////////// include Libraries ///////////////////////////////////////////////////////
 //C/C++
@@ -93,8 +89,6 @@ int main(int argc, char* argv[]){
   Silicon_Cluster SiSort;
   SiSort.Initialize();
 
-  Int_t RFTime,MCPTime;
-
   //read in command line arguments
   char* filename_histout = new char [200];//output root file
   char* filename_callist = new char [200];//input file list
@@ -110,6 +104,8 @@ int main(int argc, char* argv[]){
   MainTree->Branch("Si.Hit",&Si.Hit);
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
+
+  Int_t RFTime,MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
 
@@ -365,18 +361,22 @@ int main(int argc, char* argv[]){
 	Float_t vmin=-0.1;
 	Float_t vmax=1;
 	
+#ifdef Hist_for_Cal	
 	MyFill(Form("PC_Down_vs_Up_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
 	       1000,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
-
+#endif
+	
 	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
 	PC.pc_obj.DownVoltage = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;
-	
+
+#ifdef Hist_after_Cal	
 	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
-
+#endif
+	
 	if (PCDownVoltage[i]>0 && PCUpVoltage[i]>0){
 	  PC.pc_obj.Energy = PC.pc_obj.DownVoltage + PC.pc_obj.UpVoltage;
 	  PC.pc_obj.Z = (PC.pc_obj.UpVoltage - PC.pc_obj.DownVoltage)/PC.pc_obj.Energy;	 
@@ -398,22 +398,31 @@ int main(int argc, char* argv[]){
       }
     }
     ////=============================== MCP && RF =====================================================
-    if (TDC.Nhits>MaxTDCHits){
+    if (TDC.Nhits>MaxTDCHits) {
       TDC.Nhits=MaxTDCHits;
+      printf("MaxTDCHits exceeded! %d > %d\n",TDC.Nhits,MaxTDCHits);
     }
-  
-    RFTime = 0;
-    MCPTime = 0;  
-  
+    
+    RFTime = 0; MCPTime = 0;  
     for (Int_t n=0; n<TDC.Nhits; n++) {     
-      if( TDC.ID[n] == 12 ) {
-	if (TDC.ChNum[n]==0)  RFTime   = TDC.Data[n];
-	if (TDC.ChNum[n]==7)  MCPTime  = TDC.Data[n];
-	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-	if(RFTime >0)MyFill("RF_Time",1028,0,4096,RFTime);
-	if(MCPTime >0)MyFill("MCP_Time",1028,0,4096,MCPTime);
+      if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
+	RFTime   = (Int_t)TDC.Data[n];
+	//cout << "RFTime  == " << RFTime;
       }
+      if (TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
+	MCPTime  = (Int_t)TDC.Data[n];
+	//cout<<"   MCPTime  == " << MCPTime << endl;
+      }
+      if(RFTime >0) {
+	MyFill("RF_Time",1028,0,4096,RFTime);
+	//cout << " RF written! " << RFTime << endl;
+      }
+      if(MCPTime >0)
+	MyFill("MCP_Time",1028,0,4096,MCPTime);
+      if(RFTime >0 && MCPTime >0)
+	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
     }
+    
     //=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
     Double_t slope=1.004009623;
@@ -438,19 +447,23 @@ int main(int argc, char* argv[]){
     IC = 0; E_IC = 0;
     for(Int_t n=0; n<ADC.Nhits; n++) {
       if(ADC.ID[n]==3 && ADC.ChNum[n]==24) {
-	IC = (Int_t)ADC.Data[n];
-	//cout << IC << endl;
+	IC = ADC.Data[n];
+	//cout << "deltaE_IC = " << IC << endl;
       }
       if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
 	E_IC = (Int_t)ADC.Data[n];
-	//cout << IC << endl;
+	//cout << "E_Si = " << E_IC << endl;
       }
-      //if(IC >0)
-      MyFill("deltaE_IC",1028,0,4096,IC);
-	//if(E_IC >0)
-      MyFill("E_Si",1028,0,4096,E_IC);
-	//if(IC >0 && E_IC >0)
-      MyFill("EDE_IC",512,0,4096,IC,512,0,4096,E_IC);
+      if(IC >0)
+	MyFill("deltaE_IC",1028,0,4096,IC);
+      if(E_IC >0) {
+	MyFill("E_Si",1028,0,4096,E_IC);
+	//cout << " E_IC written! " << E_IC << endl;
+	if(RFTime >0 && MCPTime >0)
+	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,MCPTime-RFTime);
+      }
+      if(IC >0 && E_IC >0)
+	MyFill("EDE_IC",512,0,4096,E_IC,512,0,4096,IC);
     }
 #endif     
     
