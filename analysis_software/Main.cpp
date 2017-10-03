@@ -105,16 +105,12 @@ int main(int argc, char* argv[]){
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
 
-  Int_t RFTime,MCPTime;
-  MainTree->Branch("RFTime",&RFTime,"RFTime/I");
-  MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
-
 #ifdef IC_hists 
   Int_t IC,E_IC;
   MainTree->Branch("IC",&IC,"IC/I");
   MainTree->Branch("E_IC",&E_IC,"E_IC/I");
 #endif
-
+  
   Int_t test,test2;
   MainTree->Branch("test",&test,"test/I");
   MainTree->Branch("test2",&test2,"test2/I");
@@ -407,26 +403,6 @@ int main(int argc, char* argv[]){
       printf("MaxTDCHits exceeded! %d > %d\n",TDC.Nhits,MaxTDCHits);
     }
     
-    RFTime = 0; MCPTime = 0;  
-    for (Int_t n=0; n<TDC.Nhits; n++) {     
-      if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
-	RFTime   = (Int_t)TDC.Data[n];
-	//cout << "RFTime  == " << RFTime;
-      }
-      if (TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
-	MCPTime  = (Int_t)TDC.Data[n];
-	//cout<<"   MCPTime  == " << MCPTime << endl;
-      }
-      if(RFTime >0) {
-	MyFill("RF_Time",1028,0,4096,RFTime);
-	//cout << " RF written! " << RFTime << endl;
-      }
-      if(MCPTime >0)
-	MyFill("MCP_Time",1028,0,4096,MCPTime);
-      if(RFTime >0 && MCPTime >0)
-	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
-    }
-
     for (Int_t n=0; n<TDC.Nhits; n++) {     
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
 	test = (Int_t)TDC.Data[n];
@@ -434,6 +410,12 @@ int main(int argc, char* argv[]){
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
 	test2 = (Int_t)TDC.Data[n];
       }
+      if(test >0) 
+	MyFill("RF_Time",1028,0,4096,test);
+      if(test2 >0)
+	MyFill("MCP_Time",1028,0,4096,test2);
+      if(test >0 && test2 >0)
+	MyFill("MCP_RF",512,0,4096,test,512,0,4096,test2);
     }
     
     //=========================== MCP - RF Gate =================================================
@@ -472,8 +454,8 @@ int main(int argc, char* argv[]){
       if(E_IC >0) {
 	MyFill("E_Si",1028,0,4096,E_IC);
 	//cout << " E_IC written! " << E_IC << endl;
-	if(RFTime >0 && MCPTime >0)
-	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,MCPTime-RFTime);
+	if(test >0 && test2 >0)
+	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,test2-test);
       }
       if(IC >0 && E_IC >0)
 	MyFill("EDE_IC",512,0,4096,E_IC,512,0,4096,IC);
