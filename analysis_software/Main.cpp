@@ -105,16 +105,16 @@ int main(int argc, char* argv[]){
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
 
+Int_t rftime,mcptime;
+  MainTree->Branch("rftime",&rftime,"rftime/I");
+  MainTree->Branch("mcptime",&mcptime,"mcptime/I");
+
 #ifdef IC_hists 
   Int_t IC,E_IC;
   MainTree->Branch("IC",&IC,"IC/I");
   MainTree->Branch("E_IC",&E_IC,"E_IC/I");
 #endif
-  
-  Int_t rftime,mcptime;
-  MainTree->Branch("rftime",&rftime,"rftime/I");
-  MainTree->Branch("mcptime",&mcptime,"mcptime/I");
-  
+
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
