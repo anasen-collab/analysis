@@ -111,9 +111,9 @@ int main(int argc, char* argv[]){
   MainTree->Branch("E_IC",&E_IC,"E_IC/I");
 #endif
   
-  Int_t test,test2;
-  MainTree->Branch("test",&test,"test/I");
-  MainTree->Branch("test2",&test2,"test2/I");
+  Int_t rftime,mcptime;
+  MainTree->Branch("rftime",&rftime,"rftime/I");
+  MainTree->Branch("mcptime",&mcptime,"mcptime/I");
   
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
@@ -405,17 +405,17 @@ int main(int argc, char* argv[]){
     
     for (Int_t n=0; n<TDC.Nhits; n++) {     
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
-	test = (Int_t)TDC.Data[n];
+	rftime = (Int_t)TDC.Data[n];
       }
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
-	test2 = (Int_t)TDC.Data[n];
+	mcptime = (Int_t)TDC.Data[n];
       }
-      if(test >0) 
-	MyFill("RF_Time",1028,0,4096,test);
-      if(test2 >0)
-	MyFill("MCP_Time",1028,0,4096,test2);
-      if(test >0 && test2 >0)
-	MyFill("MCP_RF",512,0,4096,test,512,0,4096,test2);
+      if(rftime >0) 
+	MyFill("RF_Time",1028,0,4096,rftime);
+      if(mcptime >0)
+	MyFill("MCP_Time",1028,0,4096,mcptime);
+      if(rftime >0 && mcptime >0)
+	MyFill("MCP_RF",512,0,4096,rftime,512,0,4096,mcptime);
     }
     
     //=========================== MCP - RF Gate =================================================
@@ -423,12 +423,12 @@ int main(int argc, char* argv[]){
     Double_t slope=1.004009623;
     Double_t wrap=546;      //538 -->546 
 
-    if(MCPTime > 0 && RFTime>0){
-      //cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-      MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%wrap);
+    if(mcptime > 0 && rftime>0){
+      //cout<<"   rftime  == "<<rftime<<"   mcptime  =="<<mcptime<<endl;
+      MyFill("MCP_RF_Wrapped",400,-600,600,(mcptime-rftime)%wrap);
 
-      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ){
-	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
+      if( (((mcptime*slope - rftime)% wrap)<47) || (((mcptime - rftime)% wrap)>118  && ((mcptime - rftime)% wrap)<320) || ((mcptime - rftime)% wrap)>384 ){
+	//if( (((mcptime - rftime)% wrap)<60) || (((mcptime - rftime)% wrap)>110  && ((mcptime - rftime)% wrap)<325) || ((mcptime - rftime)% wrap)>380 ){
 	continue;
       }else{	
       }
@@ -454,8 +454,8 @@ int main(int argc, char* argv[]){
       if(E_IC >0) {
 	MyFill("E_Si",1028,0,4096,E_IC);
 	//cout << " E_IC written! " << E_IC << endl;
-	if(test >0 && test2 >0)
-	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,test2-test);
+	if(rftime >0 && mcptime >0)
+	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,mcptime-rftime);
       }
       if(IC >0 && E_IC >0)
 	MyFill("EDE_IC",512,0,4096,E_IC,512,0,4096,IC);
