@@ -16,16 +16,19 @@
 #define PC_Max_threshold 3500 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
-// To select the component of the beam //mostly for Radio-active beams
+// To select the component of the beam, mostly for Radio-active beams
 // disable while you work with Calibration data & enable while you do data analysis
-
 //#define MCP_RF_Cut
+
+// beam diagnostic histograms
 #define IC_hists
 
 //#define Pulser_ReRun //redefine this for cal
 //#define Hist_for_Cal
+
 // Energy for each calibration steps can be switched off after Calibration
 //#define FillTree_Esteps
+
 // Select the Histograms for Calibration or for a Check.
 //#define Hist_after_Cal
 //#define ZPosCal 
@@ -47,7 +50,6 @@
 #include <TTree.h>
 #include <TApplication.h>
 #include <TROOT.h>
-#include <vector>
 
 //Associated header files/methods
 #include "ChannelMap.h"
@@ -105,9 +107,9 @@ int main(int argc, char* argv[]){
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
 
-Int_t rftime,mcptime;
-  MainTree->Branch("rftime",&rftime,"rftime/I");
-  MainTree->Branch("mcptime",&mcptime,"mcptime/I");
+Int_t RFTime,MCPTime;
+  MainTree->Branch("RFTime",&RFTime,"RFTime/I");
+  MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
 
 #ifdef IC_hists 
   Int_t IC,E_IC;
@@ -405,17 +407,17 @@ Int_t rftime,mcptime;
     
     for (Int_t n=0; n<TDC.Nhits; n++) {     
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
-	rftime = (Int_t)TDC.Data[n];
+	RFTime = (Int_t)TDC.Data[n];
       }
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
-	mcptime = (Int_t)TDC.Data[n];
+	MCPTime = (Int_t)TDC.Data[n];
       }
-      if(rftime >0) 
-	MyFill("RF_Time",1028,0,4096,rftime);
-      if(mcptime >0)
-	MyFill("MCP_Time",1028,0,4096,mcptime);
-      if(rftime >0 && mcptime >0)
-	MyFill("MCP_RF",512,0,4096,rftime,512,0,4096,mcptime);
+      if(RFTime >0) 
+	MyFill("RF_Time",1028,0,4096,RFTime);
+      if(MCPTime >0)
+	MyFill("MCP_Time",1028,0,4096,MCPTime);
+      if(RFTime >0 && MCPTime >0)
+	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
     }
     
     //=========================== MCP - RF Gate =================================================
@@ -423,12 +425,12 @@ Int_t rftime,mcptime;
     Double_t slope=1.004009623;
     Double_t wrap=546;      //538 -->546 
 
-    if(mcptime > 0 && rftime>0){
-      //cout<<"   rftime  == "<<rftime<<"   mcptime  =="<<mcptime<<endl;
-      MyFill("MCP_RF_Wrapped",400,-600,600,(mcptime-rftime)%wrap);
+    if(MCPTime > 0 && RFTime>0){
+      //cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
+      MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%wrap);
 
-      if( (((mcptime*slope - rftime)% wrap)<47) || (((mcptime - rftime)% wrap)>118  && ((mcptime - rftime)% wrap)<320) || ((mcptime - rftime)% wrap)>384 ){
-	//if( (((mcptime - rftime)% wrap)<60) || (((mcptime - rftime)% wrap)>110  && ((mcptime - rftime)% wrap)<325) || ((mcptime - rftime)% wrap)>380 ){
+      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ){
+	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
 	continue;
       }else{	
       }
@@ -443,19 +445,16 @@ Int_t rftime,mcptime;
     for(Int_t n=0; n<ADC.Nhits; n++) {
       if(ADC.ID[n]==3 && ADC.ChNum[n]==24) {
 	IC = ADC.Data[n];
-	//cout << "deltaE_IC = " << IC << endl;
       }
       if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
 	E_IC = (Int_t)ADC.Data[n];
-	//cout << "E_Si = " << E_IC << endl;
       }
       if(IC >0)
 	MyFill("deltaE_IC",1028,0,4096,IC);
       if(E_IC >0) {
 	MyFill("E_Si",1028,0,4096,E_IC);
-	//cout << " E_IC written! " << E_IC << endl;
-	if(rftime >0 && mcptime >0)
-	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,mcptime-rftime);
+	if(RFTime >0 && MCPTime >0)
+	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,MCPTime-RFTime);
       }
       if(IC >0 && E_IC >0)
 	MyFill("EDE_IC",512,0,4096,E_IC,512,0,4096,IC);

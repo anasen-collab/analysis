@@ -75,9 +75,6 @@ class SiHit {  // This class is for Silicon hits
     Double_t XW, YW, ZW;
     Double_t RW, PhiW;
 
-    Double_t RFTime;    
-    Double_t MCPTime;
-
   }hit_obj;
 //-------------------------------------------------------------
   vector<SortByDetector> Detector;
@@ -159,7 +156,7 @@ class SiHit {  // This class is for Silicon hits
 //////////////////////////////////////////////////////////////////////////////////////
 class PCHit { // This class is for Proportional Counter hits
  
-public:
+ public:
   PCHit(){};
 
   Int_t NPCHits;
