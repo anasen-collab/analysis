@@ -34,7 +34,7 @@ using namespace std;
 #define ReadTrack
 
 //Detector Libraries
-#include "/home/manasta/Desktop/parker_codes/Include/organizetree.h"
+#include "../include/organizetree.h"
 
 bool Track::Si_sort_method(struct Silicon_Event a,struct Silicon_Event b){
   if(a.SiEnergy > b.SiEnergy)

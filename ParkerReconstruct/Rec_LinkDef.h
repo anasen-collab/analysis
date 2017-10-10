@@ -5,7 +5,7 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
  
-#pragma link C++ defined_in "/home2/parker/ANASEN/LSU/Include/organizetree.h";
+#pragma link C++ defined_in "../include/organizetree.h";
 #pragma link C++ defined_in "/home2/parker/ANASEN/LSU/Include/EnergyLoss.h";
 #pragma link C++ defined_in "/home2/parker/ANASEN/LSU/Include/Reconstruct.h";
 
