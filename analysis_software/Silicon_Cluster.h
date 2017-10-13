@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "ChannelMap.h"
-#include "tree_structure.h"
+#include "../include/tree_structure.h"
 
 using namespace std;
 
