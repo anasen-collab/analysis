@@ -135,9 +135,9 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.HitType = 0;
     hit_obj.FrontChannel = -1;
     hit_obj.BackChannel = -1;
-    hit_obj.EnergyBack = 0;
-    hit_obj.EnergyFront = 0;
-    hit_obj.Energy = 0;
+    hit_obj.EnergyBack = -1000;
+    hit_obj.EnergyFront = -1000;
+    hit_obj.Energy = -1000;
     hit_obj.Time = 0;
     hit_obj.X = 0;
     hit_obj.Y = 0;
@@ -196,7 +196,7 @@ class PCHit { // This class is for Proportional Counter hits
     pc_obj.Z = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
-    pc_obj.ZW = 0;
+    pc_obj.ZW = -10;
     pc_obj.RW = 0;
     pc_obj.PhiW = sqrt(-1);
     pc_obj.TrackType = 0;
@@ -318,8 +318,8 @@ class Track { //This Class is for Tracking
     track_obj.TrackType = 0;
     track_obj.HitType = 0;
     
-    track_obj.SiEnergy = 0;
-    track_obj.SiZ = -100.0;
+    track_obj.SiEnergy = -1000.0;
+    track_obj.SiZ = -10.0;
     track_obj.SiX = 0;
     track_obj.SiY = 0;
     track_obj.SiR = 0;

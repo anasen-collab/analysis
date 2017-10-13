@@ -89,7 +89,7 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-#include "tree_structure.h"
+#include "../include/tree_structure.h"
 #include "LookUp.h"
 
 using namespace std;
