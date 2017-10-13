@@ -47,7 +47,10 @@ class SiHit {  // This class is for Silicon hits
     vector<Double_t> EUp_Rel;
     vector<Double_t> EDown_Rel;    
     vector<Double_t> EFront_Rel;
-    vector<Double_t> EBack_Rel;  
+    vector<Double_t> EBack_Rel;
+
+    vector<Double_t> SX3_ZUp;
+    vector<Double_t> SX3_ZDown;
 
     //Energy after Energy calibration --in MeV
     vector<Double_t> EUp_Cal;
@@ -71,9 +74,11 @@ class SiHit {  // This class is for Silicon hits
     Double_t EnergyBack, EnergyFront;
     Double_t Energy, Time;
     Double_t X, Y, Z;
+    Double_t Z_linear; // added 12/09/2016 for the ZPosCal_linear 
     Double_t ZUp_Dummy,ZDown_Dummy;
     Double_t XW, YW, ZW;
     Double_t RW, PhiW;
+    Int_t TrackType;
 
   }hit_obj;
 //-------------------------------------------------------------
@@ -109,7 +114,10 @@ class SiHit {  // This class is for Silicon hits
     det_obj.EUp_Rel.clear();
     det_obj.EDown_Rel.clear();  
     det_obj.EFront_Rel.clear();
-    det_obj.EBack_Rel.clear();   
+    det_obj.EBack_Rel.clear();
+
+    det_obj.SX3_ZUp.clear();
+    det_obj.SX3_ZDown.clear();
 
     det_obj.EUp_Cal.clear();
     det_obj.EDown_Cal.clear();    
@@ -134,6 +142,7 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.X = 0;
     hit_obj.Y = 0;
     hit_obj.Z = sqrt(-1);
+    hit_obj.Z_linear = -10; // added 12/09/2016 for the ZPosCal_linear
     hit_obj.ZUp_Dummy = sqrt(-1);
     hit_obj.ZDown_Dummy = sqrt(-1);
     hit_obj.XW = 0;
@@ -141,6 +150,7 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.ZW = sqrt(-1);
     hit_obj.RW = 0;
     hit_obj.PhiW = sqrt(-1);
+    hit_obj.TrackType = 0;
     //hit_obj.RFSubtract = 0;
   };
 //-------------------------------------------------------------
@@ -221,6 +231,7 @@ class Track { //This Class is for Tracking
     Double_t SiY;
     Double_t SiR;
     Double_t SiPhi;
+    Double_t SiBCh; //added by M.A. 02/23/2017
     Int_t DetID;    
 
     Double_t PCEnergy;    
@@ -228,6 +239,7 @@ class Track { //This Class is for Tracking
     Double_t PCX; 
     Double_t PCY;
     Double_t PCR;
+    Double_t Z; //By M.A.01/16/2017
     Double_t PCPhi;
     Int_t WireID;
 
@@ -246,12 +258,60 @@ class Track { //This Class is for Tracking
 
     Double_t BeamEnergy;
     Double_t EnergyLoss;
+    Double_t LightParEnergy;
+    Double_t BeamQvalue;
+    Double_t ThetaQvalue;
+    Double_t HeEnergyQvalue;
 
     Double_t PCZ_Ref;
   }track_obj;
+
+
+  //added by M.A. 01/16/2017
+
+  struct Silicon_Event {
+    Int_t TrackType;
+    Int_t DetID;
+    Double_t SiEnergy;
+    Double_t SiZ;
+    Double_t SiR;
+    Double_t SiPhi;
+  }si_obj;
+
+  struct PropCounter_Event {
+    Int_t TrackType;
+    Int_t WireID;
+    Double_t PCEnergy;
+    Double_t PCZ;
+    Double_t PCR;
+    Double_t PCPhi;
+  }pc_obj;
+  
+  struct HeavyOutgoingEvent {
+    Double_t IntPoint;
+    Double_t BeamEnergy;
+    Double_t SiEnergy_tot;
+    Double_t PCEnergy_tot;
+    Double_t Energy_tot;
+    Double_t Theta;
+    Double_t Phi;
+    Double_t KE;
+    Double_t Ex;
+  }HeavyEvent;
+  
+
+  
+
   //-------------------------------------------------------------
   vector<TrackEvent> TrEvent;
   vector<TrackEvent> *ReadTrEvent; 
+
+  vector<Silicon_Event> SiEvent;
+  vector<Silicon_Event> *ReadSiEvent;
+
+  vector<PropCounter_Event> PCEvent;
+  vector<PropCounter_Event> *ReadPCEvent;
+
   //-------------------------------------------------------------
   void ZeroTr_obj(){
     track_obj.TrackType = 0;
@@ -263,20 +323,23 @@ class Track { //This Class is for Tracking
     track_obj.SiY = 0;
     track_obj.SiR = 0;
     track_obj.SiPhi = sqrt(-1);
+    track_obj.SiBCh = 0;
     track_obj.DetID = -1;
 
     track_obj.PCEnergy = sqrt(-1);
     track_obj.PCX = 0;
     track_obj.PCZ = sqrt(-1);
+    track_obj.Z = -10.0; //by M.A. 01/16/2017
     track_obj.PCY = 0;
     track_obj.PCR = 0;
     track_obj.PCPhi = sqrt(-1);
     track_obj.WireID = -1;
+    track_obj.PCZ_Ref = sqrt(-1); 
 
-    track_obj.IntPoint = 0;
+    track_obj.IntPoint = -10; //used to be zero, changed by MA 03/15/2017
     track_obj.IntPoint_X = 0;
     track_obj.IntPoint_Y = 0;
-    track_obj.PathLength = 0;
+    track_obj.PathLength = -10; //used to be zero, changed by MA 03/15/2017
 
     track_obj.DiffIntPoint = 0;
     track_obj.DiffIntPoint_X = 0;
@@ -285,8 +348,38 @@ class Track { //This Class is for Tracking
     track_obj.Theta = sqrt(-1);
     track_obj.Phi = sqrt(-1);
 
-    track_obj.BeamEnergy = 0; 
-    track_obj.EnergyLoss=0;
+    track_obj.BeamEnergy = -10; //used to be zero, changed by MA 03/15/2017
+    track_obj.EnergyLoss= -10;  //used to be zero, changed by MA 03/15/2017
+    track_obj.LightParEnergy= -10;
+    track_obj.BeamQvalue = -10;
+    track_obj.ThetaQvalue = -10;
+    track_obj.HeEnergyQvalue = -10;
+    
+    si_obj.TrackType = 0;
+    si_obj.DetID = -1;
+    si_obj.SiEnergy = -1000;
+    si_obj.SiZ = -10;
+    si_obj.SiR = 0;
+    si_obj.SiPhi = 0;
+
+    pc_obj.TrackType = 0;
+    pc_obj.WireID = -1;
+    pc_obj.PCEnergy = -10;
+    pc_obj.PCZ = sqrt(-1);
+    pc_obj.PCR = 0;
+    pc_obj.PCPhi = 0;
+
+    
+    HeavyEvent.IntPoint = -10;
+    HeavyEvent.BeamEnergy = -10;
+    HeavyEvent.SiEnergy_tot = -10;
+    HeavyEvent.PCEnergy_tot = -10;
+    HeavyEvent.Energy_tot = -10;
+    HeavyEvent.Theta = -10;
+    HeavyEvent.Phi = -10;
+    HeavyEvent.KE = -10;
+    HeavyEvent.Ex = -10;
+
   };
   //-------------------------------------------------------------
   void zeroTrack(){
@@ -297,6 +390,8 @@ class Track { //This Class is for Tracking
     NTracks3 = 0;
 
     TrEvent.clear();
+    SiEvent.clear();
+    PCEvent.clear();
     ZeroTr_obj();
   };
   //-------------------------------------------------------------
