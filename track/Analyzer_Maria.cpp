@@ -93,7 +93,7 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-#include "tree_structure.h"
+#include "../include/tree_structure.h"
 #include "LookUp.h"
 #include "/home/manasta/Desktop/parker_codes/Include/ReconstructMaria.h" // so that the Reconstruction process is in separate script
 //#include "/home/maria/rayMountPoint/Desktop/parker_codes/Include/ReconstructMaria.h"

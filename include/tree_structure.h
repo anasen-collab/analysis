@@ -291,6 +291,7 @@ class Track { //This Class is for Tracking
     Double_t IntPoint;
     Double_t BeamEnergy;
     Double_t SiEnergy_tot;
+    Double_t SiEnergy_calc;
     Double_t PCEnergy_tot;
     Double_t Energy_tot;
     Double_t Theta;
@@ -373,6 +374,7 @@ class Track { //This Class is for Tracking
     HeavyEvent.IntPoint = -10;
     HeavyEvent.BeamEnergy = -10;
     HeavyEvent.SiEnergy_tot = -10;
+    HeavyEvent.SiEnergy_calc = -10;
     HeavyEvent.PCEnergy_tot = -10;
     HeavyEvent.Energy_tot = -10;
     HeavyEvent.Theta = -10;
