@@ -1,16 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Goal: To Analyze the Elastic Scattering of Deuterons to Calibrate ANASEN for 7Be+d Experiments..
-// & for the other (d,p),(d,alpha)..etc..ANASEN experiments with Gas volume target
 //
-// //To create a dictionary:
-//  rootcint -f tr_dict.cxx -c ../Include/tree_structure.h LinkDef.h
-//
-// Usage: g++ -o Analyzer_ES tr_dict.cxx LookUp.cpp Analyzer_ES.cpp `root-config --cflags --glibs`
-//
-// ./Analyzer_ES DataListCal.txt 2430Cal5Analyzer20170303.root cut/D2.root //
-//
-// Uses Lookup tables instead of doing integration multiple times for Energyloss, 
-// Final Energy, Initial Energy & Distance calculation.
 //
 // Author: Nabin Rijal, 2016 September.
 //
@@ -20,7 +9,7 @@
 #define CheckBasic
 
 #define DiffIP 2 //cm
-#define ConvAngle 57.27272727 //when multiplied, Converts to Degree from Radian 
+#define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define EdE
 #define Be8
@@ -117,7 +106,6 @@ bool Track::Tr_PCsort_method(struct TrackEvent c,struct TrackEvent d){
 };
 ////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) { 
-
   //Don't know what this does, but libraries won't load without it
   TApplication *myapp=new TApplication("myapp",0,0); 
 
@@ -126,8 +114,8 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  char* file_raw  = new char [100]; // for input .root file
-  char* file_cal = new char [100]; // for output .root file
+  char* file_raw  = new char [300]; // for input .root file
+  char* file_cal = new char [300]; // for output .root file
 
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
@@ -252,9 +240,11 @@ int main(int argc, char* argv[]) {
 	if( (((MCPTime - RFTime)% 538)<47) || (((MCPTime - RFTime)% 538)>118  && ((MCPTime - RFTime)% 538)<320) || ((MCPTime - RFTime)% 538)>384 ){
 	  //if( (((MCPTime - RFTime)% 538)<60) || (((MCPTime - RFTime)% 538)>110  && ((MCPTime - RFTime)% 538)<325) || ((MCPTime - RFTime)% 538)>380 ){
 	  continue;
-	}else{	  
 	}
-      }else{
+	else {	  
+	}
+      }
+      else {//bad time
 	continue;
       }
 #endif
@@ -262,7 +252,7 @@ int main(int argc, char* argv[]) {
       Tr.zeroTrack();
       Int_t GoodPC = -1;         
       /////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+      //
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
@@ -312,9 +302,9 @@ int main(int argc, char* argv[]) {
 	}   
       }     
       sort( Tr.TrEvent.begin(), Tr.TrEvent.begin()+Tr.NTracks1,Tr.Tr_Sisort_method );    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      //
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      //
       for (Int_t k=0; k<Si.ReadHit->size(); k++){//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(k);
@@ -338,9 +328,8 @@ int main(int argc, char* argv[]) {
 	}
       }      
       sort( Tr.TrEvent.begin()+Tr.NTracks1, Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2,Tr.Tr_Sisort_method );  
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
       //cout<<"PC.ReadHit->size() = "<<PC.ReadHit->size()<<endl;
       MyFill("PC_ReadHit_size",500,0,50,PC.ReadHit->size());  
 
@@ -366,9 +355,7 @@ int main(int argc, char* argv[]) {
 	}
       }        
       sort(Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2, Tr.TrEvent.end(),Tr.Tr_PCsort_method );      
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //////////////////////////////////////////////////////////////////////////////////////
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //cout<<"Tr.NTracks = "<<Tr.NTracks<<" Tr.NTracks1 = "<<Tr.NTracks1<<" Tr.NTracks2 = "<<Tr.NTracks2<<" Tr.NTracks3 = "<<Tr.NTracks3<<endl;      
     
       //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -377,7 +364,7 @@ int main(int argc, char* argv[]) {
       //reconstruction variables
       Double_t m = 0, b = 0; 
 
-      for(Int_t p=0; p<Tr.NTracks1;p++){
+      for(Int_t p=0; p<Tr.NTracks1;p++) {
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
 #ifdef CheckBasic
@@ -423,7 +410,6 @@ int main(int argc, char* argv[]) {
 	  //Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
 	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	
-
 	  //if(Tr.TrEvent[p].Theta>0){
 	  //cout<<" Tr.TrEvent[p].Theta2 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength2 = "<<Tr.TrEvent[p].PathLength<<endl;
 	  //}
@@ -515,19 +501,17 @@ int main(int argc, char* argv[]) {
   RootObjects->Write(); 
   outputfile->Close();
 }//end of Main
-////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////
-Float_t phidiff ( Float_t phi1,Float_t phi2)
-{
+Float_t phidiff ( Float_t phi1,Float_t phi2) {
   return (fmodf((fabs(phi1-phi2) + 2*TMath::Pi()), 2*TMath::Pi()));
 }
 /////////////////////////////////////////////////////////////////////////////////////
-/* 
+/*
 // Finds a maximum PC within a given phi range
 // Nabin Rijal, June 2016
 
-Int_t FindMaxPC(Double_t phi, PCHit& PC){
+  Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t GoodPC = -1;
   Double_t MaxPC = -10;
   //Double_t MinPhi = 0.2619;
@@ -552,6 +536,7 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
   return GoodPC;
 }
 */
+
 ///////////////////////////////////////////////////////////////////////////////////
 // If there are more than one silicon firing within the range of given phi, 
 // picks the one with closer phi and assigns the another pc hit to the next silicon.

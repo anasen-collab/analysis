@@ -1,17 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Goal: To Analyze the Tracking and Reconstruction of the 7Be+d-> p + alpha + alpha Events  
-// & to Analyze the Elastic Scattering of Deuterons to Calibrate ANASEN for 7Be+d Experiments..
-// & for the other (d,p),(d,alpha)..etc..ANASEN experiments with Gas volume target
-//
-// //To create a dictionary:
-//  rootcint -f tr_dict.cxx -c tree_structure.h LinkDef.h
-//
-// Usage: g++ -o Analyzer tr_dict.cxx LookUp.cpp Analyzer.cpp `root-config --cflags --glibs`
-//
-// ./Analyzer DataListCal.txt 282_3_4Cal5Analyzer20161102.root cut/He4.root //
-//
-// Uses Lookup tables instead of doing integration multiple times for Energyloss, 
-// Final Energy, Initial Energy & Distance calculation.
+// See readme.md for details.
 //
 // Author: Nabin Rijal, 2016 September.
 //
@@ -112,7 +100,7 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
-#include "tree_structure.h"
+#include "../include/tree_structure.h"
 #include "LookUp.h"
 
 using namespace std;
@@ -159,8 +147,8 @@ int main(int argc, char* argv[]) {
   strcpy( file_raw, argv[1] );
   strcpy( file_cal, argv[2] );
 
-  cout << "Command is " << argv[0] << endl;
-  cout << "Input file is " << argv[1] << endl;
+  cout << "    Command is " << argv[0] << endl;
+  cout << " Input file is " << argv[1] << endl;
   cout << "Output file is "<< argv[2] << endl;
   
 #ifdef DoCut
@@ -185,18 +173,6 @@ int main(int argc, char* argv[]) {
   cout << argv[3] << endl;
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
-  TObjArray *RootObjects = new TObjArray();
-  SiHit Si;
-  PCHit PC;
-  ///CsIHit CsI;
-  Track Tr; 
-  Int_t RFTime, MCPTime;
-  Int_t Old_RFTime,Old_MCPTime;
-
-  Si.ReadDet = 0;
-  Si.ReadHit = 0;
-  PC.ReadHit = 0;
-  //CsI.ReadHit = 0;
 
 #ifdef DoLoss
   LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
@@ -224,18 +200,34 @@ int main(int argc, char* argv[]) {
   E_Loss_3He->InitializeLookupTables(20.0,4000.0,0.02,0.04);
 #endif
   ///////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  
+  SiHit Si;
+  PCHit PC;
+  ///CsIHit CsI;
+  Track Tr; 
+  
+  Int_t Old_RFTime,Old_MCPTime;
+
+  Si.ReadDet = 0;
+  Si.ReadHit = 0;
+  PC.ReadHit = 0;
+  //CsI.ReadHit = 0;
 
   TFile *outputfile = new TFile(file_cal,"RECREATE");
   TTree *MainTree = new TTree("MainTree","MainTree");
-  //++
+ 
   MainTree->Branch("Tr.NTracks",&Tr.NTracks,"NTracks/I");
   MainTree->Branch("Tr.NTracks1",&Tr.NTracks1,"NTracks1/I");
   MainTree->Branch("Tr.NTracks2",&Tr.NTracks2,"NTracks2/I");
   MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
   MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
+
+  Int_t RFTime, MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
   
+  TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
   fhlist = new TList;
@@ -257,20 +249,22 @@ int main(int argc, char* argv[]) {
   
   string rootfile;
   char rootfile_char[100];
+  Int_t nfiles=0;
 
-  while (!inFileList.eof()){//===================loop over all of the incoming root files================
-    getline(inFileList,rootfile);
-    if (rootfile.empty()){
-      //cout << "Root File does not exist: " << rootfile << endl;
+  while (getline(inFileList,rootfile)) {//!inFileList.eof()) {//===================loop over all of the incoming root files================
+      //getline(inFileList,rootfile);
+    nfiles++;
+    if (rootfile.empty()) {
+      cout << "Root file "<< nfiles <<" does not exist: " << rootfile << endl;
       break;
     }
     strcpy(rootfile_char,rootfile.c_str());
     TFile *inputFile = new TFile(rootfile_char);//open root file and make sure it exists-----
     if (!inputFile->IsOpen()){
-      cout << "Root file: " << rootfile << " could not be opened.\n";     
+      cout << "Root file "<< nfiles <<": " << rootfile << " could not be opened.\n";     
       continue;
     }   
-    cout << "Processing File: " << rootfile << endl;   
+    cout << "Processing file "<< nfiles <<": " << rootfile << endl;   
 
     TTree *raw_tree = (TTree*) inputFile->Get("MainTree");
     raw_tree->SetBranchAddress("Si.NSiHits",&Si.NSiHits);
@@ -278,8 +272,6 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
     raw_tree->SetBranchAddress("PC.NPCHits",&PC.NPCHits);
     raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
-    //raw_tree->SetBranchAddress("RFTime",&RFTime);
-    //raw_tree->SetBranchAddress("MCPTime",&MCPTime);
     raw_tree->SetBranchAddress("RFTime",&Old_RFTime);
     raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
  
@@ -305,31 +297,37 @@ int main(int argc, char* argv[]) {
       if (i == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-      Double_t correct=1.004009623;
-      Double_t wrap=272.0975;//546//538
+      Double_t slope=0.9852;
+      Double_t offset=271.58;
+      Double_t wrap=offset*2;//546//538
       MCPTime = Old_MCPTime;
       RFTime = Old_RFTime;
-      Double_t tof=MCPTime-RFTime;
-      Double_t tiemc=MCPTime*correct-RFTime;
+      Double_t TOF,TOFc,TOFw;
+
       Int_t tbins=600;
       if(MCPTime > 0 && RFTime>0) {
-	MyFill("tof",tbins,0,tbins,tof);
-	MyFill("tofw",tbins,0,TMath::Nint(wrap),fmod(tof,wrap));
-	MyFill("tofwc",tbins,0,TMath::Nint(wrap),fmod((MCPTime*correct-RFTime),wrap));
+	TOF=MCPTime-RFTime;//Time-of-flight
+	TOFc=MCPTime*slope-RFTime+4*offset;//corrected TOF
+	TOFw=fmod(TOFc,offset);//wrapped TOF
+	
+	MyFill("TOF",tbins,0,tbins,TOF);
+	MyFill("TOFwc",tbins,0,TMath::Nint(offset),fmod(TOFc,offset));
+
+	MyFill("MCP_RF",512,500,1200,RFTime,512,-1500,4000,MCPTime);
+	MyFill("RF_vs_MCPc",512,500,1200,RFTime,512,-1500,4000,TOFc-4*offset);
       }
       
 #ifdef MCP_RF_Cut    
       if(MCPTime > 0 && RFTime>0) {
-	//cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
 	
-	MyFill("MCP_RF_Wrapped",2*tbins,-tbins,tbins,tof%wrap);
-
-	if( ((tof%wrap)<47) || ((tof%wrap)>118  && (tof%wrap)<320) || (tof%wrap)>384 ) {
-	  //if( ((tof% wrap)<60) || ((tof% wrap)>110  && (tof% wrap)<325) || (tof% wrap)>380 ){
+	if( ((TOF%offset)<47) || ((TOF%offset)>118  && (TOF%offset)<320) || (TOF%offset)>384 ) {
+	  //if( ((TOF% offset)<60) || ((TOF% offset)>110  && (TOF% offset)<325) || (TOF% offset)>380 ){
 	  continue;
-	}else{	  
 	}
-      }else{
+	else {	  
+	}
+      }
+      else {//bad time
 	continue;
       }
 #endif
@@ -337,7 +335,7 @@ int main(int argc, char* argv[]) {
       Tr.zeroTrack();
       Int_t GoodPC = -1;         
       /////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+      //
       //cout<<"Si.ReadHit->size() = "<<Si.ReadHit->size()<<endl;  
       MyFill("Si_ReadHit_size",500,0,50,Si.ReadHit->size());  
 
@@ -387,9 +385,9 @@ int main(int argc, char* argv[]) {
 	}   
       }     
       sort( Tr.TrEvent.begin(), Tr.TrEvent.begin()+Tr.NTracks1,Tr.Tr_Sisort_method );    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      //
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      //
       for (Int_t k=0; k<Si.ReadHit->size(); k++){//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(k);
@@ -413,9 +411,8 @@ int main(int argc, char* argv[]) {
 	}
       }      
       sort( Tr.TrEvent.begin()+Tr.NTracks1, Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2,Tr.Tr_Sisort_method );  
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
       //cout<<"PC.ReadHit->size() = "<<PC.ReadHit->size()<<endl;
       MyFill("PC_ReadHit_size",500,0,50,PC.ReadHit->size());  
 
@@ -441,9 +438,7 @@ int main(int argc, char* argv[]) {
 	}
       }        
       sort(Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2, Tr.TrEvent.end(),Tr.Tr_PCsort_method );      
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //////////////////////////////////////////////////////////////////////////////////////
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //cout<<"Tr.NTracks = "<<Tr.NTracks<<" Tr.NTracks1 = "<<Tr.NTracks1<<" Tr.NTracks2 = "<<Tr.NTracks2<<" Tr.NTracks3 = "<<Tr.NTracks3<<endl;      
     
       /////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,11 +463,7 @@ int main(int argc, char* argv[]) {
 #endif
       /////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ///////////////////////////////////For the Tracking///////////////////////////////////    
-      //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++        
       //reconstruction variables
       Double_t m = 0, b = 0; 
 
@@ -584,7 +575,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	if(Tr.TrEvent[s].DetID<28 && Tr.TrEvent[s].DetID>3) {
-	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 	}
 	
 	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
@@ -625,20 +618,15 @@ int main(int argc, char* argv[]) {
 #ifdef FillTree
       MainTree->Fill();
 #endif
-      //////////////////////////////////////////////////////////////////////////////
-    }
-    ////////////////////////////////////////////////////////////////////////////////   
-  } 
-  //////////////////////////////////////////////////////////////////////////////////
+    }//end of event loop
+  }//end of file loop
   outputfile->cd();
   RootObjects->Write(); 
   outputfile->Close();
 }//end of Main
-////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////
-Float_t phidiff ( Float_t phi1,Float_t phi2)
-{
+Float_t phidiff ( Float_t phi1,Float_t phi2) {
   return (fmodf((fabs(phi1-phi2) + 2*TMath::Pi()), 2*TMath::Pi()));
 }
 /////////////////////////////////////////////////////////////////////////////////////
