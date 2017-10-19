@@ -22,6 +22,7 @@
 
 // beam diagnostic histograms
 #define IC_hists
+//#define IC_cut
 
 //#define Pulser_ReRun //redefine this for cal
 //#define Hist_for_Cal
@@ -39,6 +40,7 @@
 #include <map>
 #include <fstream>
 #include <string>
+#include <iomanip>
 
 //ROOT
 #include <TH2.h>
@@ -50,6 +52,7 @@
 #include <TTree.h>
 #include <TApplication.h>
 #include <TROOT.h>
+#include <TCutG.h>
 
 //Associated header files/methods
 #include "ChannelMap.h"
@@ -107,14 +110,14 @@ int main(int argc, char* argv[]){
   MainTree->Branch("PC.NPCHits",&PC.NPCHits,"NPCHits/I");
   MainTree->Branch("PC.Hit",&PC.Hit); 
 
-Int_t RFTime,MCPTime;
+  Int_t RFTime,MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
 
 #ifdef IC_hists 
-  Int_t IC,E_IC;
-  MainTree->Branch("IC",&IC,"IC/I");
-  MainTree->Branch("E_IC",&E_IC,"E_IC/I");
+  Int_t IC_dE,IC_E;
+  MainTree->Branch("IC.dE",&IC_dE,"IC_dE/I");
+  MainTree->Branch("IC.E",&IC_E,"IC_E/I");
 #endif
 
   TObjArray *RootObjects = new TObjArray();
@@ -276,18 +279,10 @@ Int_t RFTime,MCPTime;
 
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     status = input_tree->GetEvent(global_evt);
-    //std::cout << "\r Done: " << global_evt*100./nentries << "%          " << std::flush;
-    if (global_evt == TMath::Nint(0.01*nentries))  cout << endl<< "   1% through the data";
-    if (global_evt == TMath::Nint(0.10*nentries))  cout << endl<< "  10% through the data";
-    if (global_evt == TMath::Nint(0.15*nentries))  cout << endl<< "  15% through the data";
-    if (global_evt == TMath::Nint(0.25*nentries))  cout << endl<< "  25% through the data";
-    if (global_evt == TMath::Nint(0.35*nentries))  cout << endl<< "  35% through the data";
-    if (global_evt == TMath::Nint(0.50*nentries))  cout << endl<< "  50% through the data";
-    if (global_evt == TMath::Nint(0.65*nentries))  cout << endl<< "  65% through the data";
-    if (global_evt == TMath::Nint(0.75*nentries))  cout << endl<< "  75% through the data";
-    if (global_evt == TMath::Nint(0.90*nentries))  cout << endl<< "  90% through the data";
-    if (global_evt == TMath::Nint(0.95*nentries))  cout << endl<< "  95% through the data";
-    if (global_evt == TMath::Nint(1.00*(nentries-1)))  cout << endl<< " 100% through the data" << endl;
+    if(global_evt%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
+						      << right << fixed << setw(3)
+						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
+    if(global_evt%TMath::Nint(nentries*0.01)==0) cout << "." << std::flush;
     ////////////////////////////////////////////////////////////////////////////////////////////////////   
     //
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
@@ -404,61 +399,93 @@ Int_t RFTime,MCPTime;
       TDC.Nhits=MaxTDCHits;
       printf("MaxTDCHits exceeded! %d > %d\n",TDC.Nhits,MaxTDCHits);
     }
-    
+
+    RFTime = 0;
+    MCPTime = 0;
+ 
+    Double_t slope=0.9852;//slope of MCP vs RF
+    Double_t offset=271.58; //peak-to-peak spacing
+    Double_t wrap=offset*2;
+    Double_t TOF,TOFc,TOFw;
+    Int_t tbins=600;
+
     for (Int_t n=0; n<TDC.Nhits; n++) {     
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
 	RFTime = (Int_t)TDC.Data[n];
+	if(RFTime > 0) {
+	  MyFill("RF_Time",1028,0,4096,RFTime);
+	}
       }
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
 	MCPTime = (Int_t)TDC.Data[n];
+	if(MCPTime >0) {
+	  MyFill("MCP_Time",1028,0,4096,MCPTime);
+	}
       }
-      if(RFTime >0) 
-	MyFill("RF_Time",1028,0,4096,RFTime);
-      if(MCPTime >0)
-	MyFill("MCP_Time",1028,0,4096,MCPTime);
-      if(RFTime >0 && MCPTime >0)
+       
+      if(RFTime >0 && MCPTime >0) {
+	TOF=MCPTime-RFTime;//Time-of-flight
+	TOFc=MCPTime*slope-RFTime+4*offset;//corrected TOF
+	TOFw=fmod(TOFc,offset);//wrapped TOF
 	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
+	MyFill("MCP_RF_wrapped",tbins,-600,600,TOFw);
+      }
     }
     
     //=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
-    Double_t slope=1.004009623;
-    Double_t wrap=546;      //538 -->546 
-
-    if(MCPTime > 0 && RFTime>0){
-      //cout<<"   RFTime  == "<<RFTime<<"   MCPTime  =="<<MCPTime<<endl;
-      MyFill("MCP_RF_Wrapped",400,-600,600,(MCPTime-RFTime)%wrap);
-
-      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ){
+    if(MCPTime > 0 && RFTime>0) {
+      
+      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ) {
 	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
 	continue;
-      }else{	
       }
-    }else{
+      else {//outside gate	
+      }
+    }
+    else {//bad time
       continue;
     }
 #endif
 
 #ifdef IC_hists       
-//------------Ion Chamber----------------------
-    IC = 0; E_IC = 0;
+    //------------Ion Chamber----------------------
+    IC_dE = 0; IC_E = 0;
     for(Int_t n=0; n<ADC.Nhits; n++) {
       if(ADC.ID[n]==3 && ADC.ChNum[n]==24) {
-	IC = ADC.Data[n];
+	IC_dE = ADC.Data[n];
       }
       if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
-	E_IC = (Int_t)ADC.Data[n];
+	IC_E = (Int_t)ADC.Data[n];
       }
-      if(IC >0)
-	MyFill("deltaE_IC",1028,0,4096,IC);
-      if(E_IC >0) {
-	MyFill("E_Si",1028,0,4096,E_IC);
-	if(RFTime >0 && MCPTime >0)
-	  MyFill("time_vs_ESi",512,0,4096,E_IC,512,0,4096,MCPTime-RFTime);
+      if(IC_dE >0)
+	MyFill("IC_dE",1028,0,4096,IC_dE);
+      if(IC_E >0) {
+	MyFill("IC_E",1028,0,4096,IC_E);
+	if(RFTime >0 && MCPTime >0) {
+	  MyFill("IC_TOF_vs_ESi",512,0,4096,IC_E,512,0,4096,TOF);
+	  MyFill("IC_TOFc_vs_ESi",512,0,4096,IC_E,512,0,4096,TOFc);
+	}
       }
-      if(IC >0 && E_IC >0)
-	MyFill("EDE_IC",512,0,4096,E_IC,512,0,4096,IC);
+      if(IC_dE >0 && IC_E >0)
+	MyFill("IC_EdE",512,0,4096,IC_E,512,0,4096,IC_dE);
     }
+
+#ifdef IC_cut
+    char* file_cut1 = "17F_cut.root";
+    TFile *cut_file1 = new TFile(file_cut1);
+    if (!cut_file1->IsOpen()){
+      cout << "Cut file1: " << file_cut1 << " could not be opened.\n";
+      exit(EXIT_FAILURE);
+    }
+    TCutG *cut1 = NULL;
+    cut1 = (TCutG*)cut_file1->Get("CUTG");
+    
+    if (cut1 == NULL){
+      cout << "Cut1 does not exist\n";
+      exit(EXIT_FAILURE);
+    }
+#endif
 #endif     
     
     /////////////////////////////////////////////  ASICS Section //////////////////////////////////////////////////////
@@ -853,13 +880,19 @@ Int_t RFTime,MCPTime;
       //============================================================ 
     }//end of for(int i=0; i<NumQ3; i++){
     //============================================================ 
-    if (Si.NSiHits>0 ){    
+#ifdef IC_hists
+    if(RFTime > 0) {
       MainTree->Fill();
     }
+#else
+    if (Si.NSiHits > 0) {    
+      MainTree->Fill();
+    }
+#endif
     //============================================================
   }//end of for (global_evt=0; global_evt<nentries; global_evt++){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  cout << "Changing to output file... " << endl;
+  cout << endl << " Changing to output file... " << endl;
   outputFile->cd();
   cout << " Writing objects... ";
   RootObjects->Write();
