@@ -18,10 +18,10 @@
 
 // To select the component of the beam, mostly for Radio-active beams
 // disable while you work with Calibration data & enable while you do data analysis
-//#define MCP_RF_Cut
+#define MCP_RF_Cut
 
 // beam diagnostic histograms
-#define IC_hists
+//#define IC_hists
 //#define IC_cut
 
 //#define Pulser_ReRun //redefine this for cal
@@ -143,7 +143,8 @@ int main(int argc, char* argv[]){
     CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
     CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
     CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
-    CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
+    //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
+    CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
     CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
     CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
@@ -270,6 +271,8 @@ int main(int argc, char* argv[]){
   Double_t PCUp[NPCWires];
   Double_t PCDownVoltage[NPCWires];
   Double_t PCUpVoltage[NPCWires];
+  Double_t PCZ[NPCWires];
+  Double_t PCZcal[NPCWires];
   Int_t ConvTest=0;
   Double_t Vcal;
 
@@ -392,7 +395,7 @@ int main(int argc, char* argv[]){
 	PC.Hit.push_back(PC.pc_obj);
 	PC.NPCHits++;
       }
-    }
+    }//end NPCWires loops
     ////=============================== MCP && RF =====================================================
     if (TDC.Nhits>MaxTDCHits) {
       TDC.Nhits=MaxTDCHits;
@@ -412,30 +415,36 @@ int main(int argc, char* argv[]){
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
 	RFTime = (Int_t)TDC.Data[n];
 	if(RFTime > 0) {
-	  MyFill("RF_Time",1028,0,4096,RFTime);
+	  MyFill("Time_RF",1028,0,4096,RFTime);
 	}
       }
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
 	MCPTime = (Int_t)TDC.Data[n];
 	if(MCPTime >0) {
-	  MyFill("MCP_Time",1028,0,4096,MCPTime);
+	  MyFill("Time_MCP",1028,0,4096,MCPTime);
 	}
       }
     }
     if(RFTime >0 && MCPTime >0) {
-     	TOF=MCPTime-RFTime;//Time-of-flight
-	TOFc=MCPTime*slope-RFTime+4*offset;//corrected TOF
-	TOFw=fmod(TOFc,offset);//wrapped TOF
-	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
-	MyFill("MCP_RF_wrapped",tbins,-600,600,TOFw);
+      TOF=MCPTime-RFTime;//Time-of-flight
+      TOFc=MCPTime-slope*RFTime;//corrected TOF
+      TOFw=fmod(TOFc+4*offset,offset);//wrapped TOF
+      MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
+      MyFill("Time_MCP-RF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
+      MyFill("Time_MCP-RF_corrected_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
+      MyFill("Time_MCP-RF",tbins,-4096,4096,TOF);
+      MyFill("Time_MCP-RF_wrapped",tbins,0,300,TOFw);
+      MyFill("Time_MCP-RF_wrapped2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
   
 	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
-	if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ) {
-	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
+	     if( (TOFw<47) || (TOFw>118  && TOFw<320) || TOFw>384 ) {
+	   //if( (TOFw<60) || (TOFw>110  && TOFw<325) || TOFw>380 ) {
+	  MyFill("Time_MCP-RF_wrapped_in",tbins,0,600,TOFw);
 	continue;
       }
-      else {//outside gate	
+      else {//outside gate
+	MyFill("Time_MCP-RF_wrapped_out",tbins,0,600,TOFw);
       }
     }
     else {//bad time
