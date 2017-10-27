@@ -283,8 +283,7 @@ int main(int argc, char* argv[]){
 						      << right << fixed << setw(3)
 						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
     if(global_evt%TMath::Nint(nentries*0.01)==0) cout << "." << std::flush;
-    ////////////////////////////////////////////////////////////////////////////////////////////////////   
-    //
+   
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
     //======================= PC variables are initialized and Filled here.=============================
@@ -422,21 +421,17 @@ int main(int argc, char* argv[]){
 	  MyFill("MCP_Time",1028,0,4096,MCPTime);
 	}
       }
-       
-      if(RFTime >0 && MCPTime >0) {
-	TOF=MCPTime-RFTime;//Time-of-flight
+    }
+    if(RFTime >0 && MCPTime >0) {
+     	TOF=MCPTime-RFTime;//Time-of-flight
 	TOFc=MCPTime*slope-RFTime+4*offset;//corrected TOF
 	TOFw=fmod(TOFc,offset);//wrapped TOF
 	MyFill("MCP_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
 	MyFill("MCP_RF_wrapped",tbins,-600,600,TOFw);
-      }
-    }
-    
-    //=========================== MCP - RF Gate =================================================
+  
+	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
-    if(MCPTime > 0 && RFTime>0) {
-      
-      if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ) {
+	if( (((MCPTime*slope - RFTime)% wrap)<47) || (((MCPTime - RFTime)% wrap)>118  && ((MCPTime - RFTime)% wrap)<320) || ((MCPTime - RFTime)% wrap)>384 ) {
 	//if( (((MCPTime - RFTime)% wrap)<60) || (((MCPTime - RFTime)% wrap)>110  && ((MCPTime - RFTime)% wrap)<325) || ((MCPTime - RFTime)% wrap)>380 ){
 	continue;
       }
@@ -445,34 +440,34 @@ int main(int argc, char* argv[]){
     }
     else {//bad time
       continue;
-    }
 #endif
-
+    }
+    
 #ifdef IC_hists       
     //------------Ion Chamber----------------------
     IC_dE = 0; IC_E = 0;
     for(Int_t n=0; n<ADC.Nhits; n++) {
       if(ADC.ID[n]==3 && ADC.ChNum[n]==24) {
 	IC_dE = ADC.Data[n];
+	if(IC_dE >0)
+	  MyFill("IC_dE",1028,0,4096,IC_dE);
       }
       if(ADC.ID[n]==3 && ADC.ChNum[n]==28) {
 	IC_E = (Int_t)ADC.Data[n];
-      }
-      if(IC_dE >0)
-	MyFill("IC_dE",1028,0,4096,IC_dE);
-      if(IC_E >0) {
-	MyFill("IC_E",1028,0,4096,IC_E);
-	if(RFTime >0 && MCPTime >0) {
-	  MyFill("IC_TOF_vs_ESi",512,0,4096,IC_E,512,0,4096,TOF);
-	  MyFill("IC_TOFc_vs_ESi",512,0,4096,IC_E,512,0,4096,TOFc);
+	if(IC_E >0) {
+	  MyFill("IC_E",1028,0,4096,IC_E);
+	  if(RFTime >0 && MCPTime >0) {
+	    MyFill("IC_TOF_vs_ESi",512,0,4096,IC_E,512,0,4096,TOF);
+	    MyFill("IC_TOFc_vs_ESi",512,0,4096,IC_E,512,0,4096,TOFc);
+	  }
 	}
       }
-      if(IC_dE >0 && IC_E >0)
-	MyFill("IC_EdE",512,0,4096,IC_E,512,0,4096,IC_dE);
     }
-
+    if(IC_dE >0 && IC_E >0)
+      MyFill("IC_EdE",512,0,4096,IC_E,512,0,4096,IC_dE);
+    
 #ifdef IC_cut
-    char* file_cut1 = "17F_cut.root";
+    char* file_cut1 = "/home/lighthall/anasen/root/main/17F_cut.root";
     TFile *cut_file1 = new TFile(file_cut1);
     if (!cut_file1->IsOpen()){
       cout << "Cut file1: " << file_cut1 << " could not be opened.\n";
@@ -482,7 +477,7 @@ int main(int argc, char* argv[]){
     cut1 = (TCutG*)cut_file1->Get("CUTG");
     
     if (cut1 == NULL){
-      cout << "Cut1 does not exist\n";
+      cout << "cut1 does not exist\n";
       exit(EXIT_FAILURE);
     }
 #endif
@@ -881,7 +876,7 @@ int main(int argc, char* argv[]){
     }//end of for(int i=0; i<NumQ3; i++){
     //============================================================ 
 #ifdef IC_hists
-    if(RFTime > 0) {
+    if(IC_E > 0) {
       MainTree->Fill();
     }
 #else
