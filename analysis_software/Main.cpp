@@ -432,22 +432,21 @@ int main(int argc, char* argv[]){
       MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
       MyFill("Time_MCP-RF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
       MyFill("Time_MCP-RF_corrected_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
-      MyFill("Time_MCP-RF",tbins,-4096,4096,TOF);
+      MyFill("Time_MCP-RF",tbins*2,-4096,4096,TOFc);
       MyFill("Time_MCP-RF_wrapped",tbins,0,300,TOFw);
       MyFill("Time_MCP-RF_wrapped2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
   
 	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
-	     if( (TOFw<47) || (TOFw>118  && TOFw<320) || TOFw>384 ) {
-	   //if( (TOFw<60) || (TOFw>110  && TOFw<325) || TOFw>380 ) {
-	  MyFill("Time_MCP-RF_wrapped_in",tbins,0,600,TOFw);
+      if(TOFw>120 && TOFw<178) {//inside gate; keep
+	MyFill("Time_MCP-RF_wrapped_in",tbins,0,300,TOFw);
+      }
+      else {//outside gate; exclude
+	MyFill("Time_MCP-RF_wrapped_out",tbins,0,300,TOFw);
 	continue;
       }
-      else {//outside gate
-	MyFill("Time_MCP-RF_wrapped_out",tbins,0,600,TOFw);
-      }
     }
-    else {//bad time
+    else {//bad time; exclude
       continue;
 #endif
     }
