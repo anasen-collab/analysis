@@ -80,6 +80,7 @@
 #include <exception>
 #include <stdexcept>
 #include <map>
+#include <iomanip>
 
 //ROOT libraries
 #include <TFile.h>
@@ -279,58 +280,48 @@ int main(int argc, char* argv[]) {
     cout<<"nentries = "<<nentries<<endl;
 
     Int_t status;
-    for (Long64_t i=0; i<nentries; i++){//====================loop over all events=================
-      //cout<<" i =  "<<i<<endl;
-
+    for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
       status = raw_tree->GetEvent(i);
-      //std::cout << "\rDone: " << i*100./nentries << "%          " << std::flush;
-      if (i == TMath::Nint(0.01*nentries))  cout << " 1% through the data" << endl;
-      if (i == TMath::Nint(0.10*nentries))  cout << " 10% through the data" << endl;
-      if (i == TMath::Nint(0.15*nentries))  cout << " 15% through the data" << endl;
-      if (i == TMath::Nint(0.25*nentries))  cout << " 25% through the data" << endl;
-      if (i == TMath::Nint(0.35*nentries))  cout << " 35% through the data" << endl;
-      if (i == TMath::Nint(0.50*nentries))  cout << " 50% through the data" << endl;
-      if (i == TMath::Nint(0.65*nentries))  cout << " 65% through the data" << endl;
-      if (i == TMath::Nint(0.75*nentries))  cout << " 75% through the data" << endl;
-      if (i == TMath::Nint(0.90*nentries))  cout << " 90% through the data" << endl;
-      if (i == TMath::Nint(0.95*nentries))  cout << " 95% through the data" << endl;
-      if (i == TMath::Nint(1.00*nentries))  cout << " 100% through the data" << endl;
+      if(i%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
+					       << right << fixed << setw(3)
+					       << TMath::Nint(i*100./nentries) << "%" << std::flush;
+      if(i%TMath::Nint(nentries*0.01)==0) cout << "." << std::flush;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-      Double_t slope=0.9852;
-      Double_t offset=271.58;
+      Double_t slope=0.9852; //slope of MCP vs RF
+      Double_t offset=271.58; //peak-to-peak spacing
       Double_t wrap=offset*2;//546//538
+      Double_t TOF,TOFc,TOFw;
+      Int_t tbins=600;
+
       MCPTime = Old_MCPTime;
       RFTime = Old_RFTime;
-      Double_t TOF,TOFc,TOFw;
-
-      Int_t tbins=600;
+      
       if(MCPTime > 0 && RFTime>0) {
 	TOF=MCPTime-RFTime;//Time-of-flight
-	TOFc=MCPTime*slope-RFTime+4*offset;//corrected TOF
-	TOFw=fmod(TOFc,offset);//wrapped TOF
-	
-	MyFill("TOF",tbins,0,tbins,TOF);
-	MyFill("TOFwc",tbins,0,TMath::Nint(offset),fmod(TOFc,offset));
+	TOFc=MCPTime-slope*RFTime;//corrected TOF
+	TOFw=fmod(TOFc+4*offset,offset);//wrapped TOF
 
-	MyFill("MCP_RF",512,500,1200,RFTime,512,-1500,4000,MCPTime);
-	MyFill("RF_vs_MCPc",512,500,1200,RFTime,512,-1500,4000,TOFc-4*offset);
-      }
-      
+	MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
+	MyFill("TOF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
+	MyFill("TOFc_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
+	MyFill("TOFc",tbins*2,-4096,4096,TOFc);
+	MyFill("TOFw",tbins,0,300,TOFw);
+	MyFill("TOFw2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
+	          
 #ifdef MCP_RF_Cut    
-      if(MCPTime > 0 && RFTime>0) {
-	
-	if( ((TOF%offset)<47) || ((TOF%offset)>118  && (TOF%offset)<320) || (TOF%offset)>384 ) {
-	  //if( ((TOF% offset)<60) || ((TOF% offset)>110  && (TOF% offset)<325) || (TOF% offset)>380 ){
+	if(TOFw>120 && TOFw<178) {//inside gate; keep
+	  MyFill("TOFw_in",tbins,0,300,TOFw);
+	}
+	else {//outside gate; exclude
+	  MyFill("TOFw_out",tbins,0,300,TOFw);
 	  continue;
 	}
-	else {	  
-	}
       }
-      else {//bad time
-	continue;
-      }
+      else {//bad time; exclude
+	continue;     
 #endif
+      }
       ///////////////////////////////////////////////////////////////////////////////////////////////////
       Tr.zeroTrack();
       Int_t GoodPC = -1;         
@@ -579,8 +570,11 @@ int main(int argc, char* argv[]) {
 		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
 		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
 	}
+
+	Float_t E_gate_center=9.5753;
+	Float_t E_gate_width=0.08;
 	
-	if (Tr.TrEvent[s].SiEnergy>9.4 && Tr.TrEvent[s].SiEnergy< 9.7) {//this cut is to clean up calibration data... 	  
+	if (Tr.TrEvent[s].SiEnergy>(E_gate_center-E_gate_width) && Tr.TrEvent[s].SiEnergy< (E_gate_center+E_gate_width)) {//this cut is to clean up calibration data... 	  
 	  
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
 		 pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
@@ -602,9 +596,13 @@ int main(int argc, char* argv[]) {
       Float_t demax=0.25;
       Int_t debins=600;
       for(Int_t q=0; q<Tr.NTracks1;q++) {
-	MyFill("E_de",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy);
+	MyFill("E_de",
+	       debins,-1,29,Tr.TrEvent[q].SiEnergy,
+	       debins,demin,demax,Tr.TrEvent[q].PCEnergy);
 	//MyFill("E_de_corrected",debins,-1,35,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy*Tr.TrEvent[q].PathLength);
-	MyFill("E_de_corrected",debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,demin,demax,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
+	MyFill("E_de_corrected",
+	       debins,-1,29,Tr.TrEvent[q].SiEnergy,debins,
+	       demin,demax,Tr.TrEvent[q].PCEnergy *sin(Tr.TrEvent[q].Theta));	  
 	///MyFill(Form("PCZ%i",PC.WireID[GoodPC]),300,-10,50,Tr.TrEvent[q].PCZ);	    
 	MyFill("InteractionPoint",300,-10,50,Tr.TrEvent[q].IntPoint);	
       }

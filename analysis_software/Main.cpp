@@ -405,7 +405,7 @@ int main(int argc, char* argv[]){
     RFTime = 0;
     MCPTime = 0;
  
-    Double_t slope=0.9852;//slope of MCP vs RF
+    Double_t slope=0.9852; //slope of MCP vs RF
     Double_t offset=271.58; //peak-to-peak spacing
     Double_t wrap=offset*2;
     Double_t TOF,TOFc,TOFw;
@@ -429,20 +429,21 @@ int main(int argc, char* argv[]){
       TOF=MCPTime-RFTime;//Time-of-flight
       TOFc=MCPTime-slope*RFTime;//corrected TOF
       TOFw=fmod(TOFc+4*offset,offset);//wrapped TOF
+
       MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
-      MyFill("Time_MCP-RF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
-      MyFill("Time_MCP-RF_corrected_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
-      MyFill("Time_MCP-RF",tbins*2,-4096,4096,TOFc);
-      MyFill("Time_MCP-RF_wrapped",tbins,0,300,TOFw);
-      MyFill("Time_MCP-RF_wrapped2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
+      MyFill("TOF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
+      MyFill("TOFc_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
+      MyFill("TOFc",tbins*2,-4096,4096,TOFc);
+      MyFill("TOFw",tbins,0,300,TOFw);
+      MyFill("TOFw2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
   
 	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
       if(TOFw>120 && TOFw<178) {//inside gate; keep
-	MyFill("Time_MCP-RF_wrapped_in",tbins,0,300,TOFw);
+	MyFill("TOF_wrapped_in",tbins,0,300,TOFw);
       }
       else {//outside gate; exclude
-	MyFill("Time_MCP-RF_wrapped_out",tbins,0,300,TOFw);
+	MyFill("TOF_wrapped_out",tbins,0,300,TOFw);
 	continue;
       }
     }
