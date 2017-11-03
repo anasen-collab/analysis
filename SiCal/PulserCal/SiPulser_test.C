@@ -1,12 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// ASICS all channels Pulser calibration.
-////
-//// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
-////
-//// Usage: root -l SiPulser_All.C (from the same directory).
-////
-//// Edited by : Nabin Rijal , 2015Dec13
-////             Jon Lighthall Nov 2016
+// ASICS all channels Pulser calibration
+// See readme.md for general instructions.
+//
+// Edited by : Nabin Rijal , 2015Dec13
+//             Jon Lighthall Nov 2016
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //C++
 #include <fstream>
@@ -28,11 +25,11 @@ void SiPulser_test (void) {
     const Int_t npeaks = 5;
     Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
     if(run==1262) {
-      TFile *f1 = new TFile("/data0/lighthall/root/run1262m.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/main/run1262.root");
       TString lname="EBack_Pulser[0]";
         }
     if(run==1264) {
-      TFile *f1 = new TFile("/data0/lighthall/root/run1264m.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/main/run1264.root");
       TString lname="EFront_Pulser[0]";
     }
   }

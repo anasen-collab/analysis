@@ -1,13 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// ASICS all channels Pulser calibration.
-////
-//// Output file (e.g."Sipulser_2015Dec13.dat") has the following columns:
-//// MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
-////
-//// Usage: root -l SiPulser_All.C (from the same directory).
-////
-//// Edited by : Nabin Rijal , 2015Dec13
-////             Jon Lighthall Nov 2016
+// ASICS all channels Pulser calibration
+// See readme.md for general instructions.
+//
+// Edited by : Nabin Rijal , 2015Dec13
+//             Jon Lighthall Nov 2016
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //C++
 #include <fstream>
@@ -48,12 +44,12 @@ void SiPulser_All (void) {
     const Int_t npeaks = 8;
     Float_t Volts[npeaks] = { 0.5, 0.8, 1.0, 1.5, 3.0, 5.5, 7.0, 9.0};
     if(run==1034) {
-      TFile *f1 = new TFile("/data1/lighthall/root/run1034.root");
-      TFile *f2 = new TFile("/data1/lighthall/root/run1262.root");
+      TFile *f1 = new TFile("/data1/lighthall/root/raw/run1034.root");
+      TFile *f2 = new TFile("/data1/lighthall/root/raw/run1262.root");
     }
     if(run==1035) {
-      TFile *f1 = new TFile("/data1/lighthall/root/run1035.root");
-      TFile *f2 = new TFile("/data1/lighthall/root/run1264.root");
+      TFile *f1 = new TFile("/data1/lighthall/root/raw/run1035.root");
+      TFile *f2 = new TFile("/data1/lighthall/root/raw/run1264.root");
     }
   }
   
@@ -61,16 +57,16 @@ void SiPulser_All (void) {
     const Int_t npeaks = 5;
     Float_t Volts[npeaks] = { 0.5, 1.5, 3.0, 7.0, 9.0};
     if(run==1262) {
-      TFile *f1 = new TFile("/data0/lighthall/root/run1262.root");
-      TFile *f2 = new TFile("/data0/lighthall/root/run1034.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/raw/run1262.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/raw/run1034.root");
     }
     if(run==1263) {
-      TFile *f1 = new TFile("/data0/lighthall/root/run1263.root");
-      TFile *f2 = new TFile("/data0/lighthall/root/run1264.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/raw/run1263.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/raw/run1264.root");
     }
     if(run==1264) {
-      TFile *f1 = new TFile("/data0/lighthall/root/run1264.root");
-      TFile *f2 = new TFile("/data0/lighthall/root/run1035.root");
+      TFile *f1 = new TFile("/data0/lighthall/root/raw/run1264.root");
+      TFile *f2 = new TFile("/data0/lighthall/root/raw/run1035.root");
     }
   }
   if ( !f1->IsOpen() ) {
@@ -191,7 +187,7 @@ void SiPulser_All (void) {
       if((CBID==3 || CBID==4 || CBID==7 || CBID==8) || (MBID==2 && (CBID==11 || CBID==12))) {//run251 //run643 //1034 //run 1262
 	
 	for (Int_t ChNum=0; ChNum<16; ChNum++) {
-	  //// Mask bad channels  //that can create problem in cruising calibration.
+	  // Mask bad channels  //that can create problem in cruising calibration.
 	  //if(!(MBID==2 && CBID==10 && ChNum==12))continue;
 	  //if(MBID==1 && CBID<9)continue;
 	  //if(MBID==1 && CBID==9 &&ChNum<9)continue;
