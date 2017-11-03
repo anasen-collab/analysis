@@ -1,12 +1,8 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//// ANASEN proportional counter (PC) pulser calibration.
-////
-//// Output file (e.g."PCpulserCal.dat") has the following columns:
-//// ID, Chan, zero shift (fit offset), voltage per can (fit slope)
-////
-//// Usage: root -l PCPulser_All.C 
-////
-//// Edited by : Jon Lighthall Nov 2016
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ANASEN proportional counter (PC) pulser calibration.
+// See readme.md for general instructions.
+//
+// Developed by : Jon Lighthall Nov 2016
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
   //run250// December 4, 2015
@@ -44,8 +40,8 @@
   //run1036 24Mg data July 11, 2016
   const Int_t npeaks = 6;
   Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
-  TFile *file1 = new TFile("/data0/lighthall/root/run1036.root");
-  //TFile *file1 = new TFile("/home/lighthall/root/run1264m.root"); 
+  TFile *file1 = new TFile("/data0/lighthall/root/raw/run1036.root");
+  //TFile *file1 = new TFile("/home/lighthall/root/raw/run1264m.root"); 
   
   const int npar=npeaks*3;
 
@@ -66,7 +62,7 @@
   c1->SetWindowSize(1362,656);
   c1->Divide(1,2);
 
-  Bool_t dowait=kFALSE; //wait betweeen fits
+  Bool_t dowait=1; //wait betweeen fits
   
   if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",260,100);
@@ -77,17 +73,17 @@
     but2->Draw();
   }
   
-  //TH1I *h1 = new TH1I("h1","h1",256,0,4095);
-  //TH1I *h1 = new TH1I("h1","h1",512,0,6000);
+  //TH1I *hist1 = new TH1I("hist1","hist1",256,0,4095);
+  //TH1I *hist1 = new TH1I("hist1","hist1",512,0,6000);
   Int_t  size = 4096;
-  TH1I *h1 = new TH1I("h1","h1",size,0,size);
+  TH1I *hist1 = new TH1I("hist1","hist1",size,0,size);
   
   TTree *DataTree = (TTree*)file1->Get("DataTree");
 
-  TF1 *fit = new TF1("fit","pol1",0,size/2);
-  TF1 *fit2 = new TF1("fit2","pol2",0,size/2);
-  TF1 *fit3 = new TF1("fit3","pol1",0,size/2);
-  TF1 *fit4 = new TF1("fit4","pol1",0,size/2);
+  TF1 *fit = new TF1("fit","pol1",0,size);
+  TF1 *fit2 = new TF1("fit2","pol2",0,size);
+  TF1 *fit3 = new TF1("fit3","pol1",0,size);
+  TF1 *fit4 = new TF1("fit4","pol1",0,size);
   fit2->SetLineColor(3);
   fit2->SetLineStyle(2);
   fit3->SetLineColor(4);
@@ -99,7 +95,7 @@
   TGraph *FitGraph2 = 0;
   
   ofstream outfile;
-  ofstream outfile3;//offsets, full fit
+  ofstream outfile3;//offsets, full fit, all points equally weighted
   ofstream outfile4;//offsets, centroid ROB
   outfile.open("saves/PCpulserCal.dat");
   outfile3.open("saves/PCpulserCal_full.dat");
@@ -107,23 +103,26 @@
   
   TPolyMarker *pm;
   outfile << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
+  outfile3 << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
+  outfile4 << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
   
   for (Int_t id=2; id<4; id++) {
     for (Int_t chan=0; chan<32; chan++) {
     
       if(id==3 && chan>15) continue;
+      cout << "ADC " << id << " Chan " << chan << " ";
       c1->cd(1);
-      h1->GetXaxis()->UnZoom();
-      //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
-      //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
-      //DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
-      DataTree->Draw("ADC.Data>>h1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200",id,chan));
-      if(h1->GetEntries()==0) continue;
+      hist1->GetXaxis()->UnZoom();
+      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
+      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
+      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
+      DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200",id,chan));
+      if(hist1->GetEntries()==0) continue;
       
       TSpectrum *s = new TSpectrum();
-      h1->SetTitle(Form("ADC %i Chan %i",id,chan));
+      hist1->SetTitle(Form("ADC %i Chan %i",id,chan));
       
-      Int_t nfound = s->Search(h1,3," ",0.05); //Search(histo,sigma,option,threshold)
+      Int_t nfound = s->Search(hist1,3," ",0.05); //Search(histo,sigma,option,threshold)
       c1->Update();
       
       Float_t *xpeaks = s->GetPositionX();
@@ -157,7 +156,7 @@
 
       Float_t gpar[npar];
       for (Int_t i=0; i<npeaks; i++) {//fit each peak with a non-overlapping gaussian
-	h1->Fit("gaus","+q","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
+	hist1->Fit("gaus","+q","",xpeaks[i]-mnsp/2,xpeaks[i]+mnsp/2);
 	for (Int_t j=0; j<3; j++) {
 	  gpar[(3*i)+j]=gaus->GetParameter(j);
 	}
@@ -178,14 +177,14 @@
       //global fit
       if((TF1 *)gROOT->FindObject("total"))total->Delete();
       TF1 *total = new TF1("total",fform,gfitmin,gfitmax);
-      h1->GetXaxis()->SetRangeUser(gfitmin,gfitmax);
+      hist1->GetXaxis()->SetRangeUser(gfitmin,gfitmax);
 
       total->SetLineColor(3);
       for (Int_t i=0; i<(npar); i++) {
 	par[i]=gpar[i];
       }
       total->SetParameters(par);
-      h1->Fit(total,"Mq+");
+      hist1->Fit(total,"Mq+");
 
       //plot individual fits using parameters from global fit
       TF1 **functions = new TF1*[npeaks];
@@ -228,11 +227,15 @@
 	printf("number of peaks found = %d of %d\n", nfound, npeaks);
 	continue;
       }
-
+      
+      FitGraph->GetHistogram()->GetXaxis()->SetTitle("Channel positions from peak fit");
+      FitGraph->GetHistogram()->GetYaxis()->SetTitle("Voltages from calibration file");
+      
       //TF1 *pol1 = new TF1("pol1","[0]+[1]*x",0,5000);
       //FitGraph->Fit("pol1","q");
       //FitGraph2->Fit("pol1","Mq+");
       FitGraph->SetTitle(Form("Fit ADC %i Chan %i",id,chan));
+      FitGraph->GetYaxis()->SetRangeUser(-0.01,0.11);
       FitGraph->Draw("A*");
       FitGraph->Fit("fit","qROB");
       FitGraph->Fit("fit2","q");
@@ -241,8 +244,22 @@
       //centroid fit
       FitGraph2->SetMarkerColor(4);
       FitGraph2->Draw("*same");
-      FitGraph2->Fit("fit4","qM");//ROB may give errors
+      FitGraph2->Fit("fit4","qROB");//ROB may give errors
+      fit->Draw("same");
+      fit2->Draw("same");
+      fit3->Draw("same");
+
+      Float_t slope=fit->GetParameter(1);
+      Float_t offset=fit->GetParameter(0);
       
+      printf(" Fit parameters are: Slope = %f volts per channel, Offset = %f volts\n",slope,offset);
+      printf(" Inverse fit parameters are slope %f, offset %f\n",1/slope,-offset/slope); 
+       
+      printf(" Testing fit:\n");
+      for (Int_t i=0; i<npeaks; i++) {
+       	printf("  Peak %2d at %6.1f is %9.6f (%9.6f)\n",i,xpeaks[i],xpeaks[i]*slope+offset,(xpeaks[i]*slope+offset)-Volts[i]);
+      }
+
       leg = new TLegend(0.1,0.75,0.2,0.9);
       leg->AddEntry(fit,"pol1, ROB","l");
       leg->AddEntry(fit2,"pol2","l");
@@ -265,7 +282,7 @@
       //TGraph *FitGraph = new TGraph(24,xpeaks,&(Volts[0]));
     }
   }
-   if(dowait)
-     c2->Close();
+  if(dowait)
+    c2->Close();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

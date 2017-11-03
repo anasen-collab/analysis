@@ -1,8 +1,10 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////This program fixes the relative gains for the up and down on the PC
-//// Usage: root -l PosCal.C
-//// Edited by : John Parker , 2016Jan24
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This program fixes the relative gains for the up and down on the PC
+// See readme.md for general instructions.
+//
+// Edited by : John Parker , 2016Jan24
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //C++
 #include <fstream>
 #include <exception>
@@ -17,12 +19,12 @@
 #include <TF1.h>
 #include <TSpectrum.h>
 #include <TCutG.h>
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PosCal(void) {
   using namespace std;
   Double_t x[99];
   Double_t y[99];
-  string rootfile = "/home/lighthall/anasen/root/track/spacer0t.root";
+  string rootfile = "/home/lighthall/anasen/root/track/spacer0t_pccal.root";
   TFile *f1 = new TFile(rootfile.c_str());
   if (!f1->IsOpen()){
     cout << "Root file: " << rootfile << " could not be opened.\n";
@@ -55,13 +57,13 @@ void PosCal(void) {
   infile.close();
 
   ofstream outfile;
-  outfile.open("saves/PCWireCal_170527_4.dat");
+  outfile.open("saves/PCWireCal_1710_output.dat");
   outfile << "Wire\tSlope\tShift\n";
 
   TCutG *cut;
   for (Int_t DetNum=0; DetNum<24; DetNum++) {
     TH2F *hist = NULL;
-    if(DetNum!=18) continue;
+    //if(DetNum!=18) continue;
     hist = (TH2F*)f1->Get(Form("PCZ_vs_Zg%i",DetNum));
     if (hist==NULL){
       outfile << DetNum << "\t" << 1 << "\t" << 0 << endl;
