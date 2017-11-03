@@ -20,3 +20,5 @@ The `.dat` files are included in the repository as an example. The run-to-run `.
 
 ## Next steps
 Once the calibration file has been generated, modify the program `Main.cpp` to read in the calibration file. Once processed through `Main.cpp` the resultant `.root` files will contain PC spectra that have been calibrated to voltages.
+
+After voltage calibration, the PC signals should be calibrated for gain matching using the macros located in [RelativeCal](../RelativeCal).
