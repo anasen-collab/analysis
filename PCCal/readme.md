@@ -1,7 +1,7 @@
-#ANASEN proportional counter (PC) calibration
+# ANASEN proportional counter (PC) calibration
 The calibration of the PC signals is accomplished in three steps.
  
-##Order of calibration
+## Order of calibration
  1. Pulser calibration
  2. Realative calibration
  3. Position calibration
