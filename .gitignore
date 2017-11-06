@@ -19,3 +19,8 @@
 
 # temporary Git files
 *~*
+
+# image files
+*.pdf
+*.png
+*.jpg
