@@ -135,9 +135,9 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.HitType = 0;
     hit_obj.FrontChannel = -1;
     hit_obj.BackChannel = -1;
-    hit_obj.EnergyBack = -1000;
-    hit_obj.EnergyFront = -1000;
-    hit_obj.Energy = -1000;
+    hit_obj.EnergyBack = sqrt(-1);
+    hit_obj.EnergyFront = sqrt(-1);
+    hit_obj.Energy = sqrt(-1);
     hit_obj.Time = 0;
     hit_obj.X = 0;
     hit_obj.Y = sqrt(-1);
@@ -177,6 +177,7 @@ class PCHit { // This class is for Proportional Counter hits
     Double_t DownVoltage, UpVoltage;
     Double_t Energy;
     Double_t Z;
+    Double_t Zcal;    
     Double_t XW, YW, ZW;
     Double_t RW, PhiW;
     Int_t TrackType;
@@ -194,6 +195,7 @@ class PCHit { // This class is for Proportional Counter hits
     pc_obj.UpVoltage = 0;
     pc_obj.Energy = sqrt(-1);
     pc_obj.Z = sqrt(-1);
+    pc_obj.Zcal = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
     pc_obj.ZW = -10;
@@ -318,8 +320,8 @@ class Track { //This Class is for Tracking
     track_obj.TrackType = 0;
     track_obj.HitType = 0;
     
-    track_obj.SiEnergy = -1000.0;
-    track_obj.SiZ = -10.0;
+    track_obj.SiEnergy = sqrt(-1);
+    track_obj.SiZ = sqrt(-1);
     track_obj.SiX = 0;
     track_obj.SiY = 0;
     track_obj.SiR = 0;
@@ -330,7 +332,7 @@ class Track { //This Class is for Tracking
     track_obj.PCEnergy = sqrt(-1);
     track_obj.PCX = 0;
     track_obj.PCZ = sqrt(-1);
-    track_obj.Z = -10.0; //by M.A. 01/16/2017
+    track_obj.Z = sqrt(-1);
     track_obj.PCY = 0;
     track_obj.PCR = 0;
     track_obj.PCPhi = sqrt(-1);
@@ -358,14 +360,14 @@ class Track { //This Class is for Tracking
     
     si_obj.TrackType = 0;
     si_obj.DetID = -1;
-    si_obj.SiEnergy = -1000;
+    si_obj.SiEnergy = sqrt(-1);
     si_obj.SiZ = -10;
     si_obj.SiR = 0;
     si_obj.SiPhi = 0;
 
     pc_obj.TrackType = 0;
     pc_obj.WireID = -1;
-    pc_obj.PCEnergy = -10;
+    pc_obj.PCEnergy = sqrt(-1);
     pc_obj.PCZ = sqrt(-1);
     pc_obj.PCR = 0;
     pc_obj.PCPhi = 0;
