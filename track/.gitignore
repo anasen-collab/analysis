@@ -1,6 +1,12 @@
+# Compiled dictionaries
 tr_dict.cxx
 tr_dict.h
+
+# Executables
 Analyzer
 Analyzer_Cal
 Analyzer_ES
 Analyzer_Maria
+
+# Run lists
+*.txt
