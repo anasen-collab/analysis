@@ -16,24 +16,26 @@
 #define PC_Max_threshold 3500 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
-// To select the component of the beam, mostly for Radio-active beams
+// To select the component of the beam, mostly for radioactive beams
 // disable while you work with Calibration data & enable while you do data analysis
+//#define Time_hists
 //#define MCP_RF_Cut
 
 // beam diagnostic histograms
 //#define IC_hists
 //#define IC_cut
 
-//#define Pulser_ReRun //redefine this for cal
-#define Hist_for_PC_Cal
-//#define Hist_for_Si_Cal
-
-// Energy for each calibration steps can be switched off after Calibration
+// Energy for each calibration steps can be switched off after calibration
 //#define FillTree_Esteps
 
-// Select the Histograms for Calibration or for a Check.
+// Check pulser calibration?
+//#define Pulser_ReRun
+
+// Select the histograms for performing calibration or to check calibration
+//#define Hist_for_Si_Cal
+//#define Hist_for_PC_Cal
+//#define ZPosCal
 //#define Hist_after_Cal
-//#define ZPosCal 
 
 ///////////////////////////////////////////////////// include Libraries ///////////////////////////////////////////////////////
 //C/C++
@@ -87,8 +89,13 @@ TList* fhlist;
 std::map<string,TH1*> fhmap;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]) {
 
+  if (argc<3) {
+    cout << " Error: Wrong number of arguments\n";
+    exit(EXIT_FAILURE);
+  }
+  
   SiHit Si;
   PCHit PC;  
   
@@ -286,7 +293,7 @@ int main(int argc, char* argv[]){
     if(global_evt%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
 						      << right << fixed << setw(3)
 						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
-    if(global_evt%TMath::Nint(nentries*0.01)==0) cout << "." << std::flush;
+    if(global_evt%TMath::Nint(nentries*0.01)==0 && global_evt>0) cout << "." << std::flush;
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -419,13 +426,17 @@ int main(int argc, char* argv[]){
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==0) {
 	RFTime = (Int_t)TDC.Data[n];
 	if(RFTime > 0) {
+#ifdef Time_hists	  
 	  MyFill("Time_RF",1028,0,4096,RFTime);
+#endif
 	}
       }
       if(TDC.ID[n] == 12 && TDC.ChNum[n]==7) {
 	MCPTime = (Int_t)TDC.Data[n];
 	if(MCPTime >0) {
+#ifdef Time_hists
 	  MyFill("Time_MCP",1028,0,4096,MCPTime);
+#endif
 	}
       }
     }
@@ -433,21 +444,25 @@ int main(int argc, char* argv[]){
       TOF=MCPTime-RFTime;//Time-of-flight
       TOFc=MCPTime-slope*RFTime;//corrected TOF
       TOFw=fmod(TOFc+4*offset,offset);//wrapped TOF
-
+#ifdef Time_hists
       MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
       MyFill("TOF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
       MyFill("TOFc_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOFc);      
       MyFill("TOFc",tbins*2,-4096,4096,TOFc);
       MyFill("TOFw",tbins,0,300,TOFw);
       MyFill("TOFw2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
-  
+#endif
 	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
       if(TOFw>120 && TOFw<178) {//inside gate; keep
+#ifdef Time_hists
 	MyFill("TOF_wrapped_in",tbins,0,300,TOFw);
+#endif
       }
       else {//outside gate; exclude
+#ifdef Time_hists
 	MyFill("TOF_wrapped_out",tbins,0,300,TOFw);
+#endif
 	continue;
       }
     }
@@ -595,7 +610,7 @@ int main(int argc, char* argv[]){
 	  if (j<4){//SX3 Back
 
 	    Si.det_obj.BackChNum.push_back(j);
-#ifdef FillTree_Esteps
+#if defined(FillTree_Esteps) || defined(Hist_for_Si_Cal)
 	    Si.det_obj.EBack_Raw.push_back(SX3Energy[i][j]);
 	    Si.det_obj.EBack_Pulser.push_back(SX3Energy_Pulser[i][j]);
 	    Si.det_obj.EBack_Rel.push_back(SX3Energy_Rel[i][j]);
@@ -615,7 +630,7 @@ int main(int argc, char* argv[]){
 
 	  }else if(j>3 && j<8){//SX3 Front Up
 	    Si.det_obj.UpChNum.push_back(j-4);
-#ifdef FillTree_Esteps
+#if defined(FillTree_Esteps) || defined(Hist_for_Si_Cal)
 	    Si.det_obj.EUp_Raw.push_back(SX3Energy[i][j]);
 	    Si.det_obj.EUp_Pulser.push_back(SX3Energy_Pulser[i][j]);
 	    Si.det_obj.EUp_Rel.push_back(SX3Energy_Rel[i][j]);
@@ -625,7 +640,7 @@ int main(int argc, char* argv[]){
 
 	  }else if(j>7 && j<12){//SX3 Front Down
 	    Si.det_obj.DownChNum.push_back(j-8);
-#ifdef FillTree_Esteps
+#if defined(FillTree_Esteps) || defined(Hist_for_Si_Cal)
 	    Si.det_obj.EDown_Raw.push_back(SX3Energy[i][j]);
 	    Si.det_obj.EDown_Pulser.push_back(SX3Energy_Pulser[i][j]);
 	    Si.det_obj.EDown_Rel.push_back(SX3Energy_Rel[i][j]);
@@ -639,7 +654,7 @@ int main(int argc, char* argv[]){
       //=========================================== 
 
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ){
+      if ( (Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EUp_Cal.size()!=0) && Si.det_obj.EBack_Cal.size()!=0 ) {
 
 	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
 	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
@@ -765,13 +780,15 @@ int main(int argc, char* argv[]){
 	}
 	//}
 #endif 		
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef Hist_for_PC_Cal	
+	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ) {
 	  MyFill("PCPhi_vs_SiPhi_SX3",500,0,8,Si.hit_obj.PhiW,500,0,8,PC.Hit[hits].PhiW);
 	}
-	//============================================================ 
+#endif
 	
-      }else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
+      }//end ((down||up)&&back)
+      else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ) {
 #ifdef Pulser_ReRun
 	//if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
 	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
@@ -803,7 +820,7 @@ int main(int argc, char* argv[]){
 
 	    Si.det_obj.BackChNum.push_back(j);
 
-#ifdef FillTree_Esteps
+#if defined(FillTree_Esteps) || defined(Hist_for_Si_Cal)
 	    Si.det_obj.EBack_Raw.push_back(Q3Energy[i][j]);
 	    Si.det_obj.EBack_Pulser.push_back(Q3Energy_Pulser[i][j]);
 	    Si.det_obj.EBack_Rel.push_back(Q3Energy_Rel[i][j]);
@@ -817,7 +834,7 @@ int main(int argc, char* argv[]){
 
 	    Si.det_obj.FrontChNum.push_back(j-16); 
 
-#ifdef FillTree_Esteps
+#if defined(FillTree_Esteps) || defined(Hist_for_Si_Cal)
 	    Si.det_obj.EFront_Raw.push_back(Q3Energy[i][j]);
 	    Si.det_obj.EFront_Pulser.push_back(Q3Energy_Pulser[i][j]);
 	    Si.det_obj.EFront_Rel.push_back(Q3Energy_Rel[i][j]);
@@ -871,10 +888,11 @@ int main(int argc, char* argv[]){
 	}
 #endif
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ){
+#ifdef Hist_for_PC_Cal
+	for ( Int_t hits=0; hits<PC.NPCHits; hits++ ) {
 	  MyFill("PCPhi_vs_SiPhi_Q3",500,0,8,Si.hit_obj.PhiW,500,0,8,PC.Hit[hits].PhiW);
 	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#endif	
 	
       }else if ( Si.det_obj.EFront_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
 	//if only either of Front or Back is fired in Q3, Continue.//Unless it is a pulser Check
