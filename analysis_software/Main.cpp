@@ -18,14 +18,15 @@
 
 // To select the component of the beam, mostly for Radio-active beams
 // disable while you work with Calibration data & enable while you do data analysis
-#define MCP_RF_Cut
+//#define MCP_RF_Cut
 
 // beam diagnostic histograms
 //#define IC_hists
 //#define IC_cut
 
 //#define Pulser_ReRun //redefine this for cal
-//#define Hist_for_Cal
+#define Hist_for_PC_Cal
+//#define Hist_for_Si_Cal
 
 // Energy for each calibration steps can be switched off after Calibration
 //#define FillTree_Esteps
@@ -358,14 +359,17 @@ int main(int argc, char* argv[]){
 
 	Int_t bins=512;
 	Float_t vmin=-0.1;
-	Float_t vmax=1;
+	Float_t vmax=0.2;
 	
-#ifdef Hist_for_Cal	
+#ifdef Hist_for_PC_Cal	
 	MyFill(Form("PC_Down_vs_Up_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
 	       1000,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
+	MyFill(Form("PC_sum_vs_diff%i",i),
+	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
+	       1000,vmin,2*vmax,(PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage));
 #endif
 	
 	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
@@ -661,7 +665,7 @@ int main(int argc, char* argv[]){
 	}
 #endif
 	//////////////////////////////////////////// Fill SX3 Histograms for Calibration////////////////////////////////////////////
-#ifdef Hist_for_Cal
+#ifdef Hist_for_Si_Cal
 	Int_t udmax=4*4096/3;
 	Int_t fbmax=4*4096/3;
 	Int_t bins=512;
@@ -848,7 +852,7 @@ int main(int argc, char* argv[]){
 	}
 #endif
 	////////////////////////////////////////  Fill Q3 Histograms for Calibration  ///////////////////////////////////////////
-#ifdef Hist_for_Cal
+#ifdef Hist_for_Si_Cal
 	Int_t fbmax=4*4096/3;
 	Int_t bins=512;
 	if(Si.det_obj.HitType ==11){//Just to make it simple.
@@ -889,7 +893,8 @@ int main(int argc, char* argv[]){
       MainTree->Fill();
     }
 #else
-    if (Si.NSiHits > 0) {    
+    if (Si.NSiHits > 0) {
+    //if (PC.NPCHits > 0) {    
       MainTree->Fill();
     }
 #endif
