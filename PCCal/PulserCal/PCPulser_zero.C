@@ -38,8 +38,8 @@
   //TFile *file1 = new TFile("/data0/manasta/evt2root_files/run942.root"); 
 
   //run1036 24Mg data July 11, 2016
-  const Int_t npeaks = 6;
-  Float_t Volts[npeaks] = {0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
+  const Int_t npeaks = 7;
+  Float_t Volts[npeaks] = {0,0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
   TFile *file1 = new TFile("/data0/lighthall/root/raw/run1036.root");
   //TFile *file1 = new TFile("/home/lighthall/root/raw/run1264m.root"); 
   
@@ -62,7 +62,7 @@
   c1->SetWindowSize(1362,656);
   c1->Divide(1,2);
 
-  Bool_t dowait=1; //wait betweeen fits
+  Bool_t dowait=0; //wait betweeen fits
   
   if(dowait) {
     TCanvas *c2 = new TCanvas("c2","double-click me",260,100);
@@ -96,18 +96,21 @@
   TPolyMarker *pm;
   
   ofstream outfile;
+  ofstream outfile2;
   ofstream outfile3;//offsets, full fit, all points equally weighted
   ofstream outfile4;//offsets, centroid ROB
   outfile.open("saves/PCpulserCal.dat");
+  outfile2.open("saves/PCpulserCal_zero.dat");
   outfile3.open("saves/PCpulserCal_full.dat");
   outfile4.open("saves/PCpulserCal_centroid.dat");
   outfile << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
+  outfile2 << "ID\tChan\tVolt offset\tVolts/Chan\tPedi\tVolt" << endl;
   outfile3 << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
   outfile4 << "ID\tChan\tVolt offset\tVolts/Chan" << endl;
   
   for (Int_t id=2; id<4; id++) {
     for (Int_t chan=0; chan<32; chan++) {
-    
+      //if(chan>2) continue;
       if(id==3 && chan>15) continue;
       cout << "ADC " << id << " Chan " << chan << " ";
       c1->cd(1);
@@ -115,7 +118,7 @@
       //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
       //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
       //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
-      DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200",id,chan));
+      DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>0",id,chan));
       if(hist1->GetEntries()==0) continue;
       
       TSpectrum *s = new TSpectrum();
@@ -275,6 +278,7 @@
       }
       
       outfile  << id << "\t" << chan << "\t" << fit->GetParameter(0)  << "\t" << fit->GetParameter(1)  << endl;
+      outfile2 << id << "\t" << chan << "\t" << fit->GetParameter(0) << "\t" << fit->GetParameter(1) << "\t"<< xpeaks[0] << "\t" << xpeaks[0]*slope+offset << endl;
       outfile3 << id << "\t" << chan << "\t" << fit3->GetParameter(0) << "\t" << fit3->GetParameter(1) << endl;
       outfile4 << id << "\t" << chan << "\t" << fit4->GetParameter(0) << "\t" << fit4->GetParameter(1) << endl;
 
