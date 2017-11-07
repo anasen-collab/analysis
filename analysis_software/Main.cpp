@@ -5,6 +5,7 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define maxentries (Long64_t)1e6
 //#define MaxSiHits   500
 #define MaxADCHits  500
 #define MaxTDCHits  500
@@ -12,8 +13,8 @@
 #define NPCWires  24
 
 //Set PC Thresholds here
-#define PC_Min_threshold 100  //to forbid Noise
-#define PC_Max_threshold 3500 //to forbid Overflow
+#define PC_Min_threshold 0  //to forbid Noise
+#define PC_Max_threshold 4096 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 // To select the component of the beam, mostly for radioactive beams
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
 	       "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
     CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
     CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
-    CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal2016.07.11_centroid.dat");
+    CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_2017-11-06.dat");
     //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
     CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
     CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
@@ -287,7 +288,12 @@ int main(int argc, char* argv[]) {
   Int_t status = 0;
   Long64_t nentries = input_tree->GetEntries();
   cout << " nentries = " << nentries<<"  in  "<<filename_callist <<endl;
-
+  
+  if(nentries>maxentries) {
+    cout << " max entries exceeded! truncating data set from " << nentries << " to " << maxentries << endl;
+    nentries=maxentries;
+  }
+  
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     status = input_tree->GetEvent(global_evt);
     if(global_evt%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
@@ -373,10 +379,10 @@ int main(int argc, char* argv[]) {
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
-	       1000,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
+	       bins,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 	MyFill(Form("PC_sum_vs_diff%i",i),
 	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
-	       1000,vmin,2*vmax,(PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage));
+	       bins,vmin,2*vmax,(PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage));
 #endif
 	
 	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
@@ -387,15 +393,21 @@ int main(int argc, char* argv[]) {
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 #endif
 	
-	if (PCDownVoltage[i]>0 && PCUpVoltage[i]>0){
+	//if (PCDownVoltage[i]>0 && PCUpVoltage[i]>0){
 	  PC.pc_obj.Energy = PC.pc_obj.DownVoltage + PC.pc_obj.UpVoltage;
 	  PC.pc_obj.Z = (PC.pc_obj.UpVoltage - PC.pc_obj.DownVoltage)/PC.pc_obj.Energy;	 
 
 	  CMAP->Get_PCWire_RelGain(PC.pc_obj.WireID, PCRelGain);
 	  //cout<<"  PCRelGain == "<<PCRelGain<<endl;
 	  PC.pc_obj.Energy *= PCRelGain;
-	}
+	  //}
 
+	MyFill(Form("PC_sum_vs_assym%i",PC.pc_obj.WireID),
+	       bins,-2,2,(PC.pc_obj.UpVoltage-PC.pc_obj.DownVoltage)/(PC.pc_obj.Energy),
+	       bins,-0.03,0.3,(PC.pc_obj.Energy));
+	MyFill(Form("PC_assym%i",PC.pc_obj.WireID),
+	       bins,-2,2,(PC.pc_obj.UpVoltage-PC.pc_obj.DownVoltage)/(PC.pc_obj.Energy));
+	
 	CMAP->GetPCWorldCoordinates(PC.pc_obj.WireID,PC.pc_obj.Z,XWPC,YWPC,ZWPC,RWPC,PhiWPC);
 	PC.pc_obj.XW = XWPC;
 	PC.pc_obj.YW = YWPC;
@@ -790,7 +802,7 @@ int main(int argc, char* argv[]) {
       }//end ((down||up)&&back)
       else if ( Si.det_obj.EUp_Cal.size()!=0 || Si.det_obj.EDown_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ) {
 #ifdef Pulser_ReRun
-	//if only either of Up, Down or Back is fired in SX3, Continue.//Unless it is a pulser Check
+	//if only either of Up, Down or Back is fired in SX3, continue, unless it is a pulser check
 	Si.det_obj.UpMult = Si.det_obj.EUp_Cal.size();
 	Si.det_obj.DownMult = Si.det_obj.EDown_Cal.size();
 	Si.det_obj.BackMult = Si.det_obj.EBack_Cal.size();
@@ -895,7 +907,7 @@ int main(int argc, char* argv[]) {
 #endif	
 	
       }else if ( Si.det_obj.EFront_Cal.size()!=0 || Si.det_obj.EBack_Cal.size()!=0 ){
-	//if only either of Front or Back is fired in Q3, Continue.//Unless it is a pulser Check
+	//if only either of Front or Back is fired in Q3, continue, unless it is a pulser check
 #ifdef Pulser_ReRun
 	Si.Detector.push_back(Si.det_obj);
 	Si.NSiHits++;
@@ -926,7 +938,7 @@ int main(int argc, char* argv[]) {
   cout << "RootObjects are Written" << endl;
   outputFile->Close();
   cout << " Outputfile Closed\n";
-  for(int i=0;i<3;i++) {//print beeps at end of program
+  for(int i=0;i<1;i++) {//print beeps at end of program
     printf(" beep!\a\n");
     sleep(1);
   }
