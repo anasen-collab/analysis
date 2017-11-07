@@ -5,43 +5,10 @@
 // Developed by : Jon Lighthall Nov 2016
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-  //run250// December 4, 2015
-  //const Int_t npeaks = 6;
-  //Float_t Volts[npeaks] = {0.5, 1.0, 3.0, 5.0, 7.0, 9.0};
-  //TFile *file1 = new TFile("/data0/nabin/ANASEN_KTM/New/evt2root/run250_NSCL11_Pulser.root");  
-  //TFile *file1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/New/evt2root/run250_NSCL11_Pulser.root");  
-
-  //run262// January 19, 2016
-  //const Int_t npeaks = 5;
-  //Float_t Volts[npeaks] = {0.05, 0.1, 0.15, 0.2, 0.25};
-  //const Int_t npeaks = 4;
-  //Float_t Volts[npeaks] = {0.1, 0.15, 0.2, 0.25};
-  //TFile *file1 = new TFile("/data0/nabin/ANASEN/ANASEN_NKJ/ANASEN_N/262.root");  
-
-  //run354// February 5, 2016
-  //const Int_t npeaks = 5;
-  //Float_t Volts[npeaks] = {0.1, 0.2, 0.3, 0.4, 0.5};
-  //Float_t Volts2[4] = {0.2, 0.3, 0.4, 0.5};
-  //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/evt2root_root/run354.root");
-  
-  //run640// May 10, 2016
-  //const Int_t npeaks = 5;
-  //Float_t Volts[npeaks] = {0.06, 0.12, 0.3, 0.6, 0.8};
-  //Float_t Volts2[4] = {0.12, 0.3, 0.6, 0.8};
-  //TFile *file1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run640.root");  
-  
-  //run942 18Ne data May 31, 2016
-  //const Int_t npeaks = 6;
-  //Float_t Volts[npeaks] = {0.006, 0.012, 0.03, 0.06, 0.08,0.12};
-  //Float_t Volts2[4] = {0.03, 0.06, 0.08, 0.12};
-  //TFile *file1 = new TFile("/home/manasta/Desktop/parker_codes/evt2root_files/run942.root"); 
-  //TFile *file1 = new TFile("/data0/manasta/evt2root_files/run942.root"); 
-
-  //run1036 24Mg data July 11, 2016
+  // 24Mg data July 11, 2016
   const Int_t npeaks = 7;
   Float_t Volts[npeaks] = {0,0.003, 0.006, 0.01, 0.03, 0.06, 0.1};
   TFile *file1 = new TFile("/data0/lighthall/root/raw/run1036.root");
-  //TFile *file1 = new TFile("/home/lighthall/root/raw/run1264m.root"); 
   
   const int npar=npeaks*3;
 
@@ -73,8 +40,6 @@
     but2->Draw();
   }
   
-  //TH1I *hist1 = new TH1I("hist1","hist1",256,0,4095);
-  //TH1I *hist1 = new TH1I("hist1","hist1",512,0,6000);
   Int_t  size = 4096;
   TH1I *hist1 = new TH1I("hist1","hist1",size,0,size);
   
@@ -115,9 +80,6 @@
       cout << "ADC " << id << " Chan " << chan << " ";
       c1->cd(1);
       hist1->GetXaxis()->UnZoom();
-      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>500 && ADC.Data<3900",id,chan));
-      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>180 && ADC.Data<4900",id,chan));
-      //DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200 && ADC.Data<5000",id,chan));
       DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>0",id,chan));
       if(hist1->GetEntries()==0) continue;
       
@@ -227,6 +189,8 @@
       }
       else {
 	printf("number of peaks found = %d of %d\n", nfound, npeaks);
+	if(nfound==1)
+	  printf(" peak zero at %d\n", xpeaks[0]);
 	continue;
       }
       
@@ -288,4 +252,3 @@
   if(dowait)
     c2->Close();
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////

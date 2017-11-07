@@ -20,14 +20,14 @@ void PC_UpDown_RelCal(void) {
   Double_t x[10];
   Double_t y[10];  
 
-  string rootfile = "/home/lighthall/anasen/root/main/spacer0t_pccal.root";
+  string rootfile = "/home/lighthall/anasen/root/main/run1036_thresh.root";
   TFile *f1 = new TFile(rootfile.c_str());
   if (!f1->IsOpen()) {
     cout << "Root file: " << rootfile << " could not be opened.\n";
     exit(EXIT_FAILURE);
   } 
   ofstream outfile;  
-  outfile.open("PC_UD_RelCal_2017_outut.txt");
+  outfile.open("saves/PC_UD_RelCal_2017_outut.txt");
   outfile << "Wire\tSlope\tShift\n";
 
   TCanvas *pad = new TCanvas("pad","pad",800,600);
@@ -43,7 +43,7 @@ void PC_UpDown_RelCal(void) {
 	continue;
     } 
     hist->Draw("colz");	
-    cut = (TCutG*)pad->WaitPrimitive("CUTG");
+    /*    cut = (TCutG*)pad->WaitPrimitive("CUTG");
 	
     for(int n=0;n<cut->GetN()-2;n++){
       cut->GetPoint(n,x[n],y[n]);
@@ -52,9 +52,10 @@ void PC_UpDown_RelCal(void) {
     TGraph *graph = new TGraph(cut->GetN()-2,x,y);
     hist->Draw("colz");
     graph->Draw("*same");
+    */
     
     TF1 *f2 = new TF1("f2","[0] + [1]*x",0,1);
-    graph->Fit("f2");
+    hist->Fit("f2");
 
     Float_t Slope = f2->GetParameter(1);
     Float_t Shift = f2->GetParameter(0);
@@ -62,7 +63,7 @@ void PC_UpDown_RelCal(void) {
     cout<< "Slope = "<<Slope<<"   Shift = "<<Shift<<endl;
 
     pad->Update();
-    pad->WaitPrimitive();          
+    //    pad->WaitPrimitive();          
     outfile << WireNum << "\t" << Slope << "\t" << Shift << endl;    
   } 
 }
