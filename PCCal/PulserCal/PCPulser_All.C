@@ -56,11 +56,11 @@
   fit4->SetLineColor(7);
   fit4->SetLineStyle(2);
   
-  TGraph *FitGraph = 0;
-  TGraph *FitGraph2 = 0;
+  TGraph *FitGraph = 0; //for TSPectrum peaks
+  TGraph *FitGraph2 = 0;//for gaussian fit peaks
   TPolyMarker *pm;
   
-  ofstream outfile;
+  ofstream outfile; //offsets, ROB fit
   ofstream outfile3;//offsets, full fit, all points equally weighted
   ofstream outfile4;//offsets, centroid ROB
   outfile.open("saves/PCpulserCal.dat");
@@ -79,16 +79,16 @@
       hist1->GetXaxis()->UnZoom();
       DataTree->Draw("ADC.Data>>hist1",Form("ADC.ID==%d && ADC.ChNum==%d && ADC.Data>200",id,chan));
       if(hist1->GetEntries()==0) continue;
-      
+
+      // Step 1: Search for peaks
       TSpectrum *s = new TSpectrum();
       hist1->SetTitle(Form("ADC %i Chan %i",id,chan));
-      
       Int_t nfound = s->Search(hist1,3," ",0.05); //Search(histo,sigma,option,threshold)
       c1->Update();
-      
       Float_t *xpeaks = s->GetPositionX();
-      Float_t Temp=0;
 
+      // order peaks
+      Float_t Temp=0;
       for(Int_t i=0;i<nfound;i++) {
         for(Int_t j=i;j<nfound;j++) {
           if (xpeaks[j] < xpeaks[i]) {
@@ -100,14 +100,14 @@
       }
 	    
       for (Int_t l=0; l<nfound; l++) {
-        if(nfound>npeaks)
-	  {
+        if(nfound>npeaks) {
 	    cout << "Warning: Wire " << id << "(" << chan << ")" << "has too many peaks" << endl;
 	    break;
 	  }
         //outfile << id << "\t" << chan << "\t" << Volts[l] << "\t" << xpeaks[l] << endl;
       }
 
+      // Step 2: Fit each peak with a non-overlapping gaussian
       Float_t mnsp=25; //minimum space between adjacent peaks
       mnsp=xpeaks[npeaks-1]-xpeaks[0];
       for (Int_t i=0; i<(npeaks-1); i++){//find min. peak spacing
@@ -135,7 +135,7 @@
 	fform+=Form("+gaus(%d)",3*i);
       }
 
-      //global fit
+      // Step 3: Calculate global fit
       if((TF1 *)gROOT->FindObject("total"))total->Delete();
       TF1 *total = new TF1("total",fform,gfitmin,gfitmax);
       hist1->GetXaxis()->SetRangeUser(gfitmin,gfitmax);
@@ -147,7 +147,7 @@
       total->SetParameters(par);
       hist1->Fit(total,"Mq+");
 
-      //plot individual fits using parameters from global fit
+      // plot individual fits using parameters from global fit
       TF1 **functions = new TF1*[npeaks];
       pm=new TPolyMarker(npeaks);
       pm->SetMarkerStyle(23);
@@ -171,6 +171,7 @@
       }
       pm->Draw("same");
       
+      // Step 4: Calculate calibration constants
       c1->cd(2);
       if (nfound==npeaks) {
 	FitGraph = new TGraph(npeaks,xpeaks,Volts);
@@ -192,9 +193,6 @@
       FitGraph->GetHistogram()->GetXaxis()->SetTitle("Channel positions from peak fit");
       FitGraph->GetHistogram()->GetYaxis()->SetTitle("Voltages from calibration file");
       
-      //TF1 *pol1 = new TF1("pol1","[0]+[1]*x",0,5000);
-      //FitGraph->Fit("pol1","q");
-      //FitGraph2->Fit("pol1","Mq+");
       FitGraph->SetTitle(Form("Fit ADC %i Chan %i",id,chan));
       FitGraph->GetYaxis()->SetRangeUser(-0.01,0.11);
       FitGraph->Draw("A*");
@@ -212,16 +210,10 @@
 
       Float_t slope=fit->GetParameter(1);
       Float_t offset=fit->GetParameter(0);
-      
       printf(" Fit parameters are: Slope = %f volts per channel, Offset = %f volts\n",slope,offset);
       printf(" Inverse fit parameters are slope %f, offset %f\n",1/slope,-offset/slope); 
        
-      printf(" Testing fit:\n");
-      for (Int_t i=0; i<npeaks; i++) {
-       	printf("  Peak %2d at %6.1f is %9.6f (%9.6f)\n",i,xpeaks[i],xpeaks[i]*slope+offset,(xpeaks[i]*slope+offset)-Volts[i]);
-      }
-
-      leg = new TLegend(0.1,0.75,0.2,0.9);
+      leg = new TLegend(0.1,0.6,0.2,0.9);
       leg->AddEntry(fit,"pol1, ROB","l");
       leg->AddEntry(fit2,"pol2","l");
       leg->AddEntry(fit3,"pol1","l");   
@@ -229,6 +221,12 @@
       leg->AddEntry(FitGraph,"peaks","p");
       leg->AddEntry(FitGraph2,"centroids","p");
       leg->Draw();
+      
+      // Step 5: test fit
+      printf(" Testing fit:\n");
+      for (Int_t i=0; i<npeaks; i++) {
+       	printf("  Peak %2d at %6.1f is %9.6f (%9.6f)\n",i,xpeaks[i],xpeaks[i]*slope+offset,(xpeaks[i]*slope+offset)-Volts[i]);
+      }
             
       c1->Update();
       if(dowait) {
@@ -239,8 +237,6 @@
       outfile  << id << "\t" << chan << "\t" << fit->GetParameter(0)  << "\t" << fit->GetParameter(1)  << endl;
       outfile3 << id << "\t" << chan << "\t" << fit3->GetParameter(0) << "\t" << fit3->GetParameter(1) << endl;
       outfile4 << id << "\t" << chan << "\t" << fit4->GetParameter(0) << "\t" << fit4->GetParameter(1) << endl;
-
-      //TGraph *FitGraph = new TGraph(24,xpeaks,&(Volts[0]));
     }
   }
   if(dowait)
