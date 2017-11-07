@@ -1,5 +1,7 @@
-# ANASEN proportional counter (PC) pulser calibration.
+# PC pulser calibration.
 This program is used to calibrate the raw PC data from ADC channel number into voltages. During calibration, a variety of pulser signals of known voltages is supplied to the PC preamplifers. By comparing the peak positions in the PC spectrum with the known voltages from the pulser, a calibration is developed.
+
+The PC is calibrated by applying negative polarity tail pulses to the Mesytec preamplifers located inside the ANASEN chamber. Typical votage amplitudes used for calibration are 0.1V down to zero in 5 steps. 
  
 ## Instructions
 The program is intened to be run on "raw" `.root` files that have been processed by the `evt2root` progam and assumes that the voltage values from the pulser are known. Voltages and file locations are entered into the program and run using the following command.
