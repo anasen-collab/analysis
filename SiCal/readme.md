@@ -19,7 +19,7 @@ The macros for calibrating the QQQ detectors are located in [RelativeCal/QQQ](Re
 The macros for calibrating the SX3 detectors are located in [RelativeCal/SX3](RelativeCal/SX3).
 
 ## Position calibration
-The macros for calibrating the relative position of the SX3 detectors are located in [PositionCal](PositionCal). This calibration is based on the physical geometry of the silicon wafers and is refered to as the geometic calibration throughout the code.
+The macros for calibrating the relative position of the SX3 detectors are located in [PositionCal](PositionCal). This calibration is based on the physical geometry of the silicon wafers and is refered to as the geometry calibration throughout the code.
 
 ## Energy calibration
 The macros for calibrating the energy of the silicon detectors are located in [EnergyCal](EnergyCal).
