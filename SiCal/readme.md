@@ -2,15 +2,15 @@
 The silicon detector array is comprised of two structures in three groups: (1) A forward endcap formed by four Micron QQQ detectors and (2) two rings of Micron SX3 detectors, with 12 detectors in each ring. Both detector types follow the same basic calibration procedure, but the SX3 detectors require additional position calibration.
  
 ## Order of calibration
- 1. Pulser calibration
- 2. Realative calibration
- 3. Position calibration
- 3. Energy calibration
+ 1. [Pulser calibration](#pulser-calibration)
+ 2. [Relative calibration](#relative-calibration)
+ 3. [Position calibration](#position-calibration)
+ 3. [Energy calibration](#energy-calibration)
 
 ## Pulser calibration
 The macros for calibrating the voltage of the silicon detectors are located in [PulserCal](PulserCal).
 
-## Realative calibration
+## Relative calibration
 The macros for calibrating the gain matching silicon detector signals relative to one another are located in [RelativeCal](RelativeCal). The calibration methods for the QQQ and SX3 detectors are similar, but they are handeled differently.
 
 ### QQQ
@@ -24,7 +24,7 @@ The macros for calibrating the relative position of the SX3 detectors are locate
 ## Energy calibration
 The macros for calibrating the energy of the silicon detectors are located in [EnergyCal](EnergyCal).
 
-==
+---
 
 ## Directory names
 The names of a number of directories have chaned using the following commands. 
