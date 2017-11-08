@@ -4,7 +4,7 @@ Relative calibration of Si gains for QQQ. Essentially the same progam as that fo
 ## General Usage
 The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
 ### Instructions
-1. First, run `Main.cpp` with a given `.dat` file all 1's
+1. First, run `Main.cpp` with a given `.dat` file all slopes equal to 1
    * Edit `Main.cpp` to initialize the channel map with a `.dat` file with all 1's
    * Compile and run `Main.cpp` to generate a new `.root` file
    * Input the new `.root` and the `.dat` file into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
@@ -16,12 +16,18 @@ The data for the QQQ relaive gains calibration should have high statistics over 
    * Input the new `.root` and the `.dat` file from Step 1 into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
    * Run  `root -l SiRelativeGains_Step2.C+`
 
-### Output files (`.dat` files)
+### Output files
 Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of dat files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
 The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
+
+### Procedure
+The QQQ detectors are double-sidded silicon strip detectors divided into rings and wedges. The detector is gain-matched section-by-section. First, the front sections are gain-matched to a particular back section. Then, the remaining back sections are gain-matched to the back section used in the first step.
+1. [Step 1](#step-1) `SiRelativeGains_Step1.C`
+2. [Step 2](#step-2) `SiRelativeGains_Step2.C`
+In each step, a variety of [Fitting Methods](#fitting-methods) may be specified.
 
 ## Step 1
 Loop over front channels.
@@ -54,7 +60,9 @@ Check historams `Q3_back_vs_front%i`
 ### Gains
 ### Next steps
 
-### Fitting Methods 
+## Fitting Methods 
+The file `SiRelativeGains.h` provides the following fit methods.
+
 1. Method 1 - calculates slope of points wihtin pre-defined cut using TGraph
 2. Method 2 - calculates slope of points wihtin user-defined cut using TGraph
    This method works very similar to method 1, except that instead of a predefined cut, the user must
