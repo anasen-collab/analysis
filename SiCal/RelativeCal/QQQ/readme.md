@@ -28,6 +28,7 @@ The QQQ detectors are double-sidded silicon strip detectors divided into rings a
 1. [Step 1](#step-1) `SiRelativeGains_Step1.C`
 2. [Step 2](#step-2) `SiRelativeGains_Step2.C`
 3. [Final Fix](#final-fix)
+
 In each step, a variety of [Fitting Methods](#fitting-methods) may be specified.
 
 ## Step 1
@@ -35,9 +36,9 @@ Loop over front channels.
 For each detector (`DetNum=0-3`), each front channel (`FrontChNum=0-15`) is gain-matched with a particular back channel (typically `BackChNum=0`).
 ### Histograms
 `Q3_back_vs_front%i_%i_%i`
-###Files
+### Files
 Channels 16-31 in the `.dat` file will be filled in; this is written in the code as '[FrontChNum+16]'.
-###Gains
+### Gains
 The measured slope is multiplied by the previous gain (typically 1) to produce the new gain. Using this method, that is, using fits on histotrams to generate the slope parameters, the results are good to within 0.1 or better. That is the final slopes will be within 1.000 +/- 0.003 or better.
 ### Next steps
 Once you have completed this program, edit, recompile, and re-run `Main.cpp` using the new `QQQRelativeGains_Step1.dat` file.
@@ -48,7 +49,7 @@ You will input this new root file with this new relative gains file into [Step 2
 Loop over back channels. For each detector (`DetNum=0-3`), each new back channel (`BackChNum=1-15`) is gain-matched with a particular front channel (typically `FrontChNum=0`). Since `FrontChNum=0` was already gain matched to `BackChNum=0` in Step 1, the loop runs over the range 1-15.
 ### Histograms
 `Q3_back_vs_front%i_b%i`
-###Files
+### Files
 Channels 1-15 in the `.dat` file will be filled in. 
 ### Gains
 Using this method, that is, using fits on histotrams to generate the slope parameters, the results are good to within 0.3%. That is the final slopes will be within 1.000 +/- 0.003 or better.
