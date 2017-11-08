@@ -175,9 +175,10 @@ class PCHit { // This class is for Proportional Counter hits
     Int_t WireID;
     Double_t Down, Up;
     Double_t DownVoltage, UpVoltage;
+    Double_t DownRel, UpRel;
+    Double_t Sum, SumVoltage;
     Double_t Energy;
     Double_t Z;
-    Double_t Zcal;    
     Double_t XW, YW, ZW;
     Double_t RW, PhiW;
     Int_t TrackType;
@@ -189,13 +190,16 @@ class PCHit { // This class is for Proportional Counter hits
   //-------------------------------------------------------------
   void ZeroPC_obj(){
     pc_obj.WireID = -1;
-    pc_obj.Down = 0;
-    pc_obj.Up = 0;
-    pc_obj.DownVoltage = 0;
-    pc_obj.UpVoltage = 0;
+    pc_obj.Down = sqrt(-1);
+    pc_obj.Up = sqrt(-1);
+    pc_obj.Sum = sqrt(-1);
+    pc_obj.DownVoltage = sqrt(-1);
+    pc_obj.UpVoltage = sqrt(-1);
+    pc_obj.SumVoltage = sqrt(-1);
+    pc_obj.DownRel = sqrt(-1);
+    pc_obj.UpRel = sqrt(-1);
     pc_obj.Energy = sqrt(-1);
     pc_obj.Z = sqrt(-1);
-    pc_obj.Zcal = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
     pc_obj.ZW = -10;
@@ -403,6 +407,5 @@ class Track { //This Class is for Tracking
   //static bool PC_sort_method(struct PropCounter_Event c,struct PropCounter_Event d);
   static bool Tr_Sisort_method(struct TrackEvent a,struct TrackEvent b);
   static bool Tr_PCsort_method(struct TrackEvent a,struct TrackEvent b);
-  //-------------------------------------------------------------
 };
-//////////////////////////////////////////////////////////////////////////////////////////
+

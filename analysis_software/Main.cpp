@@ -5,16 +5,13 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define maxentries (Long64_t)1e6
-//#define MaxSiHits   500
+#define maxentries (Long64_t)1e9
 #define MaxADCHits  500
 #define MaxTDCHits  500
-#define MaxPCHits 24
-#define NPCWires  24
 
 //Set PC Thresholds here
-#define PC_Min_threshold 0  //to forbid Noise
-#define PC_Max_threshold 4096 //to forbid Overflow
+#define PC_Min_threshold 200  //to forbid Noise
+#define PC_Max_threshold 3500 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 // To select the component of the beam, mostly for radioactive beams
@@ -280,8 +277,6 @@ int main(int argc, char* argv[]) {
   Double_t PCUp[NPCWires];
   Double_t PCDownVoltage[NPCWires];
   Double_t PCUpVoltage[NPCWires];
-  Double_t PCZ[NPCWires];
-  Double_t PCZcal[NPCWires];
   Int_t ConvTest=0;
   Double_t Vcal;
 
@@ -290,7 +285,7 @@ int main(int argc, char* argv[]) {
   cout << " nentries = " << nentries<<"  in  "<<filename_callist <<endl;
   
   if(nentries>maxentries) {
-    cout << " max entries exceeded! truncating data set from " << nentries << " to " << maxentries << endl;
+    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << maxentries << endl;
     nentries=maxentries;
   }
   
@@ -322,8 +317,11 @@ int main(int argc, char* argv[]) {
       PCUpVoltage[i]   = 0.0;
     }
     // Make sure your ADC.Nhits is within bounds.
-    if (ADC.Nhits>MaxADCHits) ADC.Nhits=MaxADCHits;
-
+    if (ADC.Nhits>MaxADCHits) {
+      printf("MaxADCHits exceeded! %d > %d\n",ADC.Nhits,MaxADCHits);
+      ADC.Nhits=MaxADCHits;
+    }
+    
     for (Int_t n=0; n<ADC.Nhits; n++) {
       // Identify which detector type we have a hit in.
       CMAP->IdentifyADC(ADC.ID[n],ADC.ChNum[n],Identifier);
@@ -341,14 +339,7 @@ int main(int argc, char* argv[]) {
 	  PCUp[WireID]   = (Double_t)ADC.Data[n];
 	  if (ConvTest) PCUpVoltage[WireID]  = Vcal;
 	}
-
 	ConvTest = 0;
-	break;
-      case 2:
-	break;
-      case 3:
-	break;
-      case 4:
 	break;
       default:
 	break;
@@ -362,13 +353,15 @@ int main(int argc, char* argv[]) {
 
       PC.ZeroPC_obj();
 
-      if ( PCDown[i] > PC_Min_threshold && PCUp[i] > PC_Min_threshold && PCDown[i] < PC_Max_threshold && PCUp[i] < PC_Max_threshold ){ 
+      if ( PCDown[i] > PC_Min_threshold && PCUp[i] > PC_Min_threshold && PCDown[i] < PC_Max_threshold && PCUp[i] < PC_Max_threshold ) { 
 
 	PC.pc_obj.WireID = i;
 	PC.pc_obj.Down = PCDown[i];
 	PC.pc_obj.Up = PCUp[i];
+	PC.pc_obj.Sum=PC.pc_obj.Down+PC.pc_obj.Up;
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
+	PC.pc_obj.SumVoltage=PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage;
 
 	Int_t bins=512;
 	Float_t vmin=-0.1;
@@ -382,47 +375,52 @@ int main(int argc, char* argv[]) {
 	       bins,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 	MyFill(Form("PC_sum_vs_diff%i",i),
 	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
-	       bins,vmin,2*vmax,(PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage));
+	       bins,vmin,2*vmax,PC.pc_obj.SumVoltage);
 #endif
-	
-	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
-	PC.pc_obj.DownVoltage = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;
 
+	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
+	PC.pc_obj.DownRel = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;//PCDownRel[i];
+	PC.pc_obj.UpRel = PC.pc_obj.UpVoltage;//PCUpRel[i];
+	
 #ifdef Hist_after_Cal	
 	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
-	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
+	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
 #endif
-	
-	//if (PCDownVoltage[i]>0 && PCUpVoltage[i]>0){
-	  PC.pc_obj.Energy = PC.pc_obj.DownVoltage + PC.pc_obj.UpVoltage;
-	  PC.pc_obj.Z = (PC.pc_obj.UpVoltage - PC.pc_obj.DownVoltage)/PC.pc_obj.Energy;	 
 
+	if (PCDownRel[i]>0 && PCUpRel[i]>0) {
+	  PC.pc_obj.Energy = PC.pc_obj.DownRel + PC.pc_obj.UpRel;
+	  PC.pc_obj.Z = (PC.pc_obj.UpRel - PC.pc_obj.DownRel)/PC.pc_obj.Energy;	 
+	    
 	  CMAP->Get_PCWire_RelGain(PC.pc_obj.WireID, PCRelGain);
 	  //cout<<"  PCRelGain == "<<PCRelGain<<endl;
 	  PC.pc_obj.Energy *= PCRelGain;
-	  //}
 
-	MyFill(Form("PC_sum_vs_assym%i",PC.pc_obj.WireID),
-	       bins,-2,2,(PC.pc_obj.UpVoltage-PC.pc_obj.DownVoltage)/(PC.pc_obj.Energy),
-	       bins,-0.03,0.3,(PC.pc_obj.Energy));
-	MyFill(Form("PC_assym%i",PC.pc_obj.WireID),
-	       bins,-2,2,(PC.pc_obj.UpVoltage-PC.pc_obj.DownVoltage)/(PC.pc_obj.Energy));
-	
-	CMAP->GetPCWorldCoordinates(PC.pc_obj.WireID,PC.pc_obj.Z,XWPC,YWPC,ZWPC,RWPC,PhiWPC);
-	PC.pc_obj.XW = XWPC;
-	PC.pc_obj.YW = YWPC;
-	PC.pc_obj.ZW = ZWPC;
-	PC.pc_obj.RW = RWPC;
-	PC.pc_obj.PhiW = PhiWPC;
+	  Float_t zrange=1.2
 
+#ifdef Hist_for_PC_Cal		  
+	  MyFill(Form("PC_sum_vs_Z%i",PC.pc_obj.WireID),
+		 bins,-zrange,zrange,PC.pc_obj.Z,
+		 bins,vmin,2*vmax,PC.pc_obj.Energy);
+	  MyFill(Form("PCZ%i",PC.pc_obj.WireID),
+		 bins,-zrange,zrange,PC.pc_obj.Z);
+#endif	
+
+	  // calculate world coordinates
+	  CMAP->GetPCWorldCoordinates(PC.pc_obj.WireID,PC.pc_obj.Z,XWPC,YWPC,ZWPC,RWPC,PhiWPC);
+	  PC.pc_obj.XW = XWPC;
+	  PC.pc_obj.YW = YWPC;
+	  PC.pc_obj.ZW = ZWPC;
+	  PC.pc_obj.RW = RWPC;
+	  PC.pc_obj.PhiW = PhiWPC;
+	}
 	PC.Hit.push_back(PC.pc_obj);
 	PC.NPCHits++;
       }
     }//end NPCWires loops
     ////=============================== MCP && RF =====================================================
     if (TDC.Nhits>MaxTDCHits) {
-      TDC.Nhits=MaxTDCHits;
       printf("MaxTDCHits exceeded! %d > %d\n",TDC.Nhits,MaxTDCHits);
+      TDC.Nhits=MaxTDCHits;
     }
 
     RFTime = 0;
