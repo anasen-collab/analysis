@@ -5,13 +5,13 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define maxentries (Long64_t)1e9
-#define MaxADCHits  500
+#define MaxEntries (Long64_t) 1e6
+#define MaxADCHits  64
 #define MaxTDCHits  500
 
 //Set PC Thresholds here
-#define PC_Min_threshold 200  //to forbid Noise
-#define PC_Max_threshold 3500 //to forbid Overflow
+#define PC_Min_threshold 0  //to forbid Noise
+#define PC_Max_threshold 4096 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 // To select the component of the beam, mostly for radioactive beams
@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
   cout<<" ============================================================================================"<<endl; 
   //Initialization of the main channel map  
   ////////////////////////////////////////////////////////////////////////////
-  //before any cal where all slopes are one and offsets zero
   
   //initialize 17F
   if(1) {//load calibration files
@@ -149,12 +148,13 @@ int main(int argc, char* argv[]) {
     CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
     CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
     CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_2017-11-06.dat");
+    //CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_offset_2017-11-07.dat");
     //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
     CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
     CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
     CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
-  else {//load trivial calibration
+  else {//load trivial calibration, before any cal where all slopes are one and offsets zero
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
 	       "Param/initialize/Sipulser_init.dat",
 	       "Param/initialize/AlphaCalibration_init.dat",
@@ -277,24 +277,34 @@ int main(int argc, char* argv[]) {
   Double_t PCUp[NPCWires];
   Double_t PCDownVoltage[NPCWires];
   Double_t PCUpVoltage[NPCWires];
-  Int_t ConvTest=0;
+  Bool_t ConvTest=kFALSE;
   Double_t Vcal;
 
   Int_t status = 0;
   Long64_t nentries = input_tree->GetEntries();
-  cout << " nentries = " << nentries<<"  in  "<<filename_callist <<endl;
-  
-  if(nentries>maxentries) {
-    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << maxentries << endl;
-    nentries=maxentries;
+  cout << " nentries = " << nentries<<"  in  "<< filename_callist <<endl;
+  Bool_t btrunc=kFALSE;
+  Long64_t nstep=nentries/MaxEntries;
+  //Long64_t ncount=0;
+
+  if(nentries>MaxEntries) {
+    if(nstep<2) nstep=2;
+    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << MaxEntries << " or " << nentries/(nstep) <<endl;
+    cout << " processing 1 out of every " << nstep << " entries" <<endl;
+    //cout << " n step is " << nstep << endl;
+    btrunc=kTRUE;
   }
   
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
+    if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
-    if(global_evt%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
+    if(global_evt%TMath::Nint(nentries*0.10)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
 						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
+      //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
+    }
     if(global_evt%TMath::Nint(nentries*0.01)==0 && global_evt>0) cout << "." << std::flush;
+     
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -311,10 +321,10 @@ int main(int argc, char* argv[]) {
     //*************************************************************************************************
     // Initialize variables named above.
     for (Int_t i=0; i<NPCWires; i++) {
-      PCDown[i]  = 0;
-      PCUp[i]    = 0;
-      PCDownVoltage[i] = 0.0;
-      PCUpVoltage[i]   = 0.0;
+      PCDown[i]  = sqrt(-1);
+      PCUp[i]    = sqrt(-1);
+      PCDownVoltage[i] = sqrt(-1);
+      PCUpVoltage[i]   = sqrt(-1);
     }
     // Make sure your ADC.Nhits is within bounds.
     if (ADC.Nhits>MaxADCHits) {
@@ -339,7 +349,7 @@ int main(int argc, char* argv[]) {
 	  PCUp[WireID]   = (Double_t)ADC.Data[n];
 	  if (ConvTest) PCUpVoltage[WireID]  = Vcal;
 	}
-	ConvTest = 0;
+	ConvTest = kFALSE;
 	break;
       default:
 	break;
@@ -361,6 +371,11 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.Sum=PC.pc_obj.Down+PC.pc_obj.Up;
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
+
+	Float_t rezero=0;
+	PC.pc_obj.DownVoltage += rezero; 
+	PC.pc_obj.UpVoltage += rezero;
+
 	PC.pc_obj.SumVoltage=PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage;
 
 	Int_t bins=512;
@@ -387,7 +402,7 @@ int main(int argc, char* argv[]) {
 	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
 #endif
 
-	if (PCDownRel[i]>0 && PCUpRel[i]>0) {
+	if (PC.pc_obj.DownRel>0 && PC.pc_obj.UpRel>0) {
 	  PC.pc_obj.Energy = PC.pc_obj.DownRel + PC.pc_obj.UpRel;
 	  PC.pc_obj.Z = (PC.pc_obj.UpRel - PC.pc_obj.DownRel)/PC.pc_obj.Energy;	 
 	    
@@ -395,7 +410,7 @@ int main(int argc, char* argv[]) {
 	  //cout<<"  PCRelGain == "<<PCRelGain<<endl;
 	  PC.pc_obj.Energy *= PCRelGain;
 
-	  Float_t zrange=1.2
+	  Float_t zrange=1.2;
 
 #ifdef Hist_for_PC_Cal		  
 	  MyFill(Form("PC_sum_vs_Z%i",PC.pc_obj.WireID),
@@ -927,10 +942,13 @@ int main(int argc, char* argv[]) {
     }
 #endif
     //============================================================
+    //ncount++;
   }//end of for (global_evt=0; global_evt<nentries; global_evt++){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  cout << endl << " Changing to output file... " << endl;
+  
+  cout << endl << " Changing to output file... ";
   outputFile->cd();
+  cout << filename_histout  << endl;
   cout << " Writing objects... ";
   RootObjects->Write();
   cout << "RootObjects are Written" << endl;

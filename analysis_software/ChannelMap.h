@@ -142,7 +142,7 @@ class ChannelMap {
   
   void IdentifyADC(Int_t ADCid, Int_t CHid, Int_t& DetType);
   void IdentifyWire(Int_t ADCid, Int_t CHid, Int_t& WireID, Int_t& Side);
-  int ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double_t& Vcal);
+  Bool_t ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double_t& Vcal);
   void Get_PCWire_RelGain(Int_t WireID,Double_t& PCRelGain); 
   void GetPCWorldCoordinates(Int_t wireid, Double_t zpos, Double_t& xw, Double_t& yw, Double_t& zw, Double_t& rw, Double_t& phiw);
  
@@ -671,13 +671,14 @@ void ChannelMap::IdentifyWire(Int_t ADCid, Int_t CHid, Int_t& WireID, Int_t& Sid
 }
 
 //------------------------------------------------------------------------------------------------//
-Int_t ChannelMap::ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double_t& Vcal) {  
-  Vcal = 0;
+Bool_t ChannelMap::ConvertToVoltage(Int_t ADCid, Int_t CHid, Int_t PCData, Double_t& Vcal) {  
+  Vcal = sqrt(-1);
   if (PCData > 0) {
-
     Vcal = PCData*PCPulser_Slope[ADCid][CHid] + PCPulser_YOffset[ADCid][CHid];  
+    return kTRUE;
   }
-  return 1;
+  else
+    return kFALSE;
 }
 
 //-------------------------------------------------------------------------------------------------//
