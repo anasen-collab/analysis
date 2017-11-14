@@ -304,7 +304,6 @@ int main(int argc, char* argv[]) {
       //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
     }
     if(global_evt%TMath::Nint(nentries*0.01)==0 && global_evt>0) cout << "." << std::flush;
-     
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -381,13 +380,14 @@ int main(int argc, char* argv[]) {
 	Int_t bins=512;
 	Float_t vmin=-0.1;
 	Float_t vmax=0.2;
+	Float_t orange=0.008;
 	
 #ifdef Hist_for_PC_Cal	
 	MyFill(Form("PC_Down_vs_Up_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
-	       bins,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
+	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 	MyFill(Form("PC_sum_vs_diff%i",i),
 	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
 	       bins,vmin,2*vmax,PC.pc_obj.SumVoltage);
@@ -400,6 +400,9 @@ int main(int argc, char* argv[]) {
 #ifdef Hist_after_Cal	
 	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
+	MyFill(Form("PC_Offset_vs_Down_AfterCal_Wire%i",i),
+	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
+	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 #endif
 
 	if (PC.pc_obj.DownRel>0 && PC.pc_obj.UpRel>0) {
