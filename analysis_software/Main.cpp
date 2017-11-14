@@ -776,9 +776,9 @@ int main(int argc, char* argv[]) {
 	//////////////////////////////////////////// Fill SX3 Histograms for Z-Position Calibration//////////////////////////////////
 #ifdef ZPosCal
 	///////////////////  ZPosCal from the raw data from the Detector  ///////////////////
-	/*
-	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal ---------------  You can Turn it ON or OFF.
-	  if(Si.det_obj.EUp_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])) {
+#ifdef Hist_for_PC_cal
+	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal 
+	  if(Si.det_obj.EUp_Cal[0] > 0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])) {
 	    //if(Si.det_obj.SX3_ZUp[0] >= Si.det_obj.SX3_ZDown[0]) {	  
 	    MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,Si.det_obj.SX3_ZUp[0]);
 	  }else if(Si.det_obj.EDown_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] < Si.det_obj.EDown_Cal[0])) {
@@ -789,7 +789,7 @@ int main(int argc, char* argv[]) {
 	    break;
 	  } 
 	}	
-	*/
+#endif
 
 	/////////////////// ZPosCal from the Processed data from the Hit  ///////////////////
 
