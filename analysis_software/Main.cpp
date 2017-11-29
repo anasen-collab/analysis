@@ -5,7 +5,7 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1e6
+#define MaxEntries (Long64_t) 1e8
 #define MaxADCHits  64
 #define MaxTDCHits  500
 
@@ -294,16 +294,19 @@ int main(int argc, char* argv[]) {
     //cout << " n step is " << nstep << endl;
     btrunc=kTRUE;
   }
+  Float_t print_step=0.1;
+  if(nentries>5e5)
+    print_step/=10;
   
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
-    if(global_evt%TMath::Nint(nentries*0.10)==0) { cout << endl << "  Done: "
+    if(global_evt%TMath::Nint(nentries*print_step)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
 						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
       //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
     }
-    if(global_evt%TMath::Nint(nentries*0.01)==0 && global_evt>0) cout << "." << std::flush;
+    if(global_evt%TMath::Nint(nentries*print_step/10)==0 && global_evt>0) cout << "." << std::flush;
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -371,9 +374,9 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
 
-	Float_t rezero=0;
-	PC.pc_obj.DownVoltage += rezero; 
-	PC.pc_obj.UpVoltage += rezero;
+	Float_t rezero=1.53544582426548004e-02;
+	PC.pc_obj.DownVoltage += rezero/2; 
+	PC.pc_obj.UpVoltage += rezero/2;
 
 	PC.pc_obj.SumVoltage=PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage;
 
