@@ -5,7 +5,7 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1e6
+#define MaxEntries (Long64_t) 1e8
 #define MaxADCHits  64
 #define MaxTDCHits  500
 
@@ -294,17 +294,19 @@ int main(int argc, char* argv[]) {
     //cout << " n step is " << nstep << endl;
     btrunc=kTRUE;
   }
+  Float_t print_step=0.1;
+  if(nentries>5e5)
+    print_step/=10;
   
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
-    if(global_evt%TMath::Nint(nentries*0.10)==0) { cout << endl << "  Done: "
+    if(global_evt%TMath::Nint(nentries*print_step)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
 						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
       //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
     }
-    if(global_evt%TMath::Nint(nentries*0.01)==0 && global_evt>0) cout << "." << std::flush;
-     
+    if(global_evt%TMath::Nint(nentries*print_step/10)==0 && global_evt>0) cout << "." << std::flush;
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -372,22 +374,23 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
 
-	Float_t rezero=0;
-	PC.pc_obj.DownVoltage += rezero; 
-	PC.pc_obj.UpVoltage += rezero;
+	Float_t rezero=1.53544582426548004e-02;
+	PC.pc_obj.DownVoltage += rezero/2; 
+	PC.pc_obj.UpVoltage += rezero/2;
 
 	PC.pc_obj.SumVoltage=PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage;
 
 	Int_t bins=512;
 	Float_t vmin=-0.1;
 	Float_t vmax=0.2;
+	Float_t orange=0.008;
 	
 #ifdef Hist_for_PC_Cal	
 	MyFill(Form("PC_Down_vs_Up_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpVoltage,bins,vmin,vmax,PC.pc_obj.DownVoltage);
 	MyFill(Form("PC_Offset_vs_Down_BeforeCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
-	       bins,-0.008,0.008,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
+	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 	MyFill(Form("PC_sum_vs_diff%i",i),
 	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
 	       bins,vmin,2*vmax,PC.pc_obj.SumVoltage);
@@ -400,6 +403,9 @@ int main(int argc, char* argv[]) {
 #ifdef Hist_after_Cal	
 	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
+	MyFill(Form("PC_Offset_vs_Down_AfterCal_Wire%i",i),
+	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
+	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 #endif
 
 	if (PC.pc_obj.DownRel>0 && PC.pc_obj.UpRel>0) {
@@ -773,9 +779,9 @@ int main(int argc, char* argv[]) {
 	//////////////////////////////////////////// Fill SX3 Histograms for Z-Position Calibration//////////////////////////////////
 #ifdef ZPosCal
 	///////////////////  ZPosCal from the raw data from the Detector  ///////////////////
-	/*
-	if(Si.det_obj.HitType ==111){//Requires both Up and Down signal ---------------  You can Turn it ON or OFF.
-	  if(Si.det_obj.EUp_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])) {
+#ifdef Hist_for_PC_cal
+	if(Si.det_obj.HitType ==111) {//Requires both Up and Down signal 
+	  if(Si.det_obj.EUp_Cal[0] > 0 && (Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0])) {
 	    //if(Si.det_obj.SX3_ZUp[0] >= Si.det_obj.SX3_ZDown[0]) {	  
 	    MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,Si.det_obj.SX3_ZUp[0]);
 	  }else if(Si.det_obj.EDown_Cal[0] >0 && (Si.det_obj.EUp_Cal[0] < Si.det_obj.EDown_Cal[0])) {
@@ -786,7 +792,7 @@ int main(int argc, char* argv[]) {
 	    break;
 	  } 
 	}	
-	*/
+#endif
 
 	/////////////////// ZPosCal from the Processed data from the Hit  ///////////////////
 
