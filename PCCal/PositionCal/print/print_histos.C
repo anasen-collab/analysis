@@ -1,3 +1,6 @@
+#include <fstream>
+#include <iostream>
+
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -7,15 +10,8 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <iostream>
-//#include <exception>
-//#include <TCutG.h>
 
-
-
-void print_histos(void)
-{
+void print_histos(void) {
 
    using namespace std;
    

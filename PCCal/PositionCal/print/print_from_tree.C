@@ -1,3 +1,7 @@
+#include <fstream>
+#include <iostream>
+//#include <exception>
+
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -7,15 +11,8 @@
 #include <TGraph.h>
 //#include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <iostream>
-//#include <exception>
-//#include <TCutG.h>
 
-
-
-void print_from_tree(void)
-{
+void print_from_tree(void) {
 
    using namespace std;
    

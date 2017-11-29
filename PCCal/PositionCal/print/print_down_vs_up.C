@@ -10,12 +10,8 @@
 #include <fstream>
 #include <iostream>
 //#include <exception>
-//#include <TCutG.h>
 
-
-
-void print_down_vs_up(void)
-{
+void print_down_vs_up(void) {
 
    using namespace std;
    

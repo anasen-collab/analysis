@@ -1,3 +1,6 @@
+#include <fstream>
+#include <iostream>
+
 #include <TMath.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -5,17 +8,9 @@
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TGraph.h>
-//#include <TF1.h>
 #include <TSpectrum.h>
-#include <fstream>
-#include <iostream>
-//#include <exception>
-//#include <TCutG.h>
 
-
-
-void print_hist_qqq(void)
-{
+void print_hist_qqq(void) {
 
    using namespace std;
    
