@@ -11,12 +11,12 @@ The silicon detector array is comprised of two structures in three groups: (1) A
 The macros for calibrating the voltage of the silicon detectors are located in [PulserCal](PulserCal).
 
 ## Relative calibration
-The macros for calibrating the gain matching silicon detector signals relative to one another are located in [RelativeCal](RelativeCal). The calibration methods for the QQQ and SX3 detectors are similar, but they are handeled differently.
+The macros for gain matching the silicon detector signals relative to one another are located in [RelativeCal](RelativeCal). The calibration methods for the QQQ and SX3 detectors are similar, but they are handeled differently.
 
 ### QQQ
-The macros for calibrating the QQQ detectors are located in [RelativeCal/QQQ](RelativeCal/QQQ).
+The macros for calibrating the QQQ detectors are located in [RelativeCal/QQQ](RelativeCal/QQQ). There are four QQQ detectors in total; detector numbers 0-3.
 ### SX3
-The macros for calibrating the SX3 detectors are located in [RelativeCal/SX3](RelativeCal/SX3).
+The macros for calibrating the SX3 detectors are located in [RelativeCal/SX3](RelativeCal/SX3). There are 24 SX3 detectors in two rings of 12; detector numbers 4-15 in Ring 1 and detectors 16-27.
 
 ## Position calibration
 The macros for calibrating the relative position of the SX3 detectors are located in [PositionCal](PositionCal). This calibration is based on the physical geometry of the silicon wafers and is refered to as the geometry calibration throughout the code.

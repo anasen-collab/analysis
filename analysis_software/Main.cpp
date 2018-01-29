@@ -286,10 +286,13 @@ int main(int argc, char* argv[]) {
   cout << " nentries = " << nentries<<"  in  "<< filename_callist <<endl;
   Bool_t btrunc=kFALSE;
   Long64_t nstep=nentries/MaxEntries;
-  //Long64_t ncount=0;
+  Long64_t ncount=0;
+  Long64_t nsum=0;
+  Long64_t ntot=nentries/nstep;
 
   if(nentries>MaxEntries) {
-    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << MaxEntries << " or " << nentries/(nstep) <<endl;
+    //if(nstep<2) nstep=2;
+    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << ntot <<endl;
     cout << " processing 1 out of every " << nstep << " entries" <<endl;
     btrunc=kTRUE;
     nentries=MaxEntries;
@@ -301,14 +304,23 @@ int main(int argc, char* argv[]) {
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
-    if(global_evt%TMath::Nint(nentries*print_step)==0) { cout << endl << "  Done: "
+   
+    if(btrunc) {
+      nsum=ncount;
+    }
+    else {
+      nsum=global_evt;
+      ntot=nentries;
+    }
+
+    if(nsum%TMath::Nint(ntot*print_step)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
-						      << TMath::Nint(global_evt*100./nentries) << "%" << std::flush;
+						      << TMath::Nint(nsum*100./ntot) << "%" << std::flush;
       //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
     }
-    if(global_evt%TMath::Nint(nentries*print_step/10)==0 && global_evt>0) cout << "." << std::flush;
-    //std::cout << "\rDone: " << global_evt*100./nentries << "%          ";// << std::flush;
-   
+    if(nsum%TMath::Nint(ntot*print_step/10)==0 && nsum>0) cout << "." << std::flush;
+    //std::cout << "\rDone: " << global_evt*100./nentries << "%          " << std::flush;
+    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
     //======================= PC variables are initialized and Filled here.=============================
@@ -951,7 +963,7 @@ int main(int argc, char* argv[]) {
     }
 #endif
     //============================================================
-    //ncount++;
+    ncount++;
   }//end of for (global_evt=0; global_evt<nentries; global_evt++){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
