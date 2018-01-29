@@ -28,6 +28,7 @@
 
 // Check pulser calibration?
 //#define Pulser_ReRun
+#define Re_zeo
 
 // Select the histograms for performing calibration or to check calibration
 //#define Hist_for_Si_Cal
@@ -288,11 +289,10 @@ int main(int argc, char* argv[]) {
   //Long64_t ncount=0;
 
   if(nentries>MaxEntries) {
-    if(nstep<2) nstep=2;
     cout << " Max entries exceeded! truncating data set from " << nentries << " to " << MaxEntries << " or " << nentries/(nstep) <<endl;
     cout << " processing 1 out of every " << nstep << " entries" <<endl;
-    //cout << " n step is " << nstep << endl;
     btrunc=kTRUE;
+    nentries=MaxEntries;
   }
   Float_t print_step=0.1;
   if(nentries>5e5)
@@ -307,6 +307,7 @@ int main(int argc, char* argv[]) {
       //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
     }
     if(global_evt%TMath::Nint(nentries*print_step/10)==0 && global_evt>0) cout << "." << std::flush;
+    //std::cout << "\rDone: " << global_evt*100./nentries << "%          ";// << std::flush;
    
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 
@@ -374,10 +375,12 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.DownVoltage = PCDownVoltage[i];
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
 
+#ifdef Re_zero
 	Float_t rezero=1.53544582426548004e-02;
 	PC.pc_obj.DownVoltage += rezero/2; 
 	PC.pc_obj.UpVoltage += rezero/2;
-
+#endif
+	
 	PC.pc_obj.SumVoltage=PC.pc_obj.DownVoltage+PC.pc_obj.UpVoltage;
 
 	Int_t bins=512;
