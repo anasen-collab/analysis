@@ -5,7 +5,8 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1e8
+#define MaxEntries (Long64_t) 1e3
+#define bfirst (Bool_t) kTRUE //use first data or skip through?
 #define MaxADCHits  64
 #define MaxTDCHits  500
 
@@ -284,27 +285,38 @@ int main(int argc, char* argv[]) {
   Int_t status = 0;
   Long64_t nentries = input_tree->GetEntries();
   cout << " nentries = " << nentries<<"  in  "<< filename_callist <<endl;
-  Bool_t btrunc=kFALSE;
+  Bool_t btrunc=kFALSE; //truncate data set?
+
   Long64_t nstep=nentries/MaxEntries;
   Long64_t ncount=0;
   Long64_t nsum=0;
   Long64_t ntot=nentries/nstep;
 
   if(nentries>MaxEntries) {
-    //if(nstep<2) nstep=2;
-    cout << " Max entries exceeded! truncating data set from " << nentries << " to " << ntot <<endl;
-    cout << " processing 1 out of every " << nstep << " entries" <<endl;
     btrunc=kTRUE;
+    cout << " Max entries exceeded! Truncating data set from " << nentries << " to ";
+
+    if(bfirst) {
+    //set first
     nentries=MaxEntries;
+    ntot=nentries;
+    nstep=1;
+    }
+
+    cout << ntot <<endl;
+    if(bfirst)
+      cout << " Processing first " << ntot << " entries" <<endl;
+    else
+    cout << " Processing 1 out of every " << nstep << " entries" <<endl;
   }
   Float_t print_step=0.1;
-  if(nentries>5e5)
+  if(ntot>5e5)
     print_step/=10;
   
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
-   
+    
     if(btrunc) {
       nsum=ncount;
     }
@@ -316,10 +328,12 @@ int main(int argc, char* argv[]) {
     if(nsum%TMath::Nint(ntot*print_step)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
 						      << TMath::Nint(nsum*100./ntot) << "%" << std::flush;
-      //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;
+      //cout << " global_evt = " << global_evt << ", ncount = " <<ncount<<endl;//total vs passed
+      //cout << "   sum is "<< nsum << " total is " << ntot;
+      //cout << " " << nsum*100./ntot << "%          ";
     }
-    if(nsum%TMath::Nint(ntot*print_step/10)==0 && nsum>0) cout << "." << std::flush;
-    //std::cout << "\rDone: " << global_evt*100./nentries << "%          " << std::flush;
+    if(nsum%TMath::Nint(ntot*print_step/10)==0 && ntot>0) cout << "." << std::flush;
+    //std::cout << "\rDone: " << nsum*100./ntot << "%" << std::flush;
     
     /////////////////////////////////  CAEN section (PC, IC, CsI,..etc) ////////////////////////////////
 

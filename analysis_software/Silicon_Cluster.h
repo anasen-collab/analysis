@@ -247,13 +247,15 @@ void Silicon_Cluster::SortQ3(SiHit *Si, ChannelMap *CMAP){
     //Since top 2 Q3 are at zero of our Z-reference and bottom 2 Q3 are  Upstream by 0.762 cm
     //Z-positions for Q3 are set accordingly.
 
-    if ( Si->hit_obj.DetID==1 || Si->hit_obj.DetID==2 ){
+    if ( Si->hit_obj.DetID==1 || Si->hit_obj.DetID==2 ) {
       Si->hit_obj.Z = (0.762);
       Si->hit_obj.ZW = (0.762);
-    }else if (Si->hit_obj.DetID==0 || Si->hit_obj.DetID==3){
+    }
+    else if (Si->hit_obj.DetID==0 || Si->hit_obj.DetID==3) {
       Si->hit_obj.Z = (0);
       Si->hit_obj.ZW = (0);
-    }else{
+    }
+    else{
       //cout<<" Who is this ?"<<endl;   
     }
     
@@ -463,13 +465,13 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
     Double_t ZUp=0,ZUpCal=-10, ZDown=0, ZDownCal=-10;
     Double_t xw=0, yw=0, zw=0, rw=0, phiw=0;      
 
-    if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s])){    
+    if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s])) {    
       ZDown = ((2*fEn_Down[s]/bEn[s])-1);
       Si->hit_obj.ZDown_Dummy =ZDown;
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZDown,ZDownCal);   
       CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZDown,ZDownCal);  
 
-    }else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])){
+    }else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])) {
       ZUp = (1-(2*fEn_Up[s]/bEn[s]));    
       Si->hit_obj.ZUp_Dummy =ZUp;  
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZUp,ZUpCal);
@@ -483,11 +485,11 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
     Si->hit_obj.X = Random->Rndm()+(3-fCh[s]); 
     //-------------------------------------------------------------
 
-    if ((ZDownCal > -1) && (fEn_Down[s] > fEn_Up[s])){  
+    if ((ZDownCal > -1) && (fEn_Down[s] > fEn_Up[s])) {  
       Si->hit_obj.Z = ZDownCal;
       CMAP->GetSX3WorldCoordinates(Si->hit_obj.DetID,Si->hit_obj.X,Si->hit_obj.Z,xw,yw,zw,rw,phiw);
       //if(Si->hit_obj.HitType != 111){ cout<<"Up:  hit_obj.Z ="<<Si->hit_obj.Z<<"hit_obj.X ="<<Si->hit_obj.X<<"  HitType  = "<<Si->hit_obj.HitType<<endl;}
-    }else if((ZUpCal > -1) && (fEn_Down[s] <= fEn_Up[s])){       
+    }else if((ZUpCal > -1) && (fEn_Down[s] <= fEn_Up[s])) {       
       Si->hit_obj.Z = ZUpCal;
       CMAP->GetSX3WorldCoordinates(Si->hit_obj.DetID,Si->hit_obj.X,Si->hit_obj.Z,xw,yw,zw,rw,phiw);
       //if(Si->hit_obj.HitType != 111){ cout<<"Up:  hit_obj.Z ="<<Si->hit_obj.Z<<"hit_obj.X ="<<Si->hit_obj.X<<"  HitType  = "<<Si->hit_obj.HitType<<endl;}
