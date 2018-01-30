@@ -510,10 +510,10 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
     cout << "File with world coordinates " << WorldCoordinatesFilename;
     cout << " opened successfully." << endl;
     getline (worldCfile,line);//Skips the first line in WorldCoordinatesFilename.
-    //cout<<"line = "<<line<<endl;
+    cout<<"line = "<<line<<endl;
    
     while (!worldCfile.eof()) {
-      // worldCfile >> Dnum >> Zoff >> XMin >> XMax >> YMin >> YMax >> DumComment;
+   // worldCfile >> Dnum >> Zoff >> XMin >> XMax >> YMin >> YMax >> DumComment;
       worldCfile >> Dnum >> Zoff >> XMin >> XMax >> YMin >> YMax ;
 
       ZOffset[Dnum-4]  = Zoff;
@@ -521,6 +521,10 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
       XAt4[Dnum-4]     = XMax;
       YAt0[Dnum-4]     = YMin;
       YAt4[Dnum-4]     = YMax;
+    }
+
+    for (Int_t i = 0; i<NumSX3; i++) {
+      cout << "\t" << i + 4 << "\t" << ZOffset[i] << "\t " <<  XAt0[i] << "\t " <<  XAt4[i] << "\t " << YAt0[i] << "\t " << YAt4[i] << endl;
     }
     
   }
@@ -841,9 +845,11 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
     }else if(WSiY < 0 && WSiX>=0) {
       WSiPhi = TMath::ATan(WSiY/WSiX) + 2*TMath::Pi();
     }
-    
-  }else{
+  }
+  else{
     //This detector does not have world coordinates description
+    cout << " NO COORDINATES";
+    cout << " Det ID: " << DID << "Z: " << SiZ << " Z Offset: " << ZOffset[DID-4] << endl;
     WSiX = 0;
     WSiY = 0;
     WSiZ = 0;
@@ -878,6 +884,11 @@ void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t Final
   
   FinalZPosCal = (EdgeDCal-EdgeUCal)/(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum])
     *(FinalZPos-EdgeDown[DNum-4][StripNum][BChNum])+EdgeDCal;
+
+  /*  if(DNum>15) {
+    printf("Det num = %d Z = %f Zcal = %f\n",DNum,FinalZPos,FinalZPosCal);
+    printf(" Down = %f Up = %f Diff = %f\n",EdgeDown[DNum-4][StripNum][BChNum],EdgeUp[DNum-4][StripNum][BChNum],(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum]));
+    }*/
   
   //Check if Z Position is within the physical limits of the detector (with 1 mm tolerance),
   //if not return negative value.

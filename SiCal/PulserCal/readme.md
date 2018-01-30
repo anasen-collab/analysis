@@ -13,6 +13,7 @@ Output file (e.g.`Sipulser_2015Dec13.dat`) has the following columns:
  MBID, CBID, ASICs_Channel, ZeroShift(offset), Voltage_per_Ch(slope)
  
 There are 416 total silicon channels to calibrate: 4 QQQ detectors with 32 channels each (128 channels) and 24 SX3 detectors with 12 channels each (288 channels).
+Each pulser calibration file should have 417 lines, including the header line.
 
 ## Next steps
 Once the calibration file has been generated, modify the program `Main.cpp` to read in the calibration file. Once processed through `Main.cpp` the resultant `.root` files will contain silicon spectra that have been calibrated to voltages.

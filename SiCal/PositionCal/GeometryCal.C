@@ -27,8 +27,8 @@
 void GeometryCal(void) {
 
   using namespace std;
-  //TFile *f1 = new TFile("/home/lighthall/anasen/root/run1255-7mQ2S3_geo_init.root");//10MeV only
-  TFile *f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2S3.root");//in gas
+  //TFile *f1 = new TFile("/home/lighthall/anasen/root/main/run1255-7mQ2S3_geo_init.root");//10MeV only
+  TFile *f1 = new TFile("/home/lighthall/anasen/root/main/spacer0_geo.root");//in gas
   if ( !f1->IsOpen() ) {
     cout << "Error: Root File Does Not Exist\n";
     exit(EXIT_FAILURE);
@@ -40,7 +40,7 @@ void GeometryCal(void) {
   BadDetectors bad;
   bad.count=0;
   cout << "DetNum\tFrontCh\tBackCh\tmin\tmax\n";
-  for (Int_t DetNum=4; DetNum<ndets; DetNum++) {
+  for (Int_t DetNum=4; DetNum<ndets+4; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       for (Int_t BackChNum=0; BackChNum<4; BackChNum++) { 
 	TH1F *hist = NULL;
@@ -49,7 +49,9 @@ void GeometryCal(void) {
 	if (hist==NULL) {
 	  cout << hname << " histogram does not exist\n";
 	  bad.Add(DetNum,FrontChNum,BackChNum);
-	  outfile << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t" << 0 << "\t" << 0 << endl;
+	  Double_t up = -1+0.5*BackChNum;
+	  Double_t down = up+0.5;
+	  outfile << DetNum << "\t" << FrontChNum << "\t" << BackChNum << "\t" << up << "\t" << down << endl;
 	  continue;
 	}
 	hist->Rebin(2);

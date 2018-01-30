@@ -5,8 +5,10 @@ Each detector has 4 front channels which are position sensitive and 4 back chann
 The detector strips on the front and back are oriented in a perpendicular fashion, forming 16 pseudo pixels.
 Each of the 384 pseudo pixels is calibrated using the known position range of each pseudo pixel.
 
-## General Usage
-### Instructions
+## Instructions
+### General Usage
+`root -l GeomtryCal.C+`
+
 
 ### Output files (`.dat` files)
 The output file (e.g.`X3geometry.dat`) has the following columns:
@@ -19,8 +21,12 @@ The `.dat` files  included in the repository are an example. The run-to-run chan
 
 For reference, trivial calibration files can be generated with the file `X3geometry_ini.C` in the [saves](saves) directory. These programs are  run using the command `root -l X3geometry_ini.C`
 
+### Input files
+
 ### Histograms
-### Files
+`TString hname=Form("SX3ZposCal_%i_%i_%i",DetNum,FrontChNum,BackChNum);`
+turn on using `#define ZPosCal` in Main.ccp.
+
 ### Gains
 ### Next steps
 ## Fiting Methods 

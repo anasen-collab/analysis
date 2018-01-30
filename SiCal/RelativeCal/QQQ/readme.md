@@ -1,9 +1,8 @@
 # QQQ Relative Calibration
 Relative calibration of Si gains for QQQ. Essentially the same progam as that for the SX3 (or vice-versa).
 
-## General Usage
-The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
-### Instructions
+## Instructions
+### General Usage
 1. First, run `Main.cpp` with a given `.dat` file all slopes equal to 1
    * Edit `Main.cpp` to initialize the channel map with a `.dat` file with all 1's
    * Compile and run `Main.cpp` to generate a new `.root` file
@@ -15,8 +14,11 @@ The data for the QQQ relaive gains calibration should have high statistics over 
    * Compile and run `Main.cpp` to generate a new `.root` file
    * Input the new `.root` and the `.dat` file from Step 1 into this code. Make sure you are using the same `.dat` file that was reference by `Main.cpp`.
    * Run  `root -l SiRelativeGains_Step2.C+`
+   
+### Input files (`.root` files)
+The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
 
-### Output files
+### Output files (`.dat` files)
 Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of `.dat` files is a dummy line.

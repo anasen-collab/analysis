@@ -45,6 +45,9 @@ class BadDetectors {
   Int_t front[ndets*nchan];
   Int_t back[ndets*nchan];
   Int_t count;
+  BadDetectors() {
+    count=0;
+  };
   void Add(Int_t,Int_t,Int_t BackChNum=-1);
   void Print();
 };
@@ -69,10 +72,12 @@ void Time::Get() {
 }
 
 void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
+
   det[count] = DetNum;
   front[count] = FrontChNum;
   back[count] = BackChNum;
   count++;
+  //printf(" %d is bad, total is %d\n",DetNum,count);
 }
 
 void BadDetectors::Print() {

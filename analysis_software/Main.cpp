@@ -5,7 +5,7 @@
 // Author: Nabin Rijal, John Parker, Ingo Wiedenhover -- 2016 September.
 // Edited by : Jon Lighthall, 2016.12
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1.2e8
+#define MaxEntries (Long64_t) 3.3e5
 #define bfirst (Bool_t) kTRUE //use first data or skip through?
 #define MaxADCHits  64
 #define MaxTDCHits  500
@@ -147,8 +147,7 @@ int main(int argc, char* argv[]) {
 	       "Param/17F_cals/AlphaCal_170515.edit.dat",
 	       "Param/17F_cals/X3RelativeGains_Step3_170525.dat",
 	       "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-    //CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_170502.dat");
-    CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/initialize/X3geometry_init.dat");
+    CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_180130.dat");
     CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
     CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_2017-11-06.dat");
     //CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_offset_2017-11-07.dat");
@@ -317,6 +316,7 @@ int main(int argc, char* argv[]) {
   Float_t print_step=0.1;
   if(ntot>5e5)
     print_step/=10;
+  cout << " Each \".\" represents " << (print_step/10)*ntot << " events" << endl;
   
   for (Long64_t global_evt=0; global_evt<nentries; global_evt++) {//loop over all entries in tree------
     if(btrunc && global_evt%nstep>0) continue;

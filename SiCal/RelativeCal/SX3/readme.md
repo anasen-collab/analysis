@@ -6,8 +6,8 @@ Then, the front signals are gain-matched to a particular back signal, thus gain-
 Next, the back signals are gain-matched to each other.
 Last, the a linear offset is appplied to align the sum of the position signals with the energy signal.
 
-## General Usage
-### Instructions
+## Instructions
+### General Usage
 1. First, run `Main.cpp` with a given `X3cal.dat` file
    * Input the `.root` file and the `.dat` file into `Step1.C`
    * Run `root -l SiRelativeGains_Step1.C+`
@@ -18,6 +18,11 @@ Last, the a linear offset is appplied to align the sum of the position signals w
 3. Finally, run `Main.cpp` again with the new `.dat` file from Step 2.
    * Input the new organize.root and new .dat file into `Step3.C`
    * `root -l SiRelativeGains_Step3.C+`
+
+### Input files (`.root` files)
+The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering.
+The calibration assumes that up+down=constant.
+This is only true for a fixed energy.
 
 ### Output files (`.dat` files)
 The output file (e.g.`X3RelativeGains_Slope1.dat`) has the following columns:
@@ -64,8 +69,6 @@ Histograms named `down_vs_up_divideBack%i_front_%i` are an extra histogram, also
 * It can loop over any range of detectors you want You can do the calibration detector by detector looping one detector at a time or loop from DetNum=4 to 27.
   if you do so change the loop
 ### Files
-The input `.root` file should be generated from runs with fixed particle energy; either alpha calibration or proton scattering. The calibration assumes that up+down=constant. This is only true for a fixed energy.
-
 The program reads in an `X3RelativeGains.dat` file and outputs a new file with updated coefficients.
 Before running, make sure that the `.root` file you are reading in has the right histograms and has been 
 created using the same `X3RelativeGains.dat` file that you are inputting into this code.
@@ -78,10 +81,10 @@ The gains are applied as -[old]/[new] where old is the previous gain read in by 
 
 ### Next steps
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step1.dat`
-You will input this new root file with this new relative gains file into step 2.
+You will input this new root file with this new relative gains file into Step 2.
 
 ## Step 2
-Loop over front (clickable step 3)
+Loop over front (same as "clickable" Step 3)
 This step fixes the relative gains of the 4 front strips with respect to a single back strip
 ### Histograms
 First, histograms should be created for events in which one front strip (up and down) and one back strip fired. Using more complicated multiplicities here will confuse things (if only the up fired, then front != back, which defeats the initial assumption that front == back).
@@ -108,10 +111,10 @@ Channel numbers 4-11 will be updated.
  
 #### Next steps
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step2.dat`
-You will input this new root file with this new relative gains file into step 3. 
+You will input this new root file with this new relative gains file into Step 3. 
 
 ## Step 3
-Loop over back; (old, clickable Step 2).
+Loop over back; (same as "old" and "clickable" Step 2).
 This program fixes the back gains in the SX3 detectors relative to a front channel.
 This step fixes the relative gains of the 3 remaining back channels to that of a designated front channel.
 It works in the same was as Step 2.
@@ -141,9 +144,9 @@ The gains are applied as [old]/[new] where old is the previous gain read in by t
 ### Next steps
 Once you have completed this program, rerun `Main.C` with this new `X3RelativeGains_Step3.dat`
 Everything should now be calibrated properly, but check the histograms to make sure.
-If the histograms are not as good as desired, you can repeat this process for any individual detector (all three programs). Just be sure to input the correct RelativeGains.dat file and root file.
+If the histograms are not as good as desired, you can repeat this process for any individual detector (all three programs). Just be sure to input the correct `RelativeGains.dat` file and root file.
 
-## Final fix
+## Final fix (Step 4)
 ### Hisotgrams
 ````
 //check offset
