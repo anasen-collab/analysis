@@ -280,12 +280,15 @@ int main(int argc, char* argv[]) {
     cout<<"nentries = "<<nentries<<endl;
 
     Int_t status;
+    Float_t print_step=0.1;
+    if(nentries>5e5)
+      print_step/=10;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
       status = raw_tree->GetEvent(i);
-      if(i%TMath::Nint(nentries*0.10)==0) cout << endl << "  Done: "
+      if(i%TMath::Nint(nentries*print_step)==0) cout << endl << "  Done: "
 					       << right << fixed << setw(3)
 					       << TMath::Nint(i*100./nentries) << "%" << std::flush;
-      if(i%TMath::Nint(nentries*0.01)==0) cout << "." << std::flush;
+      if(i%TMath::Nint(nentries*print_step/10)==0) cout << "." << std::flush;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
       Double_t slope=0.9852; //slope of MCP vs RF
@@ -530,6 +533,7 @@ int main(int argc, char* argv[]) {
       ////////////////////////////////////////////////////////////////////////////////////////
       
 #ifdef PCWireCal      
+      Double_t WireRad[25]={pcr};
       Double_t tantheta;
            
       for(Int_t s=0; s<Tr.NTracks1;s++) {
@@ -537,38 +541,41 @@ int main(int argc, char* argv[]) {
 	//determine PC position from Silicon position and gold position
 	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
 	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
+	Tr.TrEvent[s].PCZ_Ref = WireRad[Tr.TrEvent[s].WireID]/tantheta+gold_pos;
 	//cout<<"tantheta = "<< tantheta <<" PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
 	Int_t pcbins=400;
+	Float_t zmin=-1;
+	Float_t zmax=30;
 	
 	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),pcbins,1,30,Tr.TrEvent[s].PCZ_Ref);
 	// before PCWIRECAL applied
 	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),
 	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
-	       pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref); 
+	       pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref); 
 
 	// after PCWIRECAL applied
 	MyFill(Form("PCZ_vs_Zc%i",Tr.TrEvent[s].WireID),
-	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); 
+	       pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+	       pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref); 
 
 	MyFill("PCZ_vs_Zc",
-	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-	       pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+	       pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+	       pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref);
 	
 	if(Tr.TrEvent[s].DetID<16 && Tr.TrEvent[s].DetID>-1) {
 	  MyFill(Form("PCZ_vs_Zc_q3_r1%i",Tr.TrEvent[s].WireID),
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill("PCZ_vs_Zc_q3_r1",
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref);
 	}
 
 	if(Tr.TrEvent[s].DetID<28 && Tr.TrEvent[s].DetID>3) {
 	  MyFill(Form("PCZ_vs_Zc_r1_r2%i",Tr.TrEvent[s].WireID),
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref);
 	}
 
 	Float_t E_gate_center=9.5753;
@@ -577,13 +584,13 @@ int main(int argc, char* argv[]) {
 	if (Tr.TrEvent[s].SiEnergy>(E_gate_center-E_gate_width) && Tr.TrEvent[s].SiEnergy< (E_gate_center+E_gate_width)) {//this cut is to clean up calibration data... 	  
 	  
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
-		 pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),
 		 pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
-		 pcbins,1.0,30.0,Tr.TrEvent[s].PCZ_Ref);
+		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill(Form("PCZ_vs_Zgc%i",Tr.TrEvent[s].WireID),
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ,
-		 pcbins,-1.0,30.0,Tr.TrEvent[s].PCZ_Ref); // after PCWIRECAL applied
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
+		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ_Ref); // after PCWIRECAL applied
 	  /////////////////////////////////////////////////////////////////	 
 	}
 	//MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),100,-2.0,2.0,Tr.TrEvent[s].PCZ,750,0,30,Tr.TrEvent[s].PCZ_Ref);
