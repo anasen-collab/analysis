@@ -21,7 +21,11 @@ Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:
 Detector number, Front channel, Slope
 The first line of `.dat` files is a dummy line.
 The QQQ detectors correspond to detectors number 0-3. Each detector has 32 channels (0-31).
+Each calibration file should have 129 lines, including the header line.
+
 The `.dat` files are included in the repository as an example. The run-to-run changes in the `.dat` files are excuded by `.gitignore`. To force the updated files to be saved to the repository, use the command `git add -f file.dat`.
+
+For reference, a trivial calibration file can be generated with the file `QQQRelativeGain_ini.C` in the [saves](saves) directory. This program is run using the command `root -l QQQRelativeGain_ini.C`
 
 ### Procedure
 The QQQ detectors are double-sidded silicon strip detectors divided into rings and wedges. The detector is gain-matched section-by-section. First, the front sections are gain-matched to a particular back section. Then, the remaining back sections are gain-matched to the back section used in the first step.
