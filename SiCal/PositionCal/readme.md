@@ -7,10 +7,14 @@ Each of the 384 pseudo pixels is calibrated using the known position range of ea
 
 ## Instructions
 ### General Usage
-`root -l GeomtryCal.C+`
+Use the following command to run the program `root -l GeomtryCal.C+`
+There are a few important setting which mist be considered.
+* First, the max bin content ratio used to determine the edge of the detectors.
+The default value is 3.0 and seems to work well.
+* Re-binning the histograms should be used as necessary, depending on statistics.
+* The starting bin of the loop should be considered to skip junk bins, such as z=-1.0.
 
-
-### Output files (`.dat` files)
+### Output files (.dat files)
 The output file (e.g.`X3geometry.dat`) has the following columns:
 Detector number, Front channel number, Back channel number, upstream edge, downstream edge.
 The first line of `.dat` file is a header line.
@@ -22,11 +26,25 @@ The `.dat` files  included in the repository are an example. The run-to-run chan
 For reference, trivial calibration files can be generated with the file `X3geometry_ini.C` in the [saves](saves) directory. These programs are  run using the command `root -l X3geometry_ini.C`
 
 ### Input files
+Data with high statistics is needed. Each pseudo pixel (1/16th of each detector) needs to have sufficient statistics to locate the edges of the strips.
 
 ### Histograms
+enable the generation of the 
 `TString hname=Form("SX3ZposCal_%i_%i_%i",DetNum,FrontChNum,BackChNum);`
-turn on using `#define ZPosCal` in Main.ccp.
+histograms using `#define ZPosCal` in Main.ccp.
 
 ### Gains
+The position on the detector is calculated in Silicon_Cluster.h.
+
+The calculated parameters are applied by the `ChannelMap` method `PosCal`
+````
+FinalZPosCal = (EdgeDCal-EdgeUCal)/(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum])
+    *(FinalZPos-EdgeDown[DNum-4][StripNum][BChNum])+EdgeDCal;
+````
+Here EdgeDCal and EdgeUCal are the known locations of the strip edges and EdgeDown and  EdgeUp are the edges measured in GeomtryCal.C.
+FinalZPos is defined over the range -1 to +1.
+The variable FinalZPosCal is defined over the range 0 to 7.5cm and gives the physical position in cm on the silicon strip.
 ### Next steps
-## Fiting Methods 
+
+## Fiting Method
+a half max threshold is set in the code. A typical value is the maximum peak height divided by 3.
