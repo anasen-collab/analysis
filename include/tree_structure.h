@@ -49,9 +49,6 @@ class SiHit {  // This class is for Silicon hits
     vector<Double_t> EFront_Rel;
     vector<Double_t> EBack_Rel;
 
-    vector<Double_t> SX3_ZUp;
-    vector<Double_t> SX3_ZDown;
-
     //Energy after Energy calibration --in MeV
     vector<Double_t> EUp_Cal;
     vector<Double_t> EDown_Cal;   
@@ -74,8 +71,8 @@ class SiHit {  // This class is for Silicon hits
     Double_t EnergyBack, EnergyFront;
     Double_t Energy, Time;
     Double_t X, Y, Z;
-    Double_t Z_linear; // added 12/09/2016 for the ZPosCal_linear 
-    Double_t ZUp_Dummy,ZDown_Dummy;
+    Double_t ZUp,ZDown;
+    Double_t ZUpCal,ZDownCal;
     Double_t XW, YW, ZW;
     Double_t RW, PhiW;
     Int_t TrackType;
@@ -116,9 +113,6 @@ class SiHit {  // This class is for Silicon hits
     det_obj.EFront_Rel.clear();
     det_obj.EBack_Rel.clear();
 
-    det_obj.SX3_ZUp.clear();
-    det_obj.SX3_ZDown.clear();
-
     det_obj.EUp_Cal.clear();
     det_obj.EDown_Cal.clear();    
     det_obj.EFront_Cal.clear();
@@ -142,9 +136,10 @@ class SiHit {  // This class is for Silicon hits
     hit_obj.X = 0;
     hit_obj.Y = sqrt(-1);
     hit_obj.Z = sqrt(-1);
-    hit_obj.Z_linear = sqrt(-1); // added 12/09/2016 for the ZPosCal_linear
-    hit_obj.ZUp_Dummy = sqrt(-1);
-    hit_obj.ZDown_Dummy = sqrt(-1);
+    hit_obj.ZUp = sqrt(-1);
+    hit_obj.ZDown = sqrt(-1);
+    hit_obj.ZUpCal = sqrt(-1);
+    hit_obj.ZDownCal = sqrt(-1);
     hit_obj.XW = sqrt(-1);
     hit_obj.YW = sqrt(-1);
     hit_obj.ZW = sqrt(-1);
@@ -202,7 +197,7 @@ class PCHit { // This class is for Proportional Counter hits
     pc_obj.Z = sqrt(-1);
     pc_obj.XW = 0;
     pc_obj.YW = 0;
-    pc_obj.ZW = -10;
+    pc_obj.ZW = sqrt(-1);
     pc_obj.RW = 0;
     pc_obj.PhiW = sqrt(-1);
     pc_obj.TrackType = 0;

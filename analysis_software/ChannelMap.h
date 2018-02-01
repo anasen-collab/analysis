@@ -858,8 +858,8 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
 
 //------------------------------------------------------------------------------------------------//
 void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t FinalZPos, Double_t& FinalZPosCal) {
-  Double_t EdgeDCal=-100.0;
-  Double_t EdgeUCal=100.00;
+  Double_t EdgeDCal=sqrt(-1);
+  Double_t EdgeUCal=sqrt(-1);
   
   switch(BChNum) {
     case 0:

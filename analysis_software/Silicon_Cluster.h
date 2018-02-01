@@ -462,20 +462,22 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
     Si->hit_obj.Energy = bEn[s]; 
     Si->hit_obj.Time = bTi[s];
    
-    Double_t ZUp=0,ZUpCal=-10, ZDown=0, ZDownCal=-10;
+    Double_t ZUp=0,ZUpCal=sqrt(-1), ZDown=0, ZDownCal=sqrt(-1);
     Double_t xw=0, yw=0, zw=0, rw=0, phiw=0;      
 
     if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s])) {    
       ZDown = ((2*fEn_Down[s]/bEn[s])-1);
-      Si->hit_obj.ZDown_Dummy =ZDown;
+      Si->hit_obj.ZDown =ZDown;
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZDown,ZDownCal);   
       CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZDown,ZDownCal);  
-
-    }else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])) {
+      Si->hit_obj.ZDownCal =ZDownCal;
+    }
+    else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])) {
       ZUp = (1-(2*fEn_Up[s]/bEn[s]));    
-      Si->hit_obj.ZUp_Dummy =ZUp;  
+      Si->hit_obj.ZUp =ZUp;  
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZUp,ZUpCal);
       CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZUp,ZUpCal);
+      Si->hit_obj.ZUpCal =ZUpCal;
     }
       //--------------------------------------------------------------
     //determine z positions using back channels but it is too wide i.e. bad resolution
