@@ -1,4 +1,4 @@
-DetNum	FrontCh	Gain
+DetNum	Index	Gain
 4	0	1
 4	1	0.945476
 4	2	1.01298
@@ -105,7 +105,7 @@ DetNum	FrontCh	Gain
 12	7	0
 12	8	0.959026
 12	9	0.961035
-12	10	1.16439
+12	10	0
 12	11	0
 13	0	1
 13	1	0
