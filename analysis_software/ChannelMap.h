@@ -77,8 +77,6 @@ class ChannelMap {
   Double_t PC_UD_Slope[WireNum];
   Double_t PC_UD_Offset[WireNum];
 
-  Double_t PC_ReZero;
-
   TRandom3 *Randomm;
   
  public:
@@ -174,8 +172,6 @@ class ChannelMap {
   //------------------------PC Relative Gains---------------------added 05/05/2017------------------//
   int Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename);
   void Get_PC_UD_RelCal(Int_t WireID, Double_t& SlopeUD, Double_t& OffsetUD);
-  int Init_PC_ReZero(const char* PC_ReZero_Filename);
-  void Get_PC_ReZero(Double_t& ReZero);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -596,10 +592,11 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   }
   else LoadFail(PCCalibrationFilename);
 
+  cout << "ADC\tChan\tOffset\tSlope" << endl;
   for (Int_t k=2; k<4; k++) {
     for (Int_t i=0; i<MaxADCCh; i++) {
       if(k==3 && i>15) continue;
-      cout << k << i << PCPulser_YOffset[k][i] << PCPulser_Slope[k][i] << endl;
+      cout << k << "\t "<< i << "\t"<< PCPulser_YOffset[k][i] << "\t"<< PCPulser_Slope[k][i] << endl;
     }
   }
   
@@ -982,33 +979,5 @@ int ChannelMap::Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename) {
 void ChannelMap::Get_PC_UD_RelCal(Int_t WireID,Double_t& SlopeUD,Double_t& OffsetUD) {
   SlopeUD = PC_UD_Slope[WireID];
   OffsetUD = PC_UD_Offset[WireID];
-}
-
-int ChannelMap::Init_PC_ReZero(const char* PC_ReZero_Filename) {
-  ifstream pc_rezero;
-  string line11;
-  Double_t dummy;
-  
-  pc_rezero.open(PC_ReZero_Filename);
-   
-  if (pc_rezero.is_open()) {
-    cout << "Re-zero Voltage Calibration PC ";
-    cout << PC_ReZero_Filename << " opened successfully. " << endl;
-
-    getline (pc_rezero,line11);//Skips the first line in PC_UD_RelCal_Filename.
-    cout<<"line = "<<line11<<endl;
-
-    while (!pc_rezero.eof()) {
-      pc_rezero >> dummy;
-      PC_ReZero=dummy;
-    }
-    cout<<PC_ReZero<<endl;
-  }
-  else LoadFail(PC_ReZero_Filename);
-  return 1;
-}
-
-void ChannelMap::Get_PC_ReZero(Double_t& ReZero) {
-  ReZero=PC_ReZero;
 }
 #endif
