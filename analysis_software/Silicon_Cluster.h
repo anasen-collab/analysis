@@ -463,16 +463,17 @@ void Silicon_Cluster::SortSX3(SiHit *Si, ChannelMap *CMAP){
     Si->hit_obj.Time = bTi[s];
    
     Double_t ZUp=sqrt(-1),ZUpCal=sqrt(-1), ZDown=sqrt(-1), ZDownCal=sqrt(-1);
-    Double_t xw=sqrt(-1), yw=sqrt(-1), zw=sqrt(-1), rw=sqrt(-1), phiw=sqrt(-1);      
+    Double_t xw=sqrt(-1), yw=sqrt(-1), zw=sqrt(-1), rw=sqrt(-1), phiw=sqrt(-1);
+    Double_t zlimit=1.05; //The max of up or down must be within this range of the back signal
 
-    if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s])) {    
+    if(fEn_Down[s]>0 && (fEn_Down[s]>=fEn_Up[s]) && fEn_Down[s]<zlimit*bEn[s]) {    
       ZDown = ((2*fEn_Down[s]/bEn[s])-1);
       Si->hit_obj.ZDown =ZDown;
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZDown,ZDownCal);   
       CMAP->PosCal(Si->hit_obj.DetID,fCh[s],bCh[s],ZDown,ZDownCal);  
       Si->hit_obj.ZDownCal =ZDownCal;
     }
-    else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s])) {
+    else if(fEn_Up[s]>0 && (fEn_Down[s]<fEn_Up[s]) && fEn_Up[s]<zlimit*bEn[s]) {
       ZUp = (1-(2*fEn_Up[s]/bEn[s]));    
       Si->hit_obj.ZUp =ZUp;  
       //CMAP->PosCal(Si->hit_obj.DetID,Si->hit_obj.FrontChannel,Si->hit_obj.BackChannel,ZUp,ZUpCal);
