@@ -4,6 +4,7 @@
 // Author: Nabin Rijal, 2016 September.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define MaxEntries (Long64_t) 1e5
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
@@ -175,6 +176,36 @@ int main(int argc, char* argv[]) {
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef PCWireCal      
+  Double_t WireRad[NPCWires];
+  for (Int_t i=0; i<NPCWires; i++) {   
+    WireRad[i]=pcr;
+  }
+  ifstream pcrfile;
+  char* pcrfilename = "../analysis_software/Param/17F_cals/pcr_init.dat";
+  pcrfile.open(pcrfilename);
+  if(pcrfile.is_open()) {
+    cout << "Reading in PC wire radius file " << pcrfilename << "..." << endl;
+    string line1;
+    getline(pcrfile,line1);
+    cout << line1 << endl;
+    Int_t wireno;
+    Double_t rad;
+    while (!pcrfile.eof()) {
+      pcrfile >> wireno >> rad;
+      WireRad[wireno]=rad;
+    }
+    for (Int_t i=0; i<NPCWires; i++) {   
+      cout << i << "\t" << WireRad[i] << endl;
+    }
+  }
+  else {
+    cout << "PC wire radius file " << pcrfilename << " does not exist" << endl; 
+    exit(EXIT_FAILURE);
+  }
+  pcrfile.close();
+#endif
+    
 #ifdef DoLoss
   LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
   LookUp *E_Loss_alpha = new LookUp("/data0/nabin/Vec/Param/He4_D2_400Torr_20160614.eloss",M_alpha);
@@ -277,12 +308,18 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
  
     Long64_t nentries = raw_tree->GetEntries();
-    cout<<"nentries = "<<nentries<<endl;
+    cout<<" nentries = "<<nentries<<endl;
 
+    if(nentries>MaxEntries) {
+      cout << " Max entries exceeded! Truncating data set from " << nentries << " to " << MaxEntries << endl;
+      nentries=MaxEntries;
+    }
+    
     Int_t status;
     Float_t print_step=0.1;
     if(nentries>5e5)
       print_step/=10;
+    cout << " Each \".\" represents " << (print_step/10)*nentries << " events or " << print_step/10*100 <<"% of total" <<endl;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
       status = raw_tree->GetEvent(i);
       if(i%TMath::Nint(nentries*print_step)==0) cout << endl << "  Done: "
@@ -533,7 +570,7 @@ int main(int argc, char* argv[]) {
       ////////////////////////////////////////////////////////////////////////////////////////
       
 #ifdef PCWireCal      
-      Double_t WireRad[25]={pcr};
+
       Double_t tantheta;
            
       for(Int_t s=0; s<Tr.NTracks1;s++) {
