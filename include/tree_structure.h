@@ -171,7 +171,7 @@ class PCHit { // This class is for Proportional Counter hits
     Double_t Down, Up;
     Double_t DownVoltage, UpVoltage;
     Double_t DownRel, UpRel;
-    Double_t Sum, SumVoltage;
+    Double_t Sum, SumVoltage, SumRel;
     Double_t Energy;
     Double_t Z;
     Double_t XW, YW, ZW;
@@ -193,6 +193,7 @@ class PCHit { // This class is for Proportional Counter hits
     pc_obj.SumVoltage = sqrt(-1);
     pc_obj.DownRel = sqrt(-1);
     pc_obj.UpRel = sqrt(-1);
+    pc_obj.SumRel = sqrt(-1);
     pc_obj.Energy = sqrt(-1);
     pc_obj.Z = sqrt(-1);
     pc_obj.XW = 0;
@@ -237,6 +238,7 @@ class Track { //This Class is for Tracking
 
     Double_t PCEnergy;    
     Double_t PCZ;
+    Double_t PCZraw;
     Double_t PCX; 
     Double_t PCY;
     Double_t PCR;
@@ -284,6 +286,7 @@ class Track { //This Class is for Tracking
     Int_t WireID;
     Double_t PCEnergy;
     Double_t PCZ;
+    Double_t PCZraw;    
     Double_t PCR;
     Double_t PCPhi;
   }pc_obj;
@@ -331,6 +334,7 @@ class Track { //This Class is for Tracking
     track_obj.PCEnergy = sqrt(-1);
     track_obj.PCX = 0;
     track_obj.PCZ = sqrt(-1);
+    track_obj.PCZraw = sqrt(-1);
     track_obj.Z = sqrt(-1);
     track_obj.PCY = 0;
     track_obj.PCR = 0;
@@ -368,6 +372,7 @@ class Track { //This Class is for Tracking
     pc_obj.WireID = -1;
     pc_obj.PCEnergy = sqrt(-1);
     pc_obj.PCZ = sqrt(-1);
+    pc_obj.PCZraw = sqrt(-1);
     pc_obj.PCR = 0;
     pc_obj.PCPhi = 0;
 

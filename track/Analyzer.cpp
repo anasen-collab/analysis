@@ -4,7 +4,7 @@
 // Author: Nabin Rijal, 2016 September.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1e5
+#define MaxEntries (Long64_t) 1e9
 #define FillTree
 #define FillEdE_cor
 #define CheckBasic
@@ -399,6 +399,7 @@ int main(int argc, char* argv[]) {
 
 	    Tr.track_obj.PCEnergy = PC.pc_obj.Energy;
 	    Tr.track_obj.PCPhi = PC.pc_obj.PhiW;	  
+	    Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	    Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	    Tr.track_obj.PCR = PC.pc_obj.RW;
 	    Tr.track_obj.WireID = PC.pc_obj.WireID;	
@@ -459,6 +460,7 @@ int main(int argc, char* argv[]) {
 
 	  Tr.track_obj.PCEnergy = PC.pc_obj.Energy;
 	  Tr.track_obj.WireID = PC.pc_obj.WireID;	
+	  Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	  Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	  Tr.track_obj.PCR = PC.pc_obj.RW;
 	  Tr.track_obj.PCPhi = PC.pc_obj.PhiW;
@@ -588,7 +590,7 @@ int main(int argc, char* argv[]) {
 	MyFill(Form("PCZ_Ref%i",Tr.TrEvent[s].WireID),pcbins,1,30,Tr.TrEvent[s].PCZ_Ref);
 	// before PCWIRECAL applied
 	MyFill(Form("PCZ_vs_Z%i",Tr.TrEvent[s].WireID),
-	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
+	       pcbins,-1.5,1.5,Tr.TrEvent[s].PCZraw,
 	       pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref); 
 
 	// after PCWIRECAL applied
@@ -623,7 +625,7 @@ int main(int argc, char* argv[]) {
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
 		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill(Form("PCZ_vs_Zg%i",Tr.TrEvent[s].WireID),
-		 pcbins,-1.5,1.5,Tr.TrEvent[s].PCZ,
+		 pcbins,-1.5,1.5,Tr.TrEvent[s].PCZraw,
 		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
 	  MyFill(Form("PCZ_vs_Zgc%i",Tr.TrEvent[s].WireID),
 		 pcbins,zmin,zmax,Tr.TrEvent[s].PCZ,
