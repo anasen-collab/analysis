@@ -11,8 +11,8 @@
 #define MaxTDCHits  500
 
 //Set PC Thresholds here
-#define PC_Min_threshold 0  //to forbid Noise
-#define PC_Max_threshold 4096 //to forbid Overflow
+#define PC_Min_threshold 120  //zero signal corresponds to 160 and less
+#define PC_Max_threshold 3830 //to forbid Overflow
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 // To select the component of the beam, mostly for radioactive beams
@@ -29,13 +29,13 @@
 
 // Check pulser calibration?
 //#define Pulser_ReRun
-//#define Re_zeo
+#define Re_zero
 
 // Select the histograms for performing calibration or to check calibration
 //#define Hist_for_Si_Cal
-//#define Hist_for_PC_Cal
-#define ZPosCal
-//#define Hist_after_Cal
+#define Hist_for_PC_Cal
+//#define ZPosCal
+#define Hist_after_Cal
 
 ///////////////////////////////////////////////////// include Libraries ///////////////////////////////////////////////////////
 //C/C++
@@ -147,14 +147,14 @@ int main(int argc, char* argv[]) {
 	       "Param/17F_cals/AlphaCal_170515.edit.dat",
 	       "Param/17F_cals/X3RelativeGains_Step3_170525.dat",
 	       "Param/17F_cals/QQQRelativeGains_Step2_170428.dat");
-    CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat","Param/17F_cals/X3geometry_180131_600bins.dat");
+    CMAP->FinalInit("Param/17F_cals/X3FinalFix_Step3_170525.dat",
+		    "Param/17F_cals/X3geometry_180201_600bins_2.875.dat");
     CMAP->LoadQ3FinalFix("Param/17F_cals/QQQFinalFix_Step2_170428.dat");
     CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_2017-11-06.dat");
-    //CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_offset_2017-11-07.dat");
-    //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
+    CMAP->Init_PC_UD_RelCal("Param/17F_cals/PC_UD_RelCal_180205.dat");
+    CMAP->Init_PCWire_RelGain("Param/17F_cals/PCWire_RelGain_init.dat");
     CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
-    CMAP->Init_PC_UD_RelCal("Param/initialize/PC_UD_RelCal_init.dat");
-    CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
+    //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
   }
   else {//load trivial calibration, before any cal where all slopes are one and offsets zero
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -162,7 +162,8 @@ int main(int argc, char* argv[]) {
 	       "Param/initialize/AlphaCalibration_init.dat",
 	       "Param/initialize/X3RelativeGains_Slope1.dat",
 	       "Param/initialize/QQQRelativeGains_Slope1.dat");
-    CMAP->FinalInit("Param/initialize/X3FinalFix_init.dat","Param/initialize/X3geometry_init.dat");
+    CMAP->FinalInit("Param/initialize/X3FinalFix_init.dat",
+		    "Param/initialize/X3geometry_init.dat");
     CMAP->LoadQ3FinalFix("Param/initialize/QQQFinalFix_init.dat");
     CMAP->InitPCCalibration("Param/initialize/PCpulser_init.dat");
     CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
@@ -170,53 +171,6 @@ int main(int argc, char* argv[]) {
     CMAP->Init_PCWire_RelGain("Param/initialize/PCWire_RelGain_init.dat");
   }
     
-  /*
-  //intialize 24Mg
-  CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
-	     "Param/24Mg_cals/initialize/alignchannels_24Mg_11082016_1262.dat",
-	     "Param/initialize/AlphaCalibration_init.dat",
-  	     "Param/24Mg_cals/initialize/X3RelativeGains_11022016_Slope1.dat",
-	     "Param/24Mg_cals/initialize/QQQRelativeGains11022016_Slope1.dat");
-
-  CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
-	     "Param/24Mg_cals/initialize/alignchannels_24Mg_11082016_1262.dat",
-	     "Param/initialize/AlphaCalibration_init.dat",
-	     "Param/24Mg_cals/SX3Rel/X3RelativeGains_11172016_mix.dat",
-	     "Param/24Mg_cals/QQQRel/QQQRelativeGains11092016_Step2.dat");
-
-  //initialize 18Ne
-  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
-	     "Param/18Ne_cals/alignchannels_10242016.dat",
-	     "Param/initialize/AlphaCalibration_init.dat",
-  	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_09182016_Slope1.dat",
-	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
-
-  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
-	     "Param/18Ne_cals/alignchannels_10242016.dat",
-	     "Param/18Ne_cals/AlphaCal_10312016.dat",
-  	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_mix_10262016.dat",
-	     "Param/18Ne_cals/QQQRel/QQQRelativeGains10252016_Step2_vol2.dat");
-            
-  //old cal files for 18Ne
-  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
-	     "Param/18Ne_cals/alignchannels_09122016.dat",
-	     "Param/18Ne_cals/AlphaCal_09222016.dat",
-	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_10052016_step3redo_16_23.dat",
-	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09182016_Step2.dat");
-	     
-  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
-	     "Param/18Ne_cals/alignchannels_09122016.dat",
-	     "Param/18Ne_cals/AlphaCal_09222016.dat",
-	     "Param/18Ne_cals/SX3Rel/X3RelativeGains09222016_Step3.dat",
-	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09182016_Step2.dat");
-  
-  CMAP->Init("Param/18Ne_cals/ASICS_cmap_06292016",
-	     "Param/18Ne_cals/alignchannels_09122016.dat",
-	     "Param/initialize/AlphaCalibration_init.dat",
-	     "Param/18Ne_cals/SX3Rel/X3RelativeGains_10052016_step3redo_16_23.dat",
-	     "Param/18Ne_cals/QQQRel/QQQRelativeGains09122016_Slope1.dat");
-  */
-  
   CMAP->InitWorldCoordinates("Param/17F_cals/WorldCoord_170223.dat");  
   CMAP->InitPCADC("Param/initialize/NewPCMap");  
   cout<<" ============================================================================================"<<endl;
@@ -280,7 +234,7 @@ int main(int argc, char* argv[]) {
   Double_t PCDownVoltage[NPCWires];
   Double_t PCUpVoltage[NPCWires];
   Bool_t ConvTest=kFALSE;
-  Double_t Vcal;
+  Double_t Vcal=sqrt(-1);
 
   Int_t status = 0;
   Long64_t nentries = input_tree->GetEntries();
@@ -397,8 +351,8 @@ int main(int argc, char* argv[]) {
 
       PC.ZeroPC_obj();
 
-      if ( PCDown[i] > PC_Min_threshold && PCUp[i] > PC_Min_threshold && PCDown[i] < PC_Max_threshold && PCUp[i] < PC_Max_threshold ) { 
-
+      if((PCDown[i] > PC_Min_threshold || PCUp[i] > PC_Min_threshold) && (PCDown[i] < PC_Max_threshold && PCUp[i] < PC_Max_threshold)) { 
+	
 	PC.pc_obj.WireID = i;
 	PC.pc_obj.Down = PCDown[i];
 	PC.pc_obj.Up = PCUp[i];
@@ -407,7 +361,7 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.UpVoltage = PCUpVoltage[i];
 
 #ifdef Re_zero
-	Float_t rezero=1.53544582426548004e-02;
+	Float_t rezero=1.53324544243191307e-02;
 	PC.pc_obj.DownVoltage += rezero/2; 
 	PC.pc_obj.UpVoltage += rezero/2;
 #endif
@@ -426,21 +380,20 @@ int main(int argc, char* argv[]) {
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
 	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
 	MyFill(Form("PC_sum_vs_diff%i",i),
-	       bins,-vmax,vmax,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
+	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage),
 	       bins,vmin,2*vmax,PC.pc_obj.SumVoltage);
 #endif
 
 	CMAP->Get_PC_UD_RelCal(i, SlopeUD, OffsetUD);
-	PC.pc_obj.DownRel = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;//PCDownRel[i];
-	PC.pc_obj.UpRel = PC.pc_obj.UpVoltage;//PCUpRel[i];
+	PC.pc_obj.DownRel = (PC.pc_obj.DownVoltage/SlopeUD) - OffsetUD;
+	PC.pc_obj.UpRel = PC.pc_obj.UpVoltage;
+	PC.pc_obj.SumRel=PC.pc_obj.DownRel+PC.pc_obj.UpRel;
 	
-#ifdef Hist_after_Cal	
-	MyFill(Form("PC_Up_vs_Down_AfterCal_Wire%i",i),
+	MyFill(Form("PC_Down_vs_Up_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
 	MyFill(Form("PC_Offset_vs_Down_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
-	       bins,-orange,orange,(PC.pc_obj.DownVoltage-PC.pc_obj.UpVoltage));
-#endif
+	       bins,-orange,orange,(PC.pc_obj.DownRel-PC.pc_obj.UpRel));
 
 	if (PC.pc_obj.DownRel>0 && PC.pc_obj.UpRel>0) {
 	  PC.pc_obj.Energy = PC.pc_obj.DownRel + PC.pc_obj.UpRel;
@@ -448,7 +401,10 @@ int main(int argc, char* argv[]) {
 	    
 	  CMAP->Get_PCWire_RelGain(PC.pc_obj.WireID, PCRelGain);
 	  //cout<<"  PCRelGain == "<<PCRelGain<<endl;
-	  PC.pc_obj.Energy *= PCRelGain;
+	  if(PCRelGain==0)
+	    PC.pc_obj.Energy = sqrt(-1);
+	  else
+	    PC.pc_obj.Energy *= PCRelGain;
 
 	  Float_t zrange=1.2;
 
@@ -814,27 +770,29 @@ int main(int argc, char* argv[]) {
 #ifdef ZPosCal
 	///////////////////  ZPos from the raw data from the Detector  ///////////////////
 	// if(Si.det_obj.HitType == 111 && Si.det_obj.EUp_Cal[0] > 0) {//Requires both Up and Down signal 
-	//    if(Si.det_obj.EUp_Cal[0] >= Si.det_obj.EDown_Cal[0]) {
-	//      MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.UpChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,);
-	//    }
-	//      else {
-	//        //MyFill(Form("SX3Zpos_%i_%i_%i",Si.det_obj.DetID,Si.det_obj.DownChNum[0],Si.det_obj.BackChNum[0]),100,-1,1,Si.det_obj.SX3_ZDown[0]);
-	//    }
+		if(Si.hit_obj.ZUp <= 1.0 && Si.hit_obj.ZUp >= -1.0 ) {
+	  MyFill(Form("SX3Zpos_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp);
+	  MyFill(Form("SX3Zpos_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZUp);	 
+	  MyFill(Form("SX3Zpos_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZUp);
+	}
+	if(Si.hit_obj.ZDown <= 1.0 && Si.hit_obj.ZDown >= -1.0 ) {
+	  MyFill(Form("SX3Zpos_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown);
+	  MyFill(Form("SX3Zpos_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZDown);
+	  MyFill(Form("SX3Zpos_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZDown);
+	}
 	// }	
 
 	/////////////////// ZPosCal from the Processed data from the Hit  ///////////////////
 	//if(Si.det_obj.HitType ==111 && Si.det_obj.EUp_Cal[0] > 0) {
-	if(Si.hit_obj.ZUp <= 1.0 && Si.hit_obj.ZUp >= -1.0 ) {
-	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp);
-	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZUp);
-	  //MyFill(Form("SX3ZposCal_%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUp);
-	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZUp);
+	if(Si.hit_obj.ZUpCal <= 7.5 && Si.hit_obj.ZUpCal >= 0 ) {
+	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZUpCal);
+	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZUpCal);
+	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZUpCal);
 	}
-	if(Si.hit_obj.ZDown <= 1.0 && Si.hit_obj.ZDown >= -1.0 ) {
-	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown);
-	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZDown);
-	  //MyFill(Form("SX3ZposCal_%i_b%i",Si.hit_obj.DetID,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDown);//show all front for given back
-	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZDown);
+	if(Si.hit_obj.ZDownCal <= 7.5 && Si.hit_obj.ZDownCal >= 0 ) {
+	  MyFill(Form("SX3ZposCal_%i_%i_%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel,Si.hit_obj.BackChannel),600,-1,1,Si.hit_obj.ZDownCal);
+	  MyFill(Form("SX3ZposCal_%i_f%i",Si.hit_obj.DetID,Si.hit_obj.FrontChannel),600,-1,1,Si.hit_obj.ZDownCal);
+      	  MyFill(Form("SX3ZposCal_%i",Si.hit_obj.DetID),600,-1,1,Si.hit_obj.ZDownCal);
 	}
 	//}
 #endif 		
