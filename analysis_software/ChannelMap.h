@@ -34,6 +34,8 @@
 #define MaxADC 5
 #define MaxADCCh 32
 
+#define doprint kFALSE
+
 using namespace std;
 ///////////////////////////////////////////////////////////////////////////////////
 class ChannelMap {
@@ -194,12 +196,12 @@ int ChannelMap::LoadASICsChannelMapFile (const char* ASICsChannelMapFilename) {
   if (channelmapfile.is_open()) {
     cout << "The channel map file " << ASICsChannelMapFilename << " opened successfully." << endl;
     getline (channelmapfile,line);//Skips the first line in ASICsChannelMapFilename.
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     Int_t i=0;
-    string dummy_det;
+
     while (!channelmapfile.eof()) {
       channelmapfile >> MBID[i] >> CID[i] >> ASICs_Ch[i] >> Detector[i] >> Det_Ch[i] >> Comment[i];
-      //cout << MBID[i] << "   " << CID[i] << "   " << dummy_det << endl;
+      //if(doprint) cout << MBID[i] << "   " << CID[i] << "   " << endl;
       i++;
     }
     TotalNumberOfChannels = i-1;
@@ -218,7 +220,7 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
   if (alignchan.is_open()) {
     cout << "The channel allignment file " << ASICsPulserFilename << " opened successfully." << endl;
     getline (alignchan,line);//Skips the first line in ASICsPulserFilename.
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     Int_t j=0;
     while (!alignchan.eof()) {
       alignchan >>  MBID_Align[j] >> CID_Align[j] >> ASICs_Ch_Align[j] >> zerosh[j] >> vperch[j];
@@ -239,7 +241,7 @@ int ChannelMap::LoadASICsPulserAlignment (const char* ASICsPulserFilename) {
   if (alignchan.is_open()) {
     cout << "The channel allignment file " << ASICsPulserFilename << " opened successfully." << endl;
     //getline (alignchan,line);//Skips the first line in ASICsPulserFilename.
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     /*    Int_t j=0;
 	  while (!alignchan.eof()) {
 	  alignchan >>  MBID_Align[j] >> CID_Align[j] >> ASICs_Ch_Align[j] >> a[j] >> b[j] >> c[j] >> q0[j];
@@ -270,7 +272,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     cout << "The Si Gains file " << SiGainsFilename << " opened successfully." << endl;
 
     getline (SiGainsFile,line);//Skips the first line in SiGainsFilename.
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     i=0; 
     j=0;
     Int_t Dnum = 0;
@@ -293,7 +295,7 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
     NumberOfSX3AlphaCalibrated = i-1; // The Minus one accounts for the end of line character
     NumberOfQ3AlphaCalibrated = j;
     NumberOfAlphaCalibrated = NumberOfSX3AlphaCalibrated + NumberOfQ3AlphaCalibrated;
-    printf(" %d + %d = %d calibrated\n",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
+    if(doprint)printf(" %d + %d = %d calibrated\n",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
   }
   else LoadFail(SiGainsFilename);
   SiGainsFile.close();
@@ -311,7 +313,7 @@ int ChannelMap::LoadSX3RelativeSlopes(const char* SX3RelativeSlopeFilename) {
     cout << "The SX3 slopes file " << SX3RelativeSlopeFilename << " opened successfully." << endl;
 
     getline (SX3RelativeSlopeFile,line);//Skips the first line in SX3RelativeSlopeFilename
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     Int_t m=0;
     Int_t DnumSX3 = 0;
     Int_t SX3ChNum = 0;
@@ -341,7 +343,7 @@ int ChannelMap::LoadQ3RelativeSlopes(const char* Q3RelativeSlopeFilename) {
     cout << "The Q3 slopes file " << Q3RelativeSlopeFilename << " opened successfully." << endl;
 
     getline(Q3RelativeSlopeFile,line);//Skips the first line in Q3RelativeSlopeFilename
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     Int_t m=0;
     Int_t DnumQ3 = 0;
     Int_t Q3ChNum = 0;
@@ -422,7 +424,7 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
     cout << " opened successfully." << endl;
 
     getline(finalfix,line1);//Skips the first line in FinalFixFilename
-    //cout<<"line = "<<line1<<endl;
+    if(doprint) cout<<"line = "<<line1<<endl;
 
     while (!finalfix.eof()) {
       finalfix >> DNum >> ChNum >> Zero;
@@ -438,14 +440,13 @@ int ChannelMap::FinalInit(const char* FinalFixFilename, const char* SX3GeoFilena
     cout << " opened successfully." << endl;
 
     getline(x3geo,line2);//Skips the first line in SX3GeoFilename
-    //cout<<"line = "<<line2<<endl;
+    if(doprint) cout<<"line = "<<line2<<endl;
 
     while (!x3geo.eof()) {
       x3geo >> DNum >> StripNum >> BackChNum >> EdgeD >> EdgeU;
       EdgeDown[DNum-4][StripNum][BackChNum] = EdgeD;
       EdgeUp[DNum-4][StripNum][BackChNum] = EdgeU;
     }
-    //cout << "SX3 geometry adjustment using file " << SX3GeoFilename << " was performed." << endl;
   }
   else LoadFail(SX3GeoFilename);
   //---------------------------------------------------------------
@@ -473,7 +474,7 @@ int ChannelMap::LoadQ3FinalFix(const char* Q3FinalFixFilename) {
     cout << " opened successfully." << endl;
 
     getline(Q3finalfix,line);//Skips the first line in Q3FinalFixFilename
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
 
     while (!Q3finalfix.eof()) {
       Q3finalfix >> DNum >> ChNum >> Zero;
@@ -509,7 +510,7 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
     cout << "File with world coordinates " << WorldCoordinatesFilename;
     cout << " opened successfully." << endl;
     getline (worldCfile,line);//Skips the first line in WorldCoordinatesFilename.
-    cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
    
     while (!worldCfile.eof()) {
    // worldCfile >> Dnum >> Zoff >> XMin >> XMax >> YMin >> YMax >> DumComment;
@@ -522,9 +523,10 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
       YAt4[Dnum-4]     = YMax;
     }
 
-    for (Int_t i = 0; i<NumSX3; i++) {
-      cout << "\t" << i + 4 << "\t" << ZOffset[i] << "\t " <<  XAt0[i] << "\t " <<  XAt4[i] << "\t " << YAt0[i] << "\t " << YAt4[i] << endl;
-    }
+    if(doprint)
+      for (Int_t i = 0; i<NumSX3; i++) {
+	cout << "\t" << i + 4 << "\t" << ZOffset[i] << "\t " <<  XAt0[i] << "\t " <<  XAt4[i] << "\t " << YAt0[i] << "\t " << YAt4[i] << endl;
+      }
     
   }
   else LoadFail(WorldCoordinatesFilename);
@@ -543,7 +545,7 @@ int ChannelMap::InitPCADC(const char* PCMapFilename) {
   if (pcmap.is_open()) {
     cout << "Channel map for proportional counter " << PCMapFilename << " opened sucessfully. " << endl;
     getline (pcmap,line);//Skips the first line in PCMapFilename.
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
     while (!pcmap.eof()) {
       pcmap >> DumADCID >> DumCh >> DumWireID >> DumSide ;
 
@@ -581,7 +583,7 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   if (pccal.is_open()) {
     cout << "Pulser Calibration for proportional counter " << PCCalibrationFilename << " opened successfully. " << endl;
     getline (pccal,line);//Skips the first line in PCCalibrationFilename
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
 
     while (!pccal.eof()) {
       pccal >> adcid >> chnum >> dum_Yoff >> dum_Slope;
@@ -592,13 +594,12 @@ int ChannelMap::InitPCCalibration(const char* PCCalibrationFilename) {
   }
   else LoadFail(PCCalibrationFilename);
 
-  cout << "ADC\tChan\tOffset\tSlope" << endl;
-  for (Int_t k=2; k<4; k++) {
+  /* for (Int_t k=2; k<4; k++) {
     for (Int_t i=0; i<MaxADCCh; i++) {
       if(k==3 && i>15) continue;
       cout << k << "\t "<< i << "\t"<< PCPulser_YOffset[k][i] << "\t"<< PCPulser_Slope[k][i] << endl;
     }
-  }
+    }*/
   
   return 1;
 }
@@ -621,7 +622,7 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
     cout << "Alpha Calibration for proportional counter wires ";
     cout << PCWireCalFilename << " opened successfully. " << endl;
     getline (pcwirecal,line);//Skips the first line in PCWireCalFilename
-    //cout<<"line = "<<line<<endl;
+    if(doprint) cout<<"line = "<<line<<endl;
 
     while (!pcwirecal.eof()) {
       pcwirecal >> WireNumber >> pcslopedum >> pcshiftdum;
@@ -651,12 +652,12 @@ int ChannelMap::Init_PCWire_RelGain(const char* PCWire_RelGain_Filename) {
     cout << PCWire_RelGain_Filename << " opened successfully. " << endl;
 
     getline (pcwire_rel,line1);//Skips the first line in PCWire_RelGain_Filename.
-    cout<<"line = "<<line1<<endl;
+    if(doprint) cout<<"line = "<<line1<<endl;
 
     while (!pcwire_rel.eof()) {
       pcwire_rel >> WireID >> rel_dummy;
       PCWire_RelGain[WireID] = rel_dummy;
-      //printf("Gain for wire %d is %f\n",WireID,PCWire_RelGain[WireID]);
+      if(doprint) printf("Gain for wire %d is %f\n",WireID,PCWire_RelGain[WireID]);
     }
   }
   else LoadFail(PCWire_RelGain_Filename);
@@ -829,7 +830,7 @@ void ChannelMap::GetQ3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiY, Do
   }else if(WSiY < 0 && WSiX>=0) {
     WSiPhi = TMath::ATan(WSiY/WSiX) + 2*TMath::Pi();
   }
-  //cout << WSiX << "  " << WSiY << "  " << WSiPhi << "  " << endl;
+  if(doprint) cout << WSiX << "  " << WSiY << "  " << WSiPhi << "  " << endl;
 }
 
 //------------------------------------------------------------------------------------------------//
@@ -839,7 +840,7 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
    
     //WSiZ = ZOffset[DID-4] + 7.5 - SiZ;
     WSiZ = ZOffset[DID-4] + SiZ;
-    //cout << "Z: " << SiZ << "   Z Offset: " << ZOffset[DID-4] << "   Det ID: " << DID << endl;
+    if(doprint) cout << "Z: " << SiZ << "   Z Offset: " << ZOffset[DID-4] << "   Det ID: " << DID << endl;
     WSiX = (XAt4[DID-4] - XAt0[DID-4])*0.25*SiX + XAt0[DID-4];
     WSiY = (YAt4[DID-4] - YAt0[DID-4])*0.25*SiX + YAt0[DID-4];
     WSiR = TMath::Sqrt(WSiX*WSiX + WSiY*WSiY);
@@ -892,10 +893,11 @@ void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t Final
   FinalZPosCal = (EdgeDCal-EdgeUCal)/(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum])
     *(FinalZPos-EdgeDown[DNum-4][StripNum][BChNum])+EdgeDCal;
 
-  /*  if(DNum>15) {
-    printf("Det num = %d Z = %f Zcal = %f\n",DNum,FinalZPos,FinalZPosCal);
-    printf(" Down = %f Up = %f Diff = %f\n",EdgeDown[DNum-4][StripNum][BChNum],EdgeUp[DNum-4][StripNum][BChNum],(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum]));
-    }*/
+  if(doprint)
+    if(DNum>15) {
+      printf("Det num = %d Z = %f Zcal = %f\n",DNum,FinalZPos,FinalZPosCal);
+      printf(" Down = %f Up = %f Diff = %f\n",EdgeDown[DNum-4][StripNum][BChNum],EdgeUp[DNum-4][StripNum][BChNum],(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum]));
+    }
   
   //Check if Z Position is within the physical limits of the detector 
   //if not return negative value.
@@ -963,7 +965,7 @@ int ChannelMap::Init_PC_UD_RelCal(const char* PC_UD_RelCal_Filename) {
     cout << PC_UD_RelCal_Filename << " opened successfully. " << endl;
 
     getline (pc_ud_rel,line11);//Skips the first line in PC_UD_RelCal_Filename.
-    //cout<<"line = "<<line11<<endl;
+    if(doprint) cout<<"line = "<<line11<<endl;
 
     while (!pc_ud_rel.eof()) {
       pc_ud_rel >> WireID >> ud_slope_dummy>> ud_offset_dummy;
