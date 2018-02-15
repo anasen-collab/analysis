@@ -35,6 +35,7 @@
 #define MaxADCCh 32
 
 #define doprint kFALSE
+#define dodiag kFALSE
 
 using namespace std;
 ///////////////////////////////////////////////////////////////////////////////////
@@ -289,13 +290,13 @@ int ChannelMap::LoadSiGains(const char* SiGainsFilename) {
       SiGainsFile >>  Dnum >> ChNum >> dummy;
       SiGains[Dnum] = dummy;
       SiOffsets[Dnum]= ChNum;
-      //printf("  SiGains[%d] = %f\n",Dnum,SiGains[Dnum]);
+      if(doprint) printf("  SiGains[%d] = %f\n",Dnum,SiGains[Dnum]);
     }
     
     NumberOfSX3AlphaCalibrated = i-1; // The Minus one accounts for the end of line character
     NumberOfQ3AlphaCalibrated = j;
     NumberOfAlphaCalibrated = NumberOfSX3AlphaCalibrated + NumberOfQ3AlphaCalibrated;
-    if(doprint)printf(" %d + %d = %d calibrated\n",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
+    if(doprint) printf(" %d + %d = %d calibrated\n",NumberOfSX3AlphaCalibrated,NumberOfQ3AlphaCalibrated,NumberOfAlphaCalibrated);
   }
   else LoadFail(SiGainsFilename);
   SiGainsFile.close();
@@ -523,11 +524,10 @@ int ChannelMap::InitWorldCoordinates(const char* WorldCoordinatesFilename) {
       YAt4[Dnum-4]     = YMax;
     }
 
-    if(doprint)
+    if(dodiag)
       for (Int_t i = 0; i<NumSX3; i++) {
 	cout << "\t" << i + 4 << "\t" << ZOffset[i] << "\t " <<  XAt0[i] << "\t " <<  XAt4[i] << "\t " << YAt0[i] << "\t " << YAt4[i] << endl;
       }
-    
   }
   else LoadFail(WorldCoordinatesFilename);
   worldCfile.close();
@@ -629,6 +629,10 @@ int ChannelMap::InitPCWireCal(const char* PCWireCalFilename) {
       PCSlope[WireNumber] = pcslopedum;
       PCShift[WireNumber] = pcshiftdum;
     }
+    if(doprint)
+      for (Int_t i=0; i<WireNum; i++) {
+	cout << "\t" << i << "\t" << PCSlope[i]<< "\t" <<  PCShift[i] <<endl;
+      }
   }
   else LoadFail(PCWireCalFilename);
   return 1;
@@ -830,7 +834,7 @@ void ChannelMap::GetQ3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiY, Do
   }else if(WSiY < 0 && WSiX>=0) {
     WSiPhi = TMath::ATan(WSiY/WSiX) + 2*TMath::Pi();
   }
-  if(doprint) cout << WSiX << "  " << WSiY << "  " << WSiPhi << "  " << endl;
+  if(dodiag) cout << WSiX << "  " << WSiY << "  " << WSiPhi << "  " << endl;
 }
 
 //------------------------------------------------------------------------------------------------//
@@ -840,7 +844,7 @@ void ChannelMap::GetSX3WorldCoordinates(Int_t DID, Double_t SiX, Double_t SiZ, D
    
     //WSiZ = ZOffset[DID-4] + 7.5 - SiZ;
     WSiZ = ZOffset[DID-4] + SiZ;
-    if(doprint) cout << "Z: " << SiZ << "   Z Offset: " << ZOffset[DID-4] << "   Det ID: " << DID << endl;
+    if(dodiag) cout << "Z: " << SiZ << "   Z Offset: " << ZOffset[DID-4] << "   Det ID: " << DID << endl;
     WSiX = (XAt4[DID-4] - XAt0[DID-4])*0.25*SiX + XAt0[DID-4];
     WSiY = (YAt4[DID-4] - YAt0[DID-4])*0.25*SiX + YAt0[DID-4];
     WSiR = TMath::Sqrt(WSiX*WSiX + WSiY*WSiY);
@@ -893,7 +897,7 @@ void ChannelMap::PosCal(Int_t DNum, Int_t StripNum, Int_t BChNum, Double_t Final
   FinalZPosCal = (EdgeDCal-EdgeUCal)/(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum])
     *(FinalZPos-EdgeDown[DNum-4][StripNum][BChNum])+EdgeDCal;
 
-  if(doprint)
+  if(dodiag)
     if(DNum>15) {
       printf("Det num = %d Z = %f Zcal = %f\n",DNum,FinalZPos,FinalZPosCal);
       printf(" Down = %f Up = %f Diff = %f\n",EdgeDown[DNum-4][StripNum][BChNum],EdgeUp[DNum-4][StripNum][BChNum],(EdgeDown[DNum-4][StripNum][BChNum]-EdgeUp[DNum-4][StripNum][BChNum]));
