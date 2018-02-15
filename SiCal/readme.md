@@ -29,7 +29,7 @@ Therefore, the energy calibration is not dependent on the position calibration.
 ---
 
 ## Directory names
-The names of a number of directories have chaned using the following commands. 
+The names of a number of directories have chaned for clarity during the development of the code. For reference, the following commands were used. 
 The command `git filter-branch` was used instead of `git mv` to preserve the fold-specific history.
 
 ````bash
