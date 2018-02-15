@@ -24,7 +24,7 @@ void PosCal(void) {
   using namespace std;
   Double_t x[99];
   Double_t y[99];
-  string rootfile = "/home/lighthall/anasen/root/track/spacer0t_pccal.root";
+  string rootfile = "/home/lighthall/anasen/root/track/spacer0.root";
   TFile *f1 = new TFile(rootfile.c_str());
   if (!f1->IsOpen()){
     cout << "Root file: " << rootfile << " could not be opened.\n";
@@ -57,7 +57,7 @@ void PosCal(void) {
   infile.close();
 
   ofstream outfile;
-  outfile.open("saves/PCWireCal_1710_output.dat");
+  outfile.open("saves/PCWireCal_1802_output2.dat");
   outfile << "Wire\tSlope\tShift\n";
 
   TCutG *cut;
