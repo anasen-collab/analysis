@@ -10,6 +10,7 @@
 #define CheckBasic
 //#define DoCut //read in and apply cut file?
 //#define DoLoss //look up energy loss?
+#define MCP_RF_Cut
 
 #define DiffIP 2 //cm
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
@@ -239,8 +240,6 @@ int main(int argc, char* argv[]) {
   ///CsIHit CsI;
   Track Tr; 
   
-  Int_t Old_RFTime,Old_MCPTime;
-
   Si.ReadDet = 0;
   Si.ReadHit = 0;
   PC.ReadHit = 0;
@@ -255,10 +254,16 @@ int main(int argc, char* argv[]) {
   MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
   MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
 
+  Int_t Old_RFTime,Old_MCPTime;
   Int_t RFTime, MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
-  
+  Float_t Old_TOFTime,Old_TOFcTime,Old_TOFwTime;
+  Float_t TOFTime,TOFcTime,TOFwTime;
+  MainTree->Branch("TOFTime",&TOFTime,"TOFTime/F");
+  MainTree->Branch("TOFcTime",&TOFcTime,"TOFcTime/F");
+  MainTree->Branch("TOFwTime",&TOFwTime,"TOFwTime/F");
+
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
@@ -306,7 +311,10 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
     raw_tree->SetBranchAddress("RFTime",&Old_RFTime);
     raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
- 
+    raw_tree->SetBranchAddress("TOFTime",&Old_TOFTime);
+    raw_tree->SetBranchAddress("TOFcTime",&Old_TOFcTime);
+    raw_tree->SetBranchAddress("TOFwTime",&Old_TOFwTime);
+    
     Long64_t nentries = raw_tree->GetEntries();
     cout<<" nentries = "<<nentries<<endl;
 
@@ -328,14 +336,17 @@ int main(int argc, char* argv[]) {
       if(i%TMath::Nint(nentries*print_step/10)==0) cout << "." << std::flush;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-      Double_t slope=0.9852; //slope of MCP vs RF
-      Double_t offset=271.58; //peak-to-peak spacing
+      Double_t slope=0.9856; //slope of MCP vs RF
+      Double_t offset=271.55; //peak-to-peak spacing
       Double_t wrap=offset*2;//546//538
       Double_t TOF,TOFc,TOFw;
       Int_t tbins=600;
 
       MCPTime = Old_MCPTime;
       RFTime = Old_RFTime;
+      TOFTime=Old_TOFTime;
+      TOFcTime=Old_TOFcTime;
+      TOFwTime=Old_TOFwTime;
       
       if(MCPTime > 0 && RFTime>0) {
 	TOF=MCPTime-RFTime;//Time-of-flight
@@ -349,11 +360,17 @@ int main(int argc, char* argv[]) {
 	MyFill("TOFw",tbins,0,300,TOFw);
 	MyFill("TOFw2",tbins,0,600,fmod(TOFc+4*offset,wrap));//wrapped TOF
 	          
-#ifdef MCP_RF_Cut    
-	if(TOFw>120 && TOFw<178) {//inside gate; keep
+#ifdef MCP_RF_Cut
+	Double_t mcpcenter=3063;
+	Double_t mcpsigma=59.0;
+	Double_t mcpmin=mcpcenter-3*mcpsigma;
+	Double_t mcpmax=mcpcenter+1.5*mcpsigma;
+	if(MCPTime>mcpmin && MCPTime<mcpmax && TOFw>117 && TOFw<220) {//inside gate; keep
+	  MyFill("MCP_in",tbins,0,300,MCPTime);
 	  MyFill("TOFw_in",tbins,0,300,TOFw);
 	}
 	else {//outside gate; exclude
+	  MyFill("MCP_out",tbins,0,300,MCPTime);
 	  MyFill("TOFw_out",tbins,0,300,TOFw);
 	  continue;
 	}
@@ -507,7 +524,7 @@ int main(int argc, char* argv[]) {
 	if(Tr.TrEvent[p].SiZ < -4.0 || Tr.TrEvent[p].PCZ < -4.0){
 	  continue;
 	}
-	if(Tr.TrEvent[p].PCR>4.0 || Tr.TrEvent[p].PCR<3.5){
+	if(WireRad[Tr.TrEvent[p].WireID]>4.0 || WireRad[Tr.TrEvent[p].WireID]<3.5){
 	  continue;
 	}
 	if(Tr.TrEvent[p].SiR>11.0 || Tr.TrEvent[p].SiR<4.0){
@@ -520,8 +537,8 @@ int main(int argc, char* argv[]) {
 	//}
 	//cout<<"SiR = "<<Tr.TrEvent[p].SiR<<" PCR ="<<Tr.TrEvent[p].PCR<<" SiZ ="<<Tr.TrEvent[p].SiZ<<" PCZ ="<<Tr.TrEvent[p].PCZ<<endl;
 
-	m = (Tr.TrEvent[p].PCR-Tr.TrEvent[p].SiR)/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
-	b = (Tr.TrEvent[p].PCR - m*Tr.TrEvent[p].PCZ);
+	m = (WireRad[Tr.TrEvent[p].WireID]-Tr.TrEvent[p].SiR)/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
+	b = (WireRad[Tr.TrEvent[p].WireID] - m*Tr.TrEvent[p].PCZ);
 	Tr.TrEvent[p].IntPoint = -b/m;
 	////cout<<" IntPoint = "<<Tr.TrEvent[p].IntPoint<<endl;
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
