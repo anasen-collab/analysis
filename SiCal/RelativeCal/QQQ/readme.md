@@ -30,12 +30,16 @@ The `.dat` files are included in the repository as an example. The run-to-run ch
 For reference, a trivial calibration file can be generated with the file `QQQRelativeGain_ini.C` in the [saves](saves) directory. This program is run using the command `root -l QQQRelativeGain_ini.C`
 
 ### Procedure
-The QQQ detectors are double-sidded silicon strip detectors divided into rings and wedges. The detector is gain-matched section-by-section. First, the front sections are gain-matched to a particular back section. Then, the remaining back sections are gain-matched to the back section used in the first step.
+The QQQ detectors are double-sidded silicon strip detectors divided into rings and wedges. The detector is gain-matched section-by-section. First, the front sections are gain-matched to a particular back section. Then, the remaining back sections are gain-matched to the back section used in the first step. This fitting procedure is refered to "front first" throughout the code.
 1. [Step 1](#step-1) `SiRelativeGains_Step1.C`
 2. [Step 2](#step-2) `SiRelativeGains_Step2.C`
 3. [Final Fix](#final-fix)
 
-In each step, a variety of [Fitting Methods](#fitting-methods) may be specified.
+In each step, a variety of [Fitting Methods](#fitting-methods) may be specified. The fitting methods are defined in `.h` and are shared by each `SiRelativeGains_Step1.C` and `SiRelativeGains_Step2.C`. The fitting method is selected by modifying the appropriate line in each `.C` file with the following line given as an example.
+````
+Double_t gain = gainmatch.Fit7(DetNum,FrontChNum,BackChNum);
+````
+In this example Fit7 is specified.
 
 ## Step 1
 Loop over front channels.
