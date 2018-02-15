@@ -86,7 +86,7 @@ void Gains::Save(TString fname) {
   Time time;
   time.Get();
   outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
-  outfile << "DetNum\tDummy\tGain\n";
+  outfile << "DetNum\tOffset\tSlope\n";
 }
 
 void Gains::Add(Int_t DetNum,Double_t slope,Double_t new_gain) {

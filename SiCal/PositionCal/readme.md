@@ -45,6 +45,16 @@ Here EdgeDCal and EdgeUCal are the known locations of the strip edges and EdgeDo
 FinalZPos is defined over the range -1 to +1.
 The variable FinalZPosCal is defined over the range 0 to 7.5cm and gives the physical position in cm on the silicon strip.
 ### Next steps
+Check the calibration. The strips should form a smooth and continuous position spectrum.
+
+If the calculated position of the strips overlap too much, there will be peaks in the position spectrum corresponding to the strip boundaries.
+In this case, the range for each strip is not being compressed enough.
+Set a lower edge threshold with a higher ratio number (greater than 2.5).
+
+If the strips do not overlap enough, there will be valleys.
+In this case, the range for each strip is compressed too much.
+Set a higher edge threshold with a lower ratio (less than 3.0).
+
 
 ## Fiting Method
 a half max threshold is set in the code. A typical value is the maximum peak height divided by 3.

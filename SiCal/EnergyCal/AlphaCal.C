@@ -48,9 +48,6 @@ void AlphaCal(void) {
     }
   }
 
-  Float_t Energies[npeaks] = {4.841,6.852,9.854};
-  Float_t Energies1[npeaks-1];
-
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run_alpha0_282_284_cal022716.root");
   //TFile *f1 = new TFile("/home2/parker/ANASEN/LSU/ParkerMain_root/run417_cal.root");
   //TFile *f1 = new TFile("/home/lighthall/anasen/root/main/run1255-7mQ2S3_geo_init.root");
@@ -89,6 +86,9 @@ void AlphaCal(void) {
   TSpectrum *s = 0;
   TGraph *FitGraph = 0;
   TLegend *leg;
+
+  Float_t Energies[npeaks] = {4.841,6.852,9.854};
+  Float_t Energies1[npeaks-1];
   
   for (Int_t DetNum=0; DetNum<28; DetNum++) {
     if (DetNum==1 || DetNum==2) {
@@ -203,7 +203,7 @@ void AlphaCal(void) {
 	   DetNum,nfound,zeroshift,MeVperCh,gain,((MeVperCh-gain)/gain)*100);
     leg = new TLegend(0.1,0.75,0.2,0.9);
     leg->AddEntry(FitGraph,"peaks","p");
-    leg->AddEntry(fit,"linear fit","l");
+    leg->AddEntry(fit,"linear fit (for reference)","l");
     leg->AddEntry(fit2,"scale fit","l");   
     leg->Draw();
     fit->Draw("same");

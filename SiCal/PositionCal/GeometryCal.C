@@ -24,7 +24,7 @@
 //Methods
 #include "SiGeometry.h"
 
-#define ratio 3.0
+#define ratio 2.875
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeometryCal(void) {
 
@@ -51,11 +51,11 @@ void GeometryCal(void) {
   for (Int_t DetNum=4; DetNum<ndets+4; DetNum++) {
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       for (Int_t BackChNum=0; BackChNum<4; BackChNum++) {
-	//if(!(DetNum==8)) continue;
+	//if(!(DetNum==12)) continue;
 	TH1F *hist = NULL;
 	TString hname=Form("SX3ZposCal_%i_%i_%i",DetNum,FrontChNum,BackChNum);
 	hist = (TH1F*)f1->Get(hname.Data());
-	if (hist==NULL) {
+	if (hist==NULL) {// || (DetNum==12 && FrontChNum == 2)) {
 	  cout << hname << " histogram does not exist\n";
 	  bad.Add(DetNum,FrontChNum,BackChNum);
 	  x[0] = -1+0.5*BackChNum;
@@ -69,7 +69,7 @@ void GeometryCal(void) {
 	hist->Draw();
 	Int_t Nbins = hist->GetNbinsX();
 	Int_t maxbin = hist->GetMaximumBin();
-	Double_t half_max = hist->GetBinContent(maxbin)/ratio;//seems to be a good point
+	Double_t half_max = hist->GetBinContent(maxbin)/ratio;
 
 	Int_t counter = 0;
 	
@@ -91,8 +91,11 @@ void GeometryCal(void) {
 	}
 
 	Float_t width=x[1]-x[0];
-	if(width<0.25||width>0.5)
+	if(width<0.25||width>0.5) {
 	  printf("ERROR");
+	  x[0] = -1+0.5*BackChNum;
+	  x[1] = x[0]+0.5;
+	}
 
 	TLine *line = new TLine(x[0],0,x[0],half_max*ratio);
 	line->SetLineColor(2);

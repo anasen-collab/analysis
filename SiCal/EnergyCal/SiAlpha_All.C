@@ -19,6 +19,9 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TSpectrum.h>
+
+//Methods
+#include "SiAlphaCal.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiAlpha_All(void) {
   //MBID CID ASICs_Chn ZeroShift MeVperCh
@@ -45,10 +48,9 @@ void SiAlpha_All(void) {
     exit(EXIT_FAILURE);
   }
   
-  ofstream outfile;
-  outfile.open("saves/SiAlpha.dat");
-  outfile << "DetNum\tOffset\tSlope\n";
-
+  Gains gains;
+  gains.Save("saves/SiALpha");
+  
   TCanvas *can = new TCanvas();
   can->Divide(1,2);
   TH1I *hist = new TH1I("hist","hist",3000,0,range);

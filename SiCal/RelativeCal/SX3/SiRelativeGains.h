@@ -36,7 +36,7 @@ TCutG *cut;
 Double_t slope;
 Double_t offset;
 Bool_t doprint=kTRUE;
-Bool_t doup=0;
+Bool_t doup=1;
 
 class Gains {
  public:
@@ -126,7 +126,7 @@ void Gains::Load(TString fname) {
 }
 
 void Gains::Print() {
-  printf("DetNum\tFrontCh\tGain\n");
+  printf("DetNum\tIndexCh\tGain\n");
   for (Int_t i=0; i<ndets-4; i++){
     for (Int_t j=0; j<nchan; j++){
       printf("%d\t%d\t%f\n",i+4,j,old[i][j]);
@@ -138,10 +138,10 @@ void Gains::Save(TString fname) {
   Time time;
   time.Get();
   outfile.open(Form("%s_%s.dat",fname.Data(),time.stamp));
-  outfile << "DetNum\tFrontCh\tGain\n";
+  outfile << "DetNum\tIndexCh\tGain\n";
   
   outfile_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
-  outfile_diag << "DetNum\tFrontCh\tOld     \tSlope   \tNew     \tCounter\n";
+  outfile_diag << "DetNum\tIndexCh\tOld     \tSlope   \tNew     \tCounter\n";
 }
 
 void Gains::Add(Int_t DetNum,Int_t ChNum,Double_t new_slope,Double_t new_gain) {
@@ -183,7 +183,7 @@ void Offsets::Load(TString fname) {
 }
 
 void Offsets::Print() {
-  printf("DetNum\tFrontCh\tOffset\n");
+  printf("DetNum\tIndexCh\tOffset\n");
   for (Int_t i=0; i<ndets; i++){
     for (Int_t j=0; j<nchan; j++){
       printf("%d\t%d\t%f\n",i,j,old[i][j]);
@@ -195,10 +195,10 @@ void Offsets::Save(TString fname) {
   Time time;
   time.Get();
   outfile_offset.open(Form("%s_%s.dat",fname.Data(),time.stamp));
-  outfile_offset << "DetNum\tFrontCh\tOffset\n";
+  outfile_offset << "DetNum\tIndexCh\tOffset\n";
 
   outfile_offset_diag.open(Form("%s_%s_diag.dat",fname.Data(),time.stamp));
-  outfile_offset_diag << "DetNum\tFrontCh\tOld     \tOffset   \tNew     \tCounter\n";
+  outfile_offset_diag << "DetNum\tIndexCh\tOld     \tOffset   \tNew     \tCounter\n";
 }
 
 void Offsets::Add(Int_t DetNum,Int_t ChNum,Double_t offset,Double_t new_offset) {
@@ -239,7 +239,7 @@ void BadDetectors::Add(Int_t DetNum, Int_t FrontChNum, Int_t BackChNum) {
 
 void BadDetectors::Print() {
   printf("List of bad detectors:\n");
-  printf(" DetNum\tFrontCh\tBackCh\n");
+  printf(" DetNum\tIndexCh\tBackCh\n");
   for (Int_t i=0; i<count; i++){
     cout << " " << det[i] << "\t" << front[i] << "\t" << back[i] << endl;
   }

@@ -23,6 +23,8 @@ The macros for calibrating the relative position of the SX3 detectors are locate
 
 ## Energy calibration
 The macros for calibrating the energy of the silicon detectors are located in [EnergyCal](EnergyCal).
+The energy calibration macro calibrates the back detector signals only.
+Therefore, the energy calibration is not dependent on the position calibration.
 
 ---
 
