@@ -109,7 +109,7 @@ The two corresponding front gains (up and down) are then multiplied by the slope
 this is why the output indices are `[DetNum-4][FrontChNum+4]` and `[DetNum-4][FrontChNum+8]`.
 Channel numbers 4-11 will be updated.
  
-#### Next steps
+### Next steps
 Once you have completed this program, rerun `Main.cpp` with this new `X3RelativeGains_Step2.dat`
 You will input this new root file with this new relative gains file into Step 3. 
 
