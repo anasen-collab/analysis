@@ -12,19 +12,10 @@
 //#define DoLoss //look up energy loss?
 #define MCP_RF_Cut
 
-#define DiffIP 2 //cm
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
-#define EdE
-#define Be8
-
-#define PCWireCal
-#define PCPlots //for heavy hits
-
-#define MaxSiHits   500
-#define MaxADCHits  500
-#define MaxTDCHits  500
-#define MaxTracks   100
+//#define PCWireCal
+//#define PCPlots //for heavy hits
 
 // ANASEN
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
