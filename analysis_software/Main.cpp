@@ -13,11 +13,13 @@
 //Set PC Thresholds here
 #define PC_Min_threshold 120  //zero signal corresponds to 160 and less
 #define PC_Max_threshold 3830 //to forbid Overflow
+
+#define Si_E_threshold 0
 ///////////////////////////////////////////////////////// Switches ////////////////////////////////////////////////////////////
 
 // To select the component of the beam, mostly for radioactive beams
 // disable while you work with Calibration data & enable while you do data analysis
-//#define Time_hists
+#define Time_hists
 //#define MCP_RF_Cut
 
 // beam diagnostic histograms
@@ -33,9 +35,9 @@
 
 // Select the histograms for performing calibration or to check calibration
 //#define Hist_for_Si_Cal
-#define Hist_for_PC_Cal
+//#define Hist_for_PC_Cal
 //#define ZPosCal
-#define Hist_after_Cal
+//#define Hist_after_Cal
 
 ///////////////////////////////////////////////////// include Libraries ///////////////////////////////////////////////////////
 //C/C++
@@ -121,6 +123,10 @@ int main(int argc, char* argv[]) {
   Int_t RFTime,MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
   MainTree->Branch("MCPTime",&MCPTime,"MCPTime/I");
+  Float_t TOFTime,TOFcTime,TOFwTime;
+  MainTree->Branch("TOFTime",&TOFTime,"TOFTime/F");
+  MainTree->Branch("TOFcTime",&TOFcTime,"TOFcTime/F");
+  MainTree->Branch("TOFwTime",&TOFwTime,"TOFwTime/F");
 
 #ifdef IC_hists 
   Int_t IC_dE,IC_E;
@@ -153,8 +159,7 @@ int main(int argc, char* argv[]) {
     CMAP->InitPCCalibration("Param/17F_cals/PCpulserCal_zero_2017-11-06.dat");
     CMAP->Init_PC_UD_RelCal("Param/17F_cals/PC_UD_RelCal_180205.dat");
     CMAP->Init_PCWire_RelGain("Param/17F_cals/PCWire_RelGain_init.dat");
-    CMAP->InitPCWireCal("Param/initialize/PCWireCal_init.dat");
-    //CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_170527_average.dat");
+    CMAP->InitPCWireCal("Param/17F_cals/PCWireCal_180206_average.dat");
   }
   else {//load trivial calibration, before any cal where all slopes are one and offsets zero
     CMAP->Init("Param/24Mg_cals/initialize/ASICS_cmap_022716",
@@ -389,12 +394,14 @@ int main(int argc, char* argv[]) {
 	PC.pc_obj.UpRel = PC.pc_obj.UpVoltage;
 	PC.pc_obj.SumRel=PC.pc_obj.DownRel+PC.pc_obj.UpRel;
 	
+#ifdef Hist_for_PC_Cal
 	MyFill(Form("PC_Down_vs_Up_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.UpRel,bins,vmin,vmax,PC.pc_obj.DownRel);
 	MyFill(Form("PC_Offset_vs_Down_AfterCal_Wire%i",i),
 	       bins,vmin,vmax,PC.pc_obj.DownVoltage,
 	       bins,-orange,orange,(PC.pc_obj.DownRel-PC.pc_obj.UpRel));
-
+#endif
+	
 	if (PC.pc_obj.DownRel>0 && PC.pc_obj.UpRel>0) {
 	  PC.pc_obj.Energy = PC.pc_obj.DownRel + PC.pc_obj.UpRel;
 	  PC.pc_obj.Z = (PC.pc_obj.UpRel - PC.pc_obj.DownRel)/PC.pc_obj.Energy;	 
@@ -437,8 +444,8 @@ int main(int argc, char* argv[]) {
     RFTime = 0;
     MCPTime = 0;
  
-    Double_t slope=0.9852; //slope of MCP vs RF
-    Double_t offset=271.58; //peak-to-peak spacing
+    Double_t slope=0.9856; //slope of MCP vs RF
+    Double_t offset=271.55; //peak-to-peak spacing
     Double_t wrap=offset*2;
     Double_t TOF,TOFc,TOFw;
     Int_t tbins=600;
@@ -463,8 +470,11 @@ int main(int argc, char* argv[]) {
     }
     if(RFTime >0 && MCPTime >0) {
       TOF=MCPTime-RFTime;//Time-of-flight
+      TOFTime=TOF;
       TOFc=MCPTime-slope*RFTime;//corrected TOF
+      TOFcTime=TOFc;
       TOFw=fmod(TOFc+4*offset,offset);//wrapped TOF
+      TOFwTime=TOFw;
 #ifdef Time_hists
       MyFill("Time_MCP_vs_RF",512,0,4096,RFTime,512,0,4096,MCPTime);
       MyFill("TOF_vs_RF",512,0,4096,RFTime,512,-4096,4096,TOF);
@@ -475,7 +485,7 @@ int main(int argc, char* argv[]) {
 #endif
 	//=========================== MCP - RF Gate =================================================
 #ifdef MCP_RF_Cut    
-      if(TOFw>120 && TOFw<178) {//inside gate; keep
+      if(TOFw>100 && TOFw<offset) {//inside gate; keep
 #ifdef Time_hists
 	MyFill("TOF_wrapped_in",tbins,0,300,TOFw);
 #endif
@@ -626,7 +636,7 @@ int main(int argc, char* argv[]) {
 
       for (int j=0; j<MaxSX3Ch; j++){
 
-	if ( (SX3Energy_Cal[i][j] > 0.0)){
+	if ( (SX3Energy_Cal[i][j] > Si_E_threshold)) {
 
 	  if (j<4){//SX3 Back
 
@@ -830,7 +840,7 @@ int main(int argc, char* argv[]) {
 
       for (int j=0; j<MaxQ3Ch; j++){
 
-	if ( (Q3Energy_Cal[i][j] > 0)){
+	if ( (Q3Energy_Cal[i][j] > Si_E_threshold)){
 
 	  if (j<16){//Back Channels of Q3
 
