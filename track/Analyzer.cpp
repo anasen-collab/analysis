@@ -10,19 +10,20 @@
 #define CheckBasic
 //#define DoCut //read in and apply cut file?
 //#define DoLoss //look up energy loss?
-#define MCP_RF_Cut
+//#define MCP_RF_Cut
 
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
-//#define PCWireCal
+#define PCWireCal
 //#define PCPlots //for heavy hits
+#define Si_E_threshold 0
 
 // ANASEN
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
 #define La 54.42        //Length of ANASEN gas volume.
 
-// target positions
-#define gold_pos 27.7495 //Spacer-0 all the way in, based on geometry measurements we did with Lagy at 2/22/2017
+// target positions, based on geometry measurements we did with Lagy at 2/22/2017
+#define gold_pos 27.7495 //Spacer-0 all the way in
 //#define gold_pos 22.9495 //Spacer-1 //4.8cm
 //#define gold_pos 16.9495 //Spacer-2 //10.8cm
 //#define gold_pos 12.4495 //Spacer-4 //15.3cm
@@ -245,6 +246,10 @@ int main(int argc, char* argv[]) {
   MainTree->Branch("Tr.NTracks3",&Tr.NTracks3,"NTracks3/I");
   MainTree->Branch("Tr.TrEvent",&Tr.TrEvent);
 
+#ifdef PCWireCal
+  Float_t Ztgt;
+  MainTree->Branch("Ztgt",&Ztgt,"Ztgt/F");
+#else
   Int_t Old_RFTime,Old_MCPTime;
   Int_t RFTime, MCPTime;
   MainTree->Branch("RFTime",&RFTime,"RFTime/I");
@@ -254,7 +259,8 @@ int main(int argc, char* argv[]) {
   MainTree->Branch("TOFTime",&TOFTime,"TOFTime/F");
   MainTree->Branch("TOFcTime",&TOFcTime,"TOFcTime/F");
   MainTree->Branch("TOFwTime",&TOFwTime,"TOFwTime/F");
-
+#endif
+  
   TObjArray *RootObjects = new TObjArray();
   RootObjects->Add(MainTree);
 
@@ -300,11 +306,13 @@ int main(int argc, char* argv[]) {
     raw_tree->SetBranchAddress("Si.Hit",&Si.ReadHit);
     raw_tree->SetBranchAddress("PC.NPCHits",&PC.NPCHits);
     raw_tree->SetBranchAddress("PC.Hit",&PC.ReadHit);
+#ifndef PCWireCal
     raw_tree->SetBranchAddress("RFTime",&Old_RFTime);
     raw_tree->SetBranchAddress("MCPTime",&Old_MCPTime);
     raw_tree->SetBranchAddress("TOFTime",&Old_TOFTime);
     raw_tree->SetBranchAddress("TOFcTime",&Old_TOFcTime);
     raw_tree->SetBranchAddress("TOFwTime",&Old_TOFwTime);
+#endif
     
     Long64_t nentries = raw_tree->GetEntries();
     cout<<" nentries = "<<nentries<<endl;
@@ -316,7 +324,7 @@ int main(int argc, char* argv[]) {
     
     Int_t status;
     Float_t print_step=0.1;
-    if(nentries>5e5)
+    if(nentries>1e6)
       print_step/=10;
     cout << " Each \".\" represents " << (print_step/10)*nentries << " events or " << print_step/10*100 <<"% of total" <<endl;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
@@ -327,6 +335,7 @@ int main(int argc, char* argv[]) {
       if(i%TMath::Nint(nentries*print_step/10)==0) cout << "." << std::flush;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef PCWireCal
       Double_t slope=0.9856; //slope of MCP vs RF
       Double_t offset=271.55; //peak-to-peak spacing
       Double_t wrap=offset*2;//546//538
@@ -370,6 +379,7 @@ int main(int argc, char* argv[]) {
 	continue;     
 #endif
       }
+#endif
       ///////////////////////////////////////////////////////////////////////////////////////////////////
       Tr.zeroTrack();
       Int_t GoodPC = -1;         
@@ -382,7 +392,7 @@ int main(int argc, char* argv[]) {
 	
 	Si.hit_obj = Si.ReadHit->at(j);	//if we have a good hit type set the parameters in your new tree
 
-	if ( Si.hit_obj.Energy <= 0 ) {
+	if ( Si.hit_obj.Energy <= Si_E_threshold ) {
 	  continue;
 	}
 	else {
@@ -432,7 +442,7 @@ int main(int argc, char* argv[]) {
 	
 	Si.hit_obj = Si.ReadHit->at(k);
 
-	if ( (Si.hit_obj.Energy == -1000) || (Si.hit_obj.Energy <= 0)){ //make sure that the Silicon energy was filled
+	if ( (Si.hit_obj.Energy == -1000) || (Si.hit_obj.Energy <= Si_E_threshold)){ //make sure that the Silicon energy was filled
 	  continue;
 	}else{
 	  Tr.ZeroTr_obj();
@@ -585,6 +595,7 @@ int main(int argc, char* argv[]) {
            
       for(Int_t s=0; s<Tr.NTracks1;s++) {
 
+	Ztgt=gold_pos;
 	//determine PC position from Silicon position and gold position
 	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
 	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
