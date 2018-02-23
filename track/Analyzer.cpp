@@ -24,10 +24,11 @@
 
 // target positions, based on geometry measurements we did with Lagy at 2/22/2017
 #define gold_pos 27.7495 //Spacer-0 all the way in
-//#define gold_pos 22.9495 //Spacer-1 //4.8cm
-//#define gold_pos 16.9495 //Spacer-2 //10.8cm
-//#define gold_pos 12.4495 //Spacer-4 //15.3cm
-//#define gold_pos  7.4495 //Spacer-5 //20.3cm
+//#define gold_pos 22.8988 //Spacer-1 // 4.85cm
+//#define gold_pos 16.8789 //Spacer-2 //10.87cm
+//#define gold_pos 15.6083 //Spacer-3 //12.14cm
+//#define gold_pos 12.4741 //Spacer-4 //15.36cm
+//#define gold_pos  7.4268 //Spacer-5 //20.3cm
 //#define gold_pos  1.5495 //Spacer-6 //26.2cm
 //#define gold_pos -2.8505 //Spacer-7 //30.6cm
 
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef PCWireCal      
+  //#ifdef PCWireCal      
   Double_t WireRad[NPCWires];
   for (Int_t i=0; i<NPCWires; i++) {   
     WireRad[i]=pcr;
@@ -197,7 +198,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
   pcrfile.close();
-#endif
+  //#endif
     
 #ifdef DoLoss
   LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
@@ -225,8 +226,7 @@ int main(int argc, char* argv[]) {
   E_Loss_3He->InitializeLookupTables(20.0,4000.0,0.02,0.04);
 #endif
   ///////////////////////////////////////////////////////////////////////////////////////////////////
-  
-  
+    
   SiHit Si;
   PCHit PC;
   ///CsIHit CsI;
@@ -316,11 +316,12 @@ int main(int argc, char* argv[]) {
     
     Long64_t nentries = raw_tree->GetEntries();
     cout<<" nentries = "<<nentries<<endl;
-
+#ifdef MaxEntries
     if(nentries>MaxEntries) {
       cout << " Max entries exceeded! Truncating data set from " << nentries << " to " << MaxEntries << endl;
       nentries=MaxEntries;
     }
+#endif
     
     Int_t status;
     Float_t print_step=0.1;
@@ -399,7 +400,7 @@ int main(int argc, char* argv[]) {
 
 	  GoodPC = FindMaxPC(Si.hit_obj.PhiW, PC);
 
-	  if (GoodPC > -1){//if a PC is found do Tracking
+	  if (GoodPC > -1) {//if a PC is found do Tracking
 
 	    PC.pc_obj = PC.ReadHit->at(GoodPC);
 
@@ -442,9 +443,10 @@ int main(int argc, char* argv[]) {
 	
 	Si.hit_obj = Si.ReadHit->at(k);
 
-	if ( (Si.hit_obj.Energy == -1000) || (Si.hit_obj.Energy <= Si_E_threshold)){ //make sure that the Silicon energy was filled
+	if ( (Si.hit_obj.Energy == -1000) || (Si.hit_obj.Energy <= Si_E_threshold)) { //make sure that the Silicon energy was filled
 	  continue;
-	}else{
+	}
+	else {
 	  Tr.ZeroTr_obj();
 	  Tr.track_obj.TrackType = 2;	
 	  Tr.track_obj.SiEnergy = Si.hit_obj.Energy;
@@ -734,10 +736,10 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
   Int_t MaxPCindex = -1,NexttoMaxPCindex =-1;
   Double_t MaxPC = -10, NexttoMaxPC = -10;
 
-  //Double_t MinPhi = 0.2619;
-  Double_t MinPhi = 0.5238;
+  //Double_t MinPhi = 15/ConvAngle;
+  Double_t MinPhi = 30/ConvAngle;
 
-  for (int k=0; k<PC.NPCHits; k++){//loop over the pc hits 
+  for (int k=0; k<PC.NPCHits; k++) {//loop over the pc hits 
     //if the PC falls in a range of phi then it is possible correlated
     //we find the maximum energy on the pc
   
@@ -760,7 +762,7 @@ Int_t FindMaxPC(Double_t phi, PCHit& PC){
       }
     }    
   }  
-  if (NexttoMaxPCindex>0){
+  if (NexttoMaxPCindex>0) {
     // there is an ambiguity: pick the one with smaller DeltaPhi
     if (phidiff( PC.ReadHit->at(NexttoMaxPCindex).PhiW,phi) > phidiff(PC.ReadHit->at(NexttoMaxPCindex).PhiW,phi)){
       return(NexttoMaxPCindex);
