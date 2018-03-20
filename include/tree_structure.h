@@ -342,7 +342,7 @@ class Track { //This Class is for Tracking
     track_obj.WireID = -1;
     track_obj.PCZ_Ref = sqrt(-1); 
 
-    track_obj.IntPoint = -10; //used to be zero, changed by MA 03/15/2017
+    track_obj.IntPoint = sqrt(-1); //used to be zero, changed by MA 03/15/2017
     track_obj.IntPoint_X = 0;
     track_obj.IntPoint_Y = 0;
     track_obj.PathLength = -10; //used to be zero, changed by MA 03/15/2017
