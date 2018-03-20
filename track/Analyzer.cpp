@@ -15,17 +15,18 @@
 #define ConvAngle 180./TMath::Pi() //when multiplied, Converts to Degree from Radian 
 
 #define PCWireCal
+//#define DoSingles
 //#define PCPlots //for heavy hits
-#define Si_E_threshold 0
+#define Si_E_threshold 9.5
 
 // ANASEN
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
 #define La 54.42        //Length of ANASEN gas volume.
 
 // target positions, based on geometry measurements we did with Lagy at 2/22/2017
-#define gold_pos 27.7495 //Spacer-0 all the way in
+//#define gold_pos 27.7495 //Spacer-0 all the way in
 //#define gold_pos 22.8988 //Spacer-1 // 4.85cm
-//#define gold_pos 16.8789 //Spacer-2 //10.87cm
+#define gold_pos 16.8789 //Spacer-2 //10.87cm
 //#define gold_pos 15.6083 //Spacer-3 //12.14cm
 //#define gold_pos 12.4741 //Spacer-4 //15.36cm
 //#define gold_pos  7.4268 //Spacer-5 //20.3cm
@@ -366,7 +367,9 @@ int main(int argc, char* argv[]) {
 	Double_t mcpsigma=59.0;
 	Double_t mcpmin=mcpcenter-3*mcpsigma;
 	Double_t mcpmax=mcpcenter+1.5*mcpsigma;
-	if(MCPTime>mcpmin && MCPTime<mcpmax && TOFw>117 && TOFw<220) {//inside gate; keep
+	mcpmin=2650;
+	mcpmax=3210;
+	if(MCPTime>mcpmin && MCPTime<mcpmax && TOFw>117 && TOFw<215) {//inside gate; keep
 	  MyFill("MCP_in",tbins,0,300,MCPTime);
 	  MyFill("TOFw_in",tbins,0,300,TOFw);
 	}
@@ -439,6 +442,7 @@ int main(int argc, char* argv[]) {
       //
       ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
       //
+#ifdef DoSingles //PC cal requires TrackType==1
       for (Int_t k=0; k<Si.ReadHit->size(); k++){//loop over all silicon
 	
 	Si.hit_obj = Si.ReadHit->at(k);
@@ -493,7 +497,7 @@ int main(int argc, char* argv[]) {
       sort(Tr.TrEvent.begin()+Tr.NTracks1+Tr.NTracks2, Tr.TrEvent.end(),Tr.Tr_PCsort_method );      
       //////////////////////////////////////////////////////////////////////////////////////
       //cout<<"Tr.NTracks = "<<Tr.NTracks<<" Tr.NTracks1 = "<<Tr.NTracks1<<" Tr.NTracks2 = "<<Tr.NTracks2<<" Tr.NTracks3 = "<<Tr.NTracks3<<endl;      
-    
+#endif
       /////////////////////////////////////////////////////////////////////////////////////////////
       ////////////// checking for the heavy hit &/or cross talk in the wire ///////////////////////
       /////////////////////////////////////////////////////////////////////////////////////////////    
@@ -681,7 +685,8 @@ int main(int argc, char* argv[]) {
 
       //////////////////////////////////////////////////////////////////////////////////////////// 
 #ifdef FillTree
-      MainTree->Fill();
+      if(Tr.NTracks>0)
+	MainTree->Fill();
 #endif
     }//end of event loop
   }//end of file loop
