@@ -4,7 +4,8 @@
 // Author: Nabin Rijal, 2016 September.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define MaxEntries (Long64_t) 1e5
+#define MaxEntries (Long64_t) 1e9
+#define MaxWire 1e3
 #define FillTree
 #define FillEdE_cor
 //#define CheckBasic
@@ -263,6 +264,11 @@ int main(int argc, char* argv[]) {
   Int_t count_1track=0, count_2tracks=0, count_3tracks =0,count_morethan3tracks=0;
   Int_t count_3He=0;
   Int_t count_3He_NT2;
+#ifdef MaxWire
+  Int_t count_wire[NPCWires]={0};
+  Bool_t max_wire[NPCWires]={kFALSE};
+  Int_t count_max_wire=0;
+#endif
   ////////////////////////////////////////////////////
   //============  Read the root files from the Data list ==============  
   ifstream inFileList;
@@ -327,6 +333,15 @@ int main(int argc, char* argv[]) {
     cout << " Target position defined as " << gold_pos << endl;
 #endif
 #endif
+
+#ifdef MaxWire
+    //reset max wire for each file
+    count_max_wire=0;
+    for (Int_t i=0; i<NPCWires; i++) {   
+      count_wire[i]=0;
+      max_wire[i]=kFALSE;
+    }
+#endif 
     
     TTree *raw_tree = (TTree*) inputFile->Get("MainTree");
     raw_tree->SetBranchAddress("Si.NSiHits",&Si.NSiHits);
@@ -356,6 +371,12 @@ int main(int argc, char* argv[]) {
     //if(nentries>1e6) print_step/=10;
     cout << " Each \".\" represents " << (print_step/10)*nentries << " events or " << print_step/10*100 <<"% of total" <<endl;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
+#ifdef MaxWire
+      if (count_max_wire>=(NPCWires-3)) {
+	break;
+	cout << "Max reached for all wires" << endl;
+      }
+#endif
       status = raw_tree->GetEvent(i);
       if(i%TMath::Nint(nentries*print_step)==0) cout << endl << "  Done: "
 					       << right << fixed << setw(3)
@@ -450,8 +471,11 @@ int main(int argc, char* argv[]) {
 	    Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	    Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	    Tr.track_obj.PCR = PC.pc_obj.RW;
-	    Tr.track_obj.WireID = PC.pc_obj.WireID;	
-	 
+	    Tr.track_obj.WireID = PC.pc_obj.WireID;
+#ifdef MaxWire
+	    if(max_wire[Tr.track_obj.WireID])
+	      continue;
+#endif
 	    // eliminate Si and Wire from further tracking
 	    Si.ReadHit->at(j).Energy = -1000;
 	    PC.ReadHit->at(GoodPC).Energy = -10;
@@ -509,7 +533,11 @@ int main(int argc, char* argv[]) {
 	  Tr.track_obj.TrackType = 3;
 
 	  Tr.track_obj.PCEnergy = PC.pc_obj.Energy;
-	  Tr.track_obj.WireID = PC.pc_obj.WireID;	
+	  Tr.track_obj.WireID = PC.pc_obj.WireID;
+#ifdef MaxWire
+	  if(max_wire[Tr.track_obj.WireID])
+	    continue;
+#endif
 	  Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	  Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	  Tr.track_obj.PCR = PC.pc_obj.RW;
@@ -531,7 +559,10 @@ int main(int argc, char* argv[]) {
       Int_t pct;
       for(Int_t pc=0; pc<Tr.NTracks; pc++) {
 	//cout<<"   Check 10 " <<Tr.NTracks<<endl;
-	
+#ifdef MaxWire	
+	if(max_wire[Tr.TrEvent[pc].WireID])
+	  continue;
+#endif
 	//All PCWire vs Energy
 	MyFill("WireID_vs_PCEnegy",25,0,24,Tr.TrEvent[pc].WireID,500,0,2,Tr.TrEvent[pc].PCEnergy);
 	
@@ -551,6 +582,10 @@ int main(int argc, char* argv[]) {
       Double_t m = 0, b = 0; 
       Double_t tantheta=0;
       for(Int_t p=0; p<Tr.NTracks1;p++) {
+#ifdef MaxWire
+	if(max_wire[Tr.TrEvent[p].WireID])
+	  continue;
+#endif
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
 #ifdef CheckBasic
@@ -636,6 +671,10 @@ int main(int argc, char* argv[]) {
 #ifdef PCWireCal      
 
       for(Int_t s=0; s<Tr.NTracks1;s++) {
+#ifdef MaxWire
+	if(max_wire[Tr.TrEvent[s].WireID])	
+	  continue;
+#endif	
 	Ztgt=target;
 	//determine PC position from Silicon position and gold position
 	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - target);
@@ -682,6 +721,15 @@ int main(int argc, char* argv[]) {
 	Float_t E_gate_width=0.08;
 	
 	if (Tr.TrEvent[s].SiEnergy>(E_gate_center-E_gate_width) && Tr.TrEvent[s].SiEnergy< (E_gate_center+E_gate_width)) {//this cut is to clean up calibration data... 	  
+#ifdef MaxWire
+	  count_wire[Tr.TrEvent[s].WireID]++;
+	  if(max_wire[Tr.TrEvent[s].WireID]==kFALSE && count_wire[Tr.TrEvent[s].WireID]>MaxWire) {
+	    max_wire[Tr.TrEvent[s].WireID]=kTRUE;
+	    count_max_wire++;
+	    cout << "Wire " << Tr.TrEvent[s].WireID << " max reached at " << i;
+	    cout << ". Max total " << count_max_wire;
+	  }
+#endif
 	  
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
 		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
@@ -722,7 +770,10 @@ int main(int argc, char* argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////// 
 #ifdef FillTree
       if(Tr.NTracks>0)
-	MainTree->Fill();
+#ifdef MaxWire
+	if (count_max_wire<=(NPCWires-3))
+#endif
+	  MainTree->Fill();
 #endif
     }//end of event loop
   }//end of file loop
