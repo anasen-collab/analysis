@@ -242,6 +242,7 @@ class Track { //This Class is for Tracking
     Double_t PCX; 
     Double_t PCY;
     Double_t PCR;
+    Double_t PCRad;
     Double_t Z; //By M.A.01/16/2017
     Double_t PCPhi;
     Int_t WireID;
@@ -293,6 +294,7 @@ class Track { //This Class is for Tracking
     Double_t PCZ;
     Double_t PCZraw;    
     Double_t PCR;
+    Double_t PCRad;
     Double_t PCPhi;
   }pc_obj;
   
@@ -343,6 +345,7 @@ class Track { //This Class is for Tracking
     track_obj.Z = sqrt(-1);
     track_obj.PCY = 0;
     track_obj.PCR = 0;
+    track_obj.PCRad = 0;
     track_obj.PCPhi = sqrt(-1);
     track_obj.WireID = -1;
     track_obj.PCZ_Ref = sqrt(-1); 
@@ -385,6 +388,7 @@ class Track { //This Class is for Tracking
     pc_obj.PCZ = sqrt(-1);
     pc_obj.PCZraw = sqrt(-1);
     pc_obj.PCR = 0;
+    pc_obj.PCRad = 0;
     pc_obj.PCPhi = 0;
 
     
