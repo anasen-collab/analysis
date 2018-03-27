@@ -523,7 +523,7 @@ int main(int argc, char* argv[]) {
       ///////////////////////////////////For the Tracking///////////////////////////////////    
       //reconstruction variables
       Double_t m = 0, b = 0; 
-
+      Double_t tantheta=0;
       for(Int_t p=0; p<Tr.NTracks1;p++) {
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
@@ -548,6 +548,16 @@ int main(int argc, char* argv[]) {
 	b = (WireRad[Tr.TrEvent[p].WireID] - m*Tr.TrEvent[p].PCZ);
 	Tr.TrEvent[p].IntPoint = -b/m;
 	////cout<<" IntPoint = "<<Tr.TrEvent[p].IntPoint<<endl;
+	tantheta =(Tr.TrEvent[p].SiR-WireRad[Tr.TrEvent[p].WireID])/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
+	Tr.TrEvent[p].Theta_Z = atan(tantheta);
+	
+
+	Tr.TrEvent[p].IntPoint_PC = WireRad[Tr.TrEvent[p].WireID]/tantheta+Tr.TrEvent[p].PCZ;//same
+	Tr.TrEvent[p].IntPoint_Si = Tr.TrEvent[p].SiR/tantheta+Tr.TrEvent[p].SiZ;
+
+	tantheta =(Tr.TrEvent[p].SiR-pcr)/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
+	Tr.TrEvent[p].IntPoint_Fixed = pcr/tantheta+Tr.TrEvent[p].PCZ;
+	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 #ifdef CheckBasic
 	if(Tr.TrEvent[p].IntPoint<-5.0 || Tr.TrEvent[p].IntPoint>55.0){
@@ -557,29 +567,31 @@ int main(int argc, char* argv[]) {
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 	/////////////////////Calculating Theta and PathLength/////////////////////////////////////////////
 	// Theta is the angle between particle and beam, but our beam points in the negative z-direction 
-	if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) > 0){
+	//	if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) > 0){
 	  // This is forward-scattering, so we have theta b/w 0 and 90 
 	  Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  //Tr.TrEvent[p].Theta = TMath::Pi() - atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
+
+      
 	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	 
 	  //cout<<" Tr.TrEvent[p].Theta1 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength1 = "<<Tr.TrEvent[p].PathLength<<endl;
-	}
-	else if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) < 0){
-	  Tr.TrEvent[p].Theta = TMath::Pi() + atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  //Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
+	  //} else
+	  if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) < 0){
+	    Tr.TrEvent[p].Theta += TMath::Pi();
+	    Tr.TrEvent[p].Theta_Z += TMath::Pi();
+
+	    //	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	
 	  //if(Tr.TrEvent[p].Theta>0){
 	  //cout<<" Tr.TrEvent[p].Theta2 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength2 = "<<Tr.TrEvent[p].PathLength<<endl;
 	  //}
 	}
-	else{
-	  Tr.TrEvent[p].Theta = TMath::Pi()/2;
-	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR;
+	// else{
+	//   Tr.TrEvent[p].Theta = TMath::Pi()/2;
+	//   Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR;
 
-	  //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
-	}
+	//   //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
+	// }
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef DoLoss
 	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0) {
@@ -597,13 +609,12 @@ int main(int argc, char* argv[]) {
       
 #ifdef PCWireCal      
 
-      Double_t tantheta;
-           
       for(Int_t s=0; s<Tr.NTracks1;s++) {
 
 	Ztgt=gold_pos;
 	//determine PC position from Silicon position and gold position
 	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
+	Tr.TrEvent[s].Theta_Ref=atan(tantheta);
 	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
 	Tr.TrEvent[s].PCZ_Ref = WireRad[Tr.TrEvent[s].WireID]/tantheta+gold_pos;
 	//cout<<"tantheta = "<< tantheta <<" PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
