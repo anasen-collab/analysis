@@ -5,7 +5,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MaxEntries (Long64_t) 1e9
-#define MaxWire 1e3
+#define MaxWire 1e3 //set fill goal for each wire
+#define NMaxWire 21 //number of wires to fill
 #define FillTree
 #define FillEdE_cor
 //#define CheckBasic
@@ -372,7 +373,7 @@ int main(int argc, char* argv[]) {
     cout << " Each \".\" represents " << (print_step/10)*nentries << " events or " << print_step/10*100 <<"% of total" <<endl;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
 #ifdef MaxWire
-      if (count_max_wire>=(NPCWires-3)) {
+      if (count_max_wire>=NMaxWire) {
 	break;
 	cout << "Max reached for all wires" << endl;
       }
@@ -471,6 +472,7 @@ int main(int argc, char* argv[]) {
 	    Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	    Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	    Tr.track_obj.PCR = PC.pc_obj.RW;
+	    Tr.track_obj.PCRad = WireRad[Tr.track_obj.WireID];
 	    Tr.track_obj.WireID = PC.pc_obj.WireID;
 #ifdef MaxWire
 	    if(max_wire[Tr.track_obj.WireID])
@@ -771,7 +773,7 @@ int main(int argc, char* argv[]) {
 #ifdef FillTree
       if(Tr.NTracks>0)
 #ifdef MaxWire
-	if (count_max_wire<=(NPCWires-3))
+	if (count_max_wire<=NMaxWire)
 #endif
 	  MainTree->Fill();
 #endif
