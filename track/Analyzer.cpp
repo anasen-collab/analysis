@@ -374,8 +374,8 @@ int main(int argc, char* argv[]) {
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
 #ifdef MaxWire
       if (count_max_wire>=NMaxWire) {
-	break;
 	cout << "Max reached for all wires" << endl;
+	break;
       }
 #endif
       status = raw_tree->GetEvent(i);
