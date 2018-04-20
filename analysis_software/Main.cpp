@@ -23,7 +23,7 @@
 //#define MCP_RF_Cut
 
 // beam diagnostic histograms
-//#define IC_hists
+#define IC_hists
 //#define IC_cut
 
 // Energy for each calibration steps can be switched off after calibration
@@ -444,8 +444,8 @@ int main(int argc, char* argv[]) {
     RFTime = 0;
     MCPTime = 0;
  
-    Double_t slope=0.9856; //slope of MCP vs RF
-    Double_t offset=271.55; //peak-to-peak spacing
+    Double_t slope=0.9861; //slope of MCP vs RF
+    Double_t offset=271.56; //peak-to-peak spacing
     Double_t wrap=offset*2;
     Double_t TOF,TOFc,TOFw;
     Int_t tbins=600;
