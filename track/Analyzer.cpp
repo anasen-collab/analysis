@@ -243,6 +243,8 @@ int main(int argc, char* argv[]) {
 #ifdef PCWireCal
   Float_t Ztgt;
   MainTree->Branch("Ztgt",&Ztgt,"Ztgt/F");
+  Int_t spacer;
+  MainTree->Branch("spacer",&spacer,"spacer/I");
 #else
   Int_t Old_RFTime,Old_MCPTime;
   Int_t RFTime, MCPTime;
@@ -301,7 +303,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef PCWireCal      
     // target positions, based on geometry measurements done with Lagy on 2/22/2017
-    int num;
+    Int_t num;
     sscanf(rootfile.c_str(),"%*[^0-9]%d*",&num);
     cout << " Spacer number is "<< num <<endl;
   
@@ -330,9 +332,6 @@ int main(int argc, char* argv[]) {
     }
 
     cout << " Target position is " << target << endl;
-#ifdef gold_pos
-    cout << " Target position defined as " << gold_pos << endl;
-#endif
 #endif
 
 #ifdef MaxWire
@@ -374,7 +373,7 @@ int main(int argc, char* argv[]) {
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
 #ifdef MaxWire
       if (count_max_wire>=NMaxWire) {
-	cout << "Max reached for all wires" << endl;
+	cout << endl << "Max reached for all " << NMaxWire << " wires" << endl;
 	break;
       }
 #endif
@@ -678,7 +677,8 @@ int main(int argc, char* argv[]) {
 	  continue;
 #endif	
 	Ztgt=target;
-	//determine PC position from Silicon position and gold position
+	spacer=num;
+	//determine PC position from Silicon position and target position
 	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - target);
 	Tr.TrEvent[s].Theta_Ref=atan(tantheta);
 	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+target;
@@ -728,7 +728,9 @@ int main(int argc, char* argv[]) {
 	  if(max_wire[Tr.TrEvent[s].WireID]==kFALSE && count_wire[Tr.TrEvent[s].WireID]>MaxWire) {
 	    max_wire[Tr.TrEvent[s].WireID]=kTRUE;
 	    count_max_wire++;
-	    cout << "Wire " << Tr.TrEvent[s].WireID << " max reached at " << i;
+	    cout << endl << "Wire " 
+		 << right << fixed << setw(2)
+		 << Tr.TrEvent[s].WireID << " max reached at " << i;
 	    cout << ". Max total " << count_max_wire;
 	  }
 #endif
