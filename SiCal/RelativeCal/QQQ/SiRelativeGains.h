@@ -34,7 +34,10 @@ ofstream outfile_offset;
 Int_t counter;
 Double_t slope;
 Double_t offset;
+//Set output settings
 Bool_t doprint=1;
+Bool_t doupdate=1;
+Bool_t dowait=kFALSE;
 
 class Gains {
  public:
@@ -287,8 +290,9 @@ Double_t GainMatch::Fit1(TH2F* hist, TCanvas *can) {
   leg->AddEntry(graph,"graph","p");
   leg->AddEntry(fun2,"TGraph fit","l");
   leg->Draw();
-  
-  can->Update();
+
+  if(doupdate)
+    can->Update();
  
   delete x;
   delete y;
@@ -352,8 +356,11 @@ Double_t GainMatch::Fit2(TH2F* hist, TCanvas *can) {
   TF1 *fun2 = new TF1("fun2","[0]+[1]*x",0,range);
   graph->Fit("fun2","qROB");
   slope=fun2->GetParameter(1);
-  can->Update();
-  //can->WaitPrimitive();
+
+  if(doupdate)
+    can->Update();
+  if(dowait)
+    can->WaitPrimitive();
 
   delete x;
   delete y;
@@ -457,8 +464,10 @@ Double_t GainMatch::Fit4(TH2F* hist, TCanvas *can) {
     leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
     leg->Draw();
   
+  if(doupdate)
     can->Update();
-    //if(k==0) can->WaitPrimitive();
+  if(dowait)
+    if(k==0) can->WaitPrimitive();
     slope=fun2->GetParameter(1);
     offset=fun2->GetParameter(0);
   
@@ -481,6 +490,7 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
+  can->SaveAs("tempcan.pdf");
   hist->ProjectionX();
   TString hname;
   hname=hist->GetName();
@@ -591,9 +601,14 @@ Double_t GainMatch::Fit6(TH2F* hist, TCanvas *can) {//used for Det 2; using fixe
     leg->AddEntry(fun2,Form("TGraph fit #%d",steps-k+1),"l");
     leg->Draw();
   
-    //can->Update();
-    //if(k==0) can->WaitPrimitive();
-  
+    if(doupdate)
+      can->Update();
+    if(dowait)
+      if(k==0) can->WaitPrimitive();
+    TString figname="tempcan";
+    figname+=k;
+    figname+=".pdf";
+    can->SaveAs(figname);
     delete x;
     delete y;
     delete graph;
