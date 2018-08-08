@@ -17,6 +17,7 @@ Relative calibration of Si gains for QQQ. Essentially the same progam as that fo
    
 ### Input files (`.root` files)
 The data for the QQQ relaive gains calibration should have high statistics over a range of energies; such as no-target in-gas runs.
+This is equivalent to gas calibration runs with the target fully removed, e.g., Spacer 7.
 
 ### Output files (`.dat` files)
 Output file (e.g.`QQQRelativeGains_Step1.dat`) has the following columns:

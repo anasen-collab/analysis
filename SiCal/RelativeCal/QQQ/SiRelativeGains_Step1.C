@@ -21,8 +21,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SiRelativeGains_Step1(void) {
   using namespace std;
-  f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
+  //f1 = new TFile("/home/lighthall/anasen/root/run1227mQ2S3.root");
   //f1 = new TFile("/home/lighthall/anasen/root/run1226-9mQ2_fix.root");
+  f1 = new TFile("/home/lighthall/anasen/root/main/spacer7cal.root");
   if ( !f1->IsOpen() ){
     cout << "Error: Root file does not exist\n";
     exit(EXIT_FAILURE);
@@ -49,8 +50,8 @@ void SiRelativeGains_Step1(void) {
       //for (Int_t BackChNum=0; BackChNum<16; BackChNum++) {//loop over back (diagnostic)
       if(DetNum==2)
 	BackChNum = 4;
-      // if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
-      //	 if(DetNum==2 && FrontChNum==11){continue;}
+      //if(DetNum==1 && (FrontChNum==4 || FrontChNum==14)){continue;}
+      //if(!(DetNum==2 && FrontChNum==13)) continue;     
       //if(!((FrontChNum==0)||(FrontChNum==13)))
       //if(!((FrontChNum==13)))
       //continue;
@@ -65,8 +66,8 @@ void SiRelativeGains_Step1(void) {
 	offsets.Add(DetNum,FrontChNum+16,0,0);
 	continue;
       }
-      //Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
-      Double_t gain = gainmatch.Fit7(DetNum,FrontChNum,BackChNum);
+      Double_t gain = gainmatch.Fit6(hist,can); //set fit method here
+      //Double_t gain = gainmatch.Fit7(DetNum,FrontChNum,BackChNum);
       gains.Add(DetNum,FrontChNum+16,gain,gain);
       offsets.Add(DetNum,FrontChNum+16,offset,offset);
       //}//back loop
