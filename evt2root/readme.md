@@ -11,7 +11,9 @@ detectors classes are defined.
 ## Versions
 Two version of this code exist, depending on the electonics setup.
 ### `evt2root_NSCL11.C`
-Version used by Texas A&M University. Adopted & tested for the NSCLDAQ11 version. Note: This version of converter is useful only for the codes that has been used by the LSU group; the names of the branches and  leaves and the objects of detector classes are different for the codes that has been used by FSU group.
+Version used by Texas A&M University.
+Adopted and tested for the NSCLDAQ11 version.
+Note: This version of the converter is only useful for the codes that has been used by the LSU group; the names of the branches and  leaves and the objects of detector classes are different for the codes that has been used by FSU group.
 
 ### `evt2root_NSCL11_mADC.C`
 Version used by Florida State University, generalized to include unpacking of Mesytec ADC modules. It takes all types of modules in the same way and unpacks it.
