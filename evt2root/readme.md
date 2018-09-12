@@ -26,17 +26,17 @@ The following files are required for evt2root to run.
 * `evt_files.lst`
 
 ## Execution
-To run evt2root, the following macros are loaded.
+To run evt2root, enter the following commands.
 ```
 root -l
-.x VM_BaseClass.cpp+
+.L VM_BaseClass.cpp+
 .L VM_Module.cpp+
 .L SimpleInPipe.cpp+
 .x evt2root_NSCL11.C+
 ```
-This list of commands is contained within the file `rootinput.txt` and can be executed as follows.
+This list of commands is executed by the file `rootinput.C` and can be executed as follows.
 ```
-root -l < rootinput.txt
+root -l -q rootinput.C
 ```
 ### Manual mode
 Concatonate several `.evt` files into one `.root` file. To run, edit the file `evt_files.lst` and pass `rootinput.txt` to ROOT. The file `evt_files.lst` should be of the form
@@ -70,7 +70,7 @@ The run-to-run changes in `runs.lst` and `evt_file.lst` are excuded by `.gitigno
 #### Requires:
 * `data.cpp`
 * `runs.lst`
-* `rootinput.txt`
+* `rootinput.C`
  
 #### Output:
 * `evt_files.lst`
