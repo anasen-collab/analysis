@@ -39,7 +39,7 @@ int main() {
       outfile << "Output ROOT file: /home/lighthall/root/raw/run" << list[j] << ".root" << endl;
       outfile << "Data directory: "<< str0 << endl;
       outfile << list[j] << endl;
-      system("root -l -q rootinput.C"); //name of file with ROOT command
+      system("root -l -n -q rootinput.C"); //name of file with ROOT command
       
       string str1 = "rm -vf ";
       str1+=str0;
