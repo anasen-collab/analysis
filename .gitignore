@@ -8,18 +8,18 @@
 *.exe
 *.out
 
-# Emacs
-*~
-\#*#
-
 # linked directories
 **/root
 **/scripts
 **/data
 **/figures
 
-# temporary Git files
-*~*
+# Emacs
+*~
+\#*#
+
+# Git
+*.~*~
 
 # image files
 *.pdf
