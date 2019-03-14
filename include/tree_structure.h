@@ -242,11 +242,15 @@ class Track { //This Class is for Tracking
     Double_t PCX; 
     Double_t PCY;
     Double_t PCR;
+    Double_t PCRad;
     Double_t Z; //By M.A.01/16/2017
     Double_t PCPhi;
     Int_t WireID;
 
     Double_t IntPoint;
+    Double_t IntPoint_PC;
+    Double_t IntPoint_Si;
+    Double_t IntPoint_Fixed;
     Double_t IntPoint_X;
     Double_t IntPoint_Y;
 
@@ -267,6 +271,8 @@ class Track { //This Class is for Tracking
     Double_t HeEnergyQvalue;
 
     Double_t PCZ_Ref;
+    Double_t Theta_Ref;
+    Double_t Theta_Z;
   }track_obj;
 
 
@@ -288,6 +294,7 @@ class Track { //This Class is for Tracking
     Double_t PCZ;
     Double_t PCZraw;    
     Double_t PCR;
+    Double_t PCRad;
     Double_t PCPhi;
   }pc_obj;
   
@@ -338,11 +345,18 @@ class Track { //This Class is for Tracking
     track_obj.Z = sqrt(-1);
     track_obj.PCY = 0;
     track_obj.PCR = 0;
+    track_obj.PCRad = 0;
     track_obj.PCPhi = sqrt(-1);
     track_obj.WireID = -1;
     track_obj.PCZ_Ref = sqrt(-1); 
+    track_obj.Theta_Ref = sqrt(-1); 
+    track_obj.Theta_Z = sqrt(-1); 
 
     track_obj.IntPoint = sqrt(-1); //used to be zero, changed by MA 03/15/2017
+    track_obj.IntPoint_PC = sqrt(-1);
+    track_obj.IntPoint_Si = sqrt(-1);
+    track_obj.IntPoint_Fixed = sqrt(-1);
+    
     track_obj.IntPoint_X = 0;
     track_obj.IntPoint_Y = 0;
     track_obj.PathLength = -10; //used to be zero, changed by MA 03/15/2017
@@ -358,7 +372,7 @@ class Track { //This Class is for Tracking
     track_obj.EnergyLoss= -10;  //used to be zero, changed by MA 03/15/2017
     track_obj.LightParEnergy= -10;
     track_obj.BeamQvalue = -10;
-    track_obj.ThetaQvalue = -10;
+    track_obj.ThetaQvalue = sqrt(-1);
     track_obj.HeEnergyQvalue = -10;
     
     si_obj.TrackType = 0;
@@ -374,10 +388,11 @@ class Track { //This Class is for Tracking
     pc_obj.PCZ = sqrt(-1);
     pc_obj.PCZraw = sqrt(-1);
     pc_obj.PCR = 0;
+    pc_obj.PCRad = 0;
     pc_obj.PCPhi = 0;
 
     
-    HeavyEvent.IntPoint = -10;
+    HeavyEvent.IntPoint = sqrt(-1);
     HeavyEvent.BeamEnergy = -10;
     HeavyEvent.SiEnergy_tot = -10;
     HeavyEvent.SiEnergy_calc = -10;

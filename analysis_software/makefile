@@ -9,3 +9,7 @@ Main_dict.cxx: ../include/tree_structure.h ../include/LinkDef.h
 clean:
 	@echo removing Main files...
 	rm Main Main_dict.cxx Main_dict.h
+
+batch: data.cpp
+	@echo compiling batch file...
+	g++ data.cpp -o data.out

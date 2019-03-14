@@ -23,7 +23,7 @@
 //#define MCP_RF_Cut
 
 // beam diagnostic histograms
-//#define IC_hists
+#define IC_hists
 //#define IC_cut
 
 // Energy for each calibration steps can be switched off after calibration
@@ -34,7 +34,7 @@
 #define Re_zero
 
 // Select the histograms for performing calibration or to check calibration
-//#define Hist_for_Si_Cal
+#define Hist_for_Si_Cal
 //#define Hist_for_PC_Cal
 //#define ZPosCal
 //#define Hist_after_Cal
@@ -244,13 +244,16 @@ int main(int argc, char* argv[]) {
   Int_t status = 0;
   Long64_t nentries = input_tree->GetEntries();
   cout << " nentries = " << nentries<<"  in  "<< filename_callist <<endl;
+
+  //Entry counting variables
   Bool_t btrunc=kFALSE; //truncate data set?
-
-  Long64_t nstep=nentries/MaxEntries;
-  Long64_t ncount=0;
-  Long64_t nsum=0;
-  Long64_t ntot=nentries/nstep;
-
+  Long64_t nstep=1;
+  Long64_t ncount=0; 
+  Long64_t nsum=0; 
+  Long64_t ntot=nentries;
+#ifdef MaxEntries
+  nstep=nentries/MaxEntries;
+  ntot=nentries/nstep;
   if(nentries>MaxEntries) {
     btrunc=kTRUE;
     cout << " Max entries exceeded! Truncating data set from " << nentries << " to ";
@@ -272,6 +275,7 @@ int main(int argc, char* argv[]) {
     ntot=nentries;
     cout << " Processing  " << ntot << " entries" <<endl;
   }
+#endif
   Float_t print_step=0.1;
   if(ntot>5e5)
     print_step/=10;
@@ -281,13 +285,10 @@ int main(int argc, char* argv[]) {
     if(btrunc && global_evt%nstep>0) continue;
     status = input_tree->GetEvent(global_evt);
     
-    if(btrunc) {
+    if(btrunc) 
       nsum=ncount;
-    }
-    else {
+    else 
       nsum=global_evt;
-      ntot=nentries;
-    }
 
     if(nsum%TMath::Nint(ntot*print_step)==0) { cout << endl << "  Done: "
 						      << right << fixed << setw(3)
@@ -444,8 +445,8 @@ int main(int argc, char* argv[]) {
     RFTime = 0;
     MCPTime = 0;
  
-    Double_t slope=0.9856; //slope of MCP vs RF
-    Double_t offset=271.55; //peak-to-peak spacing
+    Double_t slope=0.9861; //slope of MCP vs RF
+    Double_t offset=271.56; //peak-to-peak spacing
     Double_t wrap=offset*2;
     Double_t TOF,TOFc,TOFw;
     Int_t tbins=600;

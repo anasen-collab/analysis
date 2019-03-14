@@ -5,9 +5,11 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MaxEntries (Long64_t) 1e9
+#define MaxWire 1e3 //set fill goal for each wire
+#define NMaxWire 21 //number of wires to fill
 #define FillTree
 #define FillEdE_cor
-#define CheckBasic
+//#define CheckBasic
 //#define DoCut //read in and apply cut file?
 //#define DoLoss //look up energy loss?
 //#define MCP_RF_Cut
@@ -17,21 +19,12 @@
 #define PCWireCal
 //#define DoSingles
 //#define PCPlots //for heavy hits
+#define ReadPCWire
 #define Si_E_threshold 9.5
 
 // ANASEN
 #define pcr 3.846284509 //3.75+0.096284509; //correction for the centroid Kx applied
 #define La 54.42        //Length of ANASEN gas volume.
-
-// target positions, based on geometry measurements we did with Lagy at 2/22/2017
-//#define gold_pos 27.7495 //Spacer-0 all the way in
-//#define gold_pos 22.8988 //Spacer-1 // 4.85cm
-#define gold_pos 16.8789 //Spacer-2 //10.87cm
-//#define gold_pos 15.6083 //Spacer-3 //12.14cm
-//#define gold_pos 12.4741 //Spacer-4 //15.36cm
-//#define gold_pos  7.4268 //Spacer-5 //20.3cm
-//#define gold_pos  1.5495 //Spacer-6 //26.2cm
-//#define gold_pos -2.8505 //Spacer-7 //30.6cm
 
 ///////////////////Nuclear Masses ///////////////////////////////////////////////////
 //nuclear masses //MeV
@@ -171,13 +164,13 @@ int main(int argc, char* argv[]) {
 #endif
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  //#ifdef PCWireCal      
   Double_t WireRad[NPCWires];
   for (Int_t i=0; i<NPCWires; i++) {   
     WireRad[i]=pcr;
   }
+#ifdef ReadPCWire      
   ifstream pcrfile;
-  char* pcrfilename = "../analysis_software/Param/17F_cals/pcr_init.dat";
+  char* pcrfilename = "../analysis_software/Param/17F_cals/PCR_fix.dat";
   pcrfile.open(pcrfilename);
   if(pcrfile.is_open()) {
     cout << "Reading in PC wire radius file " << pcrfilename << "..." << endl;
@@ -199,7 +192,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
   pcrfile.close();
-  //#endif
+#endif
     
 #ifdef DoLoss
   LookUp *E_Loss_7Be = new LookUp("/data0/nabin/Vec/Param/Be7_D2_400Torr_20160614.eloss",M_7Be);
@@ -250,6 +243,8 @@ int main(int argc, char* argv[]) {
 #ifdef PCWireCal
   Float_t Ztgt;
   MainTree->Branch("Ztgt",&Ztgt,"Ztgt/F");
+  Int_t spacer;
+  MainTree->Branch("spacer",&spacer,"spacer/I");
 #else
   Int_t Old_RFTime,Old_MCPTime;
   Int_t RFTime, MCPTime;
@@ -272,6 +267,11 @@ int main(int argc, char* argv[]) {
   Int_t count_1track=0, count_2tracks=0, count_3tracks =0,count_morethan3tracks=0;
   Int_t count_3He=0;
   Int_t count_3He_NT2;
+#ifdef MaxWire
+  Int_t count_wire[NPCWires]={0};
+  Bool_t max_wire[NPCWires]={kFALSE};
+  Int_t count_max_wire=0;
+#endif
   ////////////////////////////////////////////////////
   //============  Read the root files from the Data list ==============  
   ifstream inFileList;
@@ -299,8 +299,53 @@ int main(int argc, char* argv[]) {
       cout << "Root file "<< nfiles <<": " << rootfile << " could not be opened.\n";     
       continue;
     }   
-    cout << "Processing file "<< nfiles <<": " << rootfile << endl;   
+    cout << "Processing file "<< nfiles <<": " << rootfile << endl;
 
+#ifdef PCWireCal      
+    // target positions, based on geometry measurements done with Lagy on 2/22/2017
+    Int_t num;
+    sscanf(rootfile.c_str(),"%*[^0-9]%d*",&num);
+    cout << " Spacer number is "<< num <<endl;
+  
+    Float_t target=0;
+    switch(num) {
+    case 0 : target=27.7495; //Spacer-0 all the way in
+      break;
+    case 1: target=22.8988;  //Spacer-1 // 4.85cm
+      break;
+    case 2: target=16.8789;  //Spacer-2 //10.87cm
+      break;
+    case 3: target=15.6083;  //Spacer-3 //12.14cm
+      break;
+    case 4: target=12.4741;  //Spacer-4 //15.36cm
+      break;
+    case 5: target=7.4268;   //Spacer-5 //20.3 cm
+      break;
+    case 6: target=61.5495;  //Spacer-6 //26.2 cm
+      break;
+    case 7: target=-2.8505;  //Spacer-7 //30.6 cm
+      break;
+
+    default :
+      target=0;
+      cout << "No spacer position found" <<endl; 
+    }
+
+    cout << " Target position is " << target << endl;
+#ifdef gold_pos
+    cout << " Target position defined as " << gold_pos << endl;
+#endif
+#endif
+
+#ifdef MaxWire
+    //reset max wire for each file
+    count_max_wire=0;
+    for (Int_t i=0; i<NPCWires; i++) {   
+      count_wire[i]=0;
+      max_wire[i]=kFALSE;
+    }
+#endif 
+    
     TTree *raw_tree = (TTree*) inputFile->Get("MainTree");
     raw_tree->SetBranchAddress("Si.NSiHits",&Si.NSiHits);
     raw_tree->SetBranchAddress("Si.Detector",&Si.ReadDet);
@@ -326,15 +371,20 @@ int main(int argc, char* argv[]) {
     
     Int_t status;
     Float_t print_step=0.1;
-    if(nentries>1e6)
-      print_step/=10;
+    //if(nentries>1e6) print_step/=10;
     cout << " Each \".\" represents " << (print_step/10)*nentries << " events or " << print_step/10*100 <<"% of total" <<endl;
     for (Long64_t i=0; i<nentries; i++) {//====================loop over all events=================
+#ifdef MaxWire
+      if (count_max_wire>=NMaxWire) {
+	cout << endl << "Max reached for all " << NMaxWire << " wires" << endl;
+	break;
+      }
+#endif
       status = raw_tree->GetEvent(i);
       if(i%TMath::Nint(nentries*print_step)==0) cout << endl << "  Done: "
 					       << right << fixed << setw(3)
 					       << TMath::Nint(i*100./nentries) << "%" << std::flush;
-      if(i%TMath::Nint(nentries*print_step/10)==0) cout << "." << std::flush;
+      if(i%TMath::Nint(nentries*print_step/((nentries>1e6)?100:10))==0) cout << "." << std::flush;
       ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef PCWireCal
@@ -424,8 +474,12 @@ int main(int argc, char* argv[]) {
 	    Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	    Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	    Tr.track_obj.PCR = PC.pc_obj.RW;
-	    Tr.track_obj.WireID = PC.pc_obj.WireID;	
-	 
+	    Tr.track_obj.PCRad = WireRad[Tr.track_obj.WireID];
+	    Tr.track_obj.WireID = PC.pc_obj.WireID;
+#ifdef MaxWire
+	    if(max_wire[Tr.track_obj.WireID])
+	      continue;
+#endif
 	    // eliminate Si and Wire from further tracking
 	    Si.ReadHit->at(j).Energy = -1000;
 	    PC.ReadHit->at(GoodPC).Energy = -10;
@@ -483,7 +537,11 @@ int main(int argc, char* argv[]) {
 	  Tr.track_obj.TrackType = 3;
 
 	  Tr.track_obj.PCEnergy = PC.pc_obj.Energy;
-	  Tr.track_obj.WireID = PC.pc_obj.WireID;	
+	  Tr.track_obj.WireID = PC.pc_obj.WireID;
+#ifdef MaxWire
+	  if(max_wire[Tr.track_obj.WireID])
+	    continue;
+#endif
 	  Tr.track_obj.PCZraw = PC.pc_obj.Z;
 	  Tr.track_obj.PCZ = PC.pc_obj.ZW;
 	  Tr.track_obj.PCR = PC.pc_obj.RW;
@@ -505,7 +563,10 @@ int main(int argc, char* argv[]) {
       Int_t pct;
       for(Int_t pc=0; pc<Tr.NTracks; pc++) {
 	//cout<<"   Check 10 " <<Tr.NTracks<<endl;
-	
+#ifdef MaxWire	
+	if(max_wire[Tr.TrEvent[pc].WireID])
+	  continue;
+#endif
 	//All PCWire vs Energy
 	MyFill("WireID_vs_PCEnegy",25,0,24,Tr.TrEvent[pc].WireID,500,0,2,Tr.TrEvent[pc].PCEnergy);
 	
@@ -523,8 +584,12 @@ int main(int argc, char* argv[]) {
       ///////////////////////////////////For the Tracking///////////////////////////////////    
       //reconstruction variables
       Double_t m = 0, b = 0; 
-
+      Double_t tantheta=0;
       for(Int_t p=0; p<Tr.NTracks1;p++) {
+#ifdef MaxWire
+	if(max_wire[Tr.TrEvent[p].WireID])
+	  continue;
+#endif
 	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCC///Let's put some checks //2016July28 CCCCCCCCCCC	
 #ifdef CheckBasic
@@ -548,6 +613,16 @@ int main(int argc, char* argv[]) {
 	b = (WireRad[Tr.TrEvent[p].WireID] - m*Tr.TrEvent[p].PCZ);
 	Tr.TrEvent[p].IntPoint = -b/m;
 	////cout<<" IntPoint = "<<Tr.TrEvent[p].IntPoint<<endl;
+	tantheta =(Tr.TrEvent[p].SiR-WireRad[Tr.TrEvent[p].WireID])/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
+	Tr.TrEvent[p].Theta_Z = atan(tantheta);
+	
+
+	Tr.TrEvent[p].IntPoint_PC = WireRad[Tr.TrEvent[p].WireID]/tantheta+Tr.TrEvent[p].PCZ;//same
+	Tr.TrEvent[p].IntPoint_Si = Tr.TrEvent[p].SiR/tantheta+Tr.TrEvent[p].SiZ;
+
+	tantheta =(Tr.TrEvent[p].SiR-pcr)/(Tr.TrEvent[p].PCZ-Tr.TrEvent[p].SiZ);
+	Tr.TrEvent[p].IntPoint_Fixed = pcr/tantheta+Tr.TrEvent[p].PCZ;
+	
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 #ifdef CheckBasic
 	if(Tr.TrEvent[p].IntPoint<-5.0 || Tr.TrEvent[p].IntPoint>55.0){
@@ -557,29 +632,31 @@ int main(int argc, char* argv[]) {
 	//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 	/////////////////////Calculating Theta and PathLength/////////////////////////////////////////////
 	// Theta is the angle between particle and beam, but our beam points in the negative z-direction 
-	if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) > 0){
+	//	if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) > 0){
 	  // This is forward-scattering, so we have theta b/w 0 and 90 
 	  Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  //Tr.TrEvent[p].Theta = TMath::Pi() - atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
+
+      
 	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	 
 	  //cout<<" Tr.TrEvent[p].Theta1 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength1 = "<<Tr.TrEvent[p].PathLength<<endl;
-	}
-	else if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) < 0){
-	  Tr.TrEvent[p].Theta = TMath::Pi() + atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  //Tr.TrEvent[p].Theta = atan(Tr.TrEvent[p].SiR/(Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ));
-	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
+	  //} else
+	  if ((Tr.TrEvent[p].IntPoint - Tr.TrEvent[p].SiZ) < 0){
+	    Tr.TrEvent[p].Theta += TMath::Pi();
+	    Tr.TrEvent[p].Theta_Z += TMath::Pi();
+
+	    //	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR/sin(Tr.TrEvent[p].Theta);
 	
 	  //if(Tr.TrEvent[p].Theta>0){
 	  //cout<<" Tr.TrEvent[p].Theta2 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength2 = "<<Tr.TrEvent[p].PathLength<<endl;
 	  //}
 	}
-	else{
-	  Tr.TrEvent[p].Theta = TMath::Pi()/2;
-	  Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR;
+	// else{
+	//   Tr.TrEvent[p].Theta = TMath::Pi()/2;
+	//   Tr.TrEvent[p].PathLength = Tr.TrEvent[p].SiR;
 
-	  //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
-	}
+	//   //cout<<" Tr.TrEvent[p].Theta3 =  "<<Tr.TrEvent[p].Theta*ConvAngle<<" Tr.TrEvent[p].PathLength3 = "<<Tr.TrEvent[p].PathLength<<endl;
+	// }
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef DoLoss
 	if(Tr.TrEvent[p].IntPoint >0.0 && Tr.TrEvent[p].IntPoint<54.0) {
@@ -597,15 +674,18 @@ int main(int argc, char* argv[]) {
       
 #ifdef PCWireCal      
 
-      Double_t tantheta;
-           
       for(Int_t s=0; s<Tr.NTracks1;s++) {
-
-	Ztgt=gold_pos;
-	//determine PC position from Silicon position and gold position
-	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - gold_pos);
-	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+gold_pos;
-	Tr.TrEvent[s].PCZ_Ref = WireRad[Tr.TrEvent[s].WireID]/tantheta+gold_pos;
+#ifdef MaxWire
+	if(max_wire[Tr.TrEvent[s].WireID])	
+	  continue;
+#endif	
+	Ztgt=target;
+	spacer=num;
+	//determine PC position from Silicon position and target position
+	tantheta = Tr.TrEvent[s].SiR/(Tr.TrEvent[s].SiZ - target);
+	Tr.TrEvent[s].Theta_Ref=atan(tantheta);
+	Tr.TrEvent[s].PCZ_Ref = pcr/tantheta+target;
+	Tr.TrEvent[s].PCZ_Ref = WireRad[Tr.TrEvent[s].WireID]/tantheta+target;
 	//cout<<"tantheta = "<< tantheta <<" PCZ_Ref = "<<Tr.TrEvent[s].PCZ_Ref<<endl;
 
 	Int_t pcbins=400;
@@ -646,6 +726,17 @@ int main(int argc, char* argv[]) {
 	Float_t E_gate_width=0.08;
 	
 	if (Tr.TrEvent[s].SiEnergy>(E_gate_center-E_gate_width) && Tr.TrEvent[s].SiEnergy< (E_gate_center+E_gate_width)) {//this cut is to clean up calibration data... 	  
+#ifdef MaxWire
+	  count_wire[Tr.TrEvent[s].WireID]++;
+	  if(max_wire[Tr.TrEvent[s].WireID]==kFALSE && count_wire[Tr.TrEvent[s].WireID]>MaxWire) {
+	    max_wire[Tr.TrEvent[s].WireID]=kTRUE;
+	    count_max_wire++;
+	    cout << endl << "Wire " 
+		 << right << fixed << setw(2)
+		 << Tr.TrEvent[s].WireID << " max reached at " << i;
+	    cout << ". Max total " << count_max_wire;
+	  }
+#endif
 	  
 	  MyFill(Form("PCZ_Refg%i",Tr.TrEvent[s].WireID),
 		 pcbins,1.0,zmax,Tr.TrEvent[s].PCZ_Ref);
@@ -686,13 +777,17 @@ int main(int argc, char* argv[]) {
       //////////////////////////////////////////////////////////////////////////////////////////// 
 #ifdef FillTree
       if(Tr.NTracks>0)
-	MainTree->Fill();
+#ifdef MaxWire
+	if (count_max_wire<=NMaxWire)
+#endif
+	  MainTree->Fill();
 #endif
     }//end of event loop
   }//end of file loop
   outputfile->cd();
   RootObjects->Write(); 
   outputfile->Close();
+  cout<<endl;
 }//end of Main
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -432,7 +432,7 @@ Double_t GainMatch::Fit4(TH2F* hist, Double_t slope_guess) {//calculated cut
   Int_t up=6000;
   hist->GetXaxis()->SetRangeUser(0,up);
   hist->GetYaxis()->SetRangeUser(0,up);
-
+  can->SaveAs("tempcan.pdf");
   slope=slope_guess;
   offset=0;
   if(doprint)
@@ -538,7 +538,10 @@ Double_t GainMatch::Fit4(TH2F* hist, Double_t slope_guess) {//calculated cut
   
     if(doup) can->Update();
     //if(k==0) can->WaitPrimitive();
-  
+    TString figname="tempcan";
+    figname+=k;
+    figname+=".pdf";
+    can->SaveAs(figname);
     delete x;
     delete y;
     delete graph;

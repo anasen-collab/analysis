@@ -8,17 +8,18 @@
 *.exe
 *.out
 
+# linked directories
+**/root
+**/scripts
+**/data
+**/figures
+
 # Emacs
 *~
 \#*#
 
-# linked directories
-/*root
-/*scripts
-/*data
-
-# temporary Git files
-*~*
+# Git
+*.~*~
 
 # image files
 *.pdf

@@ -18,4 +18,4 @@ tr_dict.cxx: ../include/tree_structure.h ../include/LinkDef.h
 
 clean:
 	@echo removing Analyzer files...
-	rm Analyzer Analyzer_Cal Analyzer_ES Analyzer_Maria tr_dict.cxx tr_dict.h
+	rm Analyzer Analyzer_ES Analyzer_Maria tr_dict.cxx tr_dict.h

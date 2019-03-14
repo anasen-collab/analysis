@@ -38,7 +38,7 @@ void SiRelativeGains_Step1(void) {
   GainMatch gainmatch;
 
   for (Int_t DetNum=4; DetNum<ndets+4; DetNum++) {
-    //if(DetNum!=12) continue;
+    //if(DetNum!=5) continue;
     for (Int_t FrontChNum=0; FrontChNum<4; FrontChNum++) {
       TH2F *hist = NULL;
       //TString hname=Form("down_vs_up_divideBack%i_f%i",DetNum,FrontChNum); //normalized
